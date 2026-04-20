@@ -1,7 +1,36 @@
 <?php
 
+use App\Http\Controllers\ApplicationController;
+use App\Http\Controllers\CvController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\InternshipController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SkillController;
+use App\Http\Controllers\StudentProfileController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 Route::get('/', function () {
-    return view('welcome');
+    return Inertia::render('Welcome');
+})->name('home');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', DashboardController::class)->name('dashboard');
+
+    Route::middleware('role:mahasiswa')->group(function () {
+        Route::get('/profile', [StudentProfileController::class, 'show'])->name('profile.show');
+        Route::post('/profile', [StudentProfileController::class, 'store'])->name('profile.store');
+        Route::post('/profile/skills', [SkillController::class, 'store'])->name('skills.store');
+        Route::get('/internships', [InternshipController::class, 'index'])->name('internships.index');
+        Route::post('/internship-apply', [ApplicationController::class, 'store'])->name('internships.apply');
+        Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
+        Route::get('/cv/download', [CvController::class, 'download'])->name('cv.download');
+    });
+
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+require __DIR__.'/auth.php';
