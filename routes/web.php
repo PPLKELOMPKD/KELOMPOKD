@@ -15,6 +15,17 @@ Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('home');
 
+Route::get('/peserta', function () { return Inertia::render('Peserta'); })->name('peserta');
+Route::get('/perusahaan', function () { return Inertia::render('Perusahaan'); })->name('perusahaan');
+Route::get('/tentang', function () { return Inertia::render('TentangSikara'); })->name('tentang');
+
+// Fitur Navigasi
+Route::get('/lowongan', function () { return Inertia::render('Features/Lowongan'); })->name('lowongan');
+Route::get('/perusahaan-list', function () { return Inertia::render('Features/CompanyList'); })->name('perusahaan-list');
+Route::get('/lms', function () { return Inertia::render('Features/Lms'); })->name('lms');
+Route::get('/event', function () { return Inertia::render('Features/Event'); })->name('event');
+Route::get('/generate-cv', function () { return Inertia::render('Features/GenerateCv'); })->name('generate-cv');
+
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
