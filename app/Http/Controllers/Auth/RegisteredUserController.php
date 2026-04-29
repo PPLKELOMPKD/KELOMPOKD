@@ -42,9 +42,9 @@ class RegisteredUserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'phone' => 'nullable|string|max:50',
-            'nim' => 'required_if:role,mahasiswa|string|max:50|unique:mahasiswa_profiles,nim',
-            'university' => 'required_if:role,mahasiswa|string|max:255',
-            'study_program' => 'required_if:role,mahasiswa|string|max:255',
+            'nim' => 'nullable|required_if:role,mahasiswa|string|max:50|unique:mahasiswa_profiles,nim',
+            'university' => 'nullable|required_if:role,mahasiswa|string|max:255',
+            'study_program' => 'nullable|required_if:role,mahasiswa|string|max:255',
             'terms' => 'accepted',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
