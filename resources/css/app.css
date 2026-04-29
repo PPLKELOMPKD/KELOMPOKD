@@ -1,3 +1,38 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    :root {
+        --sikara-blue:  #2563EB;
+        --sikara-green: #10B981;
+        --sikara-dark:  #0F172A;
+        --sikara-slate: #64748B;
+        --sikara-light: #F1F5F9;
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+    }
+}
+
+@layer components {
+    /* Gradient text utility */
+    .text-sikara-gradient {
+        background: linear-gradient(135deg, #2563EB 0%, #10B981 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Animated gradient border */
+    .border-sikara-gradient {
+        border: 2px solid transparent;
+        background-image: linear-gradient(white, white),
+            linear-gradient(135deg, #2563EB, #10B981);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+    }
+}
