@@ -51,6 +51,15 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if (Auth::user()->status !== \App\Models\User::STATUS_ACTIVE) {
+            Auth::logout();
+            
+            RateLimiter::hit($this->throttleKey());
+            throw ValidationException::withMessages([
+                'email' => 'Akun Anda tidak aktif atau telah ditangguhkan.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 
