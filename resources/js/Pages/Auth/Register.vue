@@ -34,7 +34,7 @@ const selectRole = (role) => {
 const submit = () => {
     form.transform((data) => ({
         ...data,
-        phone: data.phone || null,
+        phone: isMahasiswa.value ? data.phone : null,
         university: isMahasiswa.value ? data.university : null,
         study_program: isMahasiswa.value ? data.study_program : null,
         nim: isMahasiswa.value ? data.nim : null,
@@ -121,24 +121,24 @@ const submit = () => {
                 <InputError class="mt-1.5" :message="form.errors.email" />
             </div>
 
-            <!-- Phone -->
-            <div>
-                <label for="phone" class="block text-sm font-medium text-[#0F172A]">Nomor Telepon</label>
-                <div class="relative mt-1.5">
-                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-[#94A3B8]">
-                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.86 19.86 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.86 19.86 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72l.35 2.82a2 2 0 0 1-.57 1.7L7.1 10.1a16 16 0 0 0 6.8 6.8l1.86-1.79a2 2 0 0 1 1.7-.57l2.82.35A2 2 0 0 1 22 16.92Z" />
-                        </svg>
-                    </div>
-                    <input id="phone" v-model="form.phone" type="tel" required autocomplete="tel"
-                        placeholder="+62 812-3456-7890"
-                        class="block h-10 w-full rounded-lg border border-[#E2E8F0] bg-white pl-9 pr-3 text-sm text-[#0F172A] placeholder:text-[#CBD5E1] focus:border-[#2563EB] focus:outline-none focus:ring-1 focus:ring-[#2563EB]/10" />
-                </div>
-                <InputError class="mt-1.5" :message="form.errors.phone" />
-            </div>
-
             <!-- Mahasiswa fields -->
             <template v-if="isMahasiswa">
+                <!-- Phone -->
+                <div>
+                    <label for="phone" class="block text-sm font-medium text-[#0F172A]">Nomor Telepon</label>
+                    <div class="relative mt-1.5">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-[#94A3B8]">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.86 19.86 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.86 19.86 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72l.35 2.82a2 2 0 0 1-.57 1.7L7.1 10.1a16 16 0 0 0 6.8 6.8l1.86-1.79a2 2 0 0 1 1.7-.57l2.82.35A2 2 0 0 1 22 16.92Z" />
+                            </svg>
+                        </div>
+                        <input id="phone" v-model="form.phone" type="tel" required autocomplete="tel"
+                            placeholder="+62 812-3456-7890"
+                            class="block h-10 w-full rounded-lg border border-[#E2E8F0] bg-white pl-9 pr-3 text-sm text-[#0F172A] placeholder:text-[#CBD5E1] focus:border-[#2563EB] focus:outline-none focus:ring-1 focus:ring-[#2563EB]/10" />
+                    </div>
+                    <InputError class="mt-1.5" :message="form.errors.phone" />
+                </div>
+
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label for="university" class="block text-sm font-medium text-[#0F172A]">Universitas</label>
