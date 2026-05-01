@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Application;
 use App\Models\Notification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,10 +15,21 @@ class ApplicationController extends Controller
             'internship_id' => ['required', 'exists:internships,id'],
         ]);
 
-        $application = $request->user()->applications()->firstOrCreate(
-            ['internship_id' => $data['internship_id']],
-            ['status' => 'submitted']
-        );
+        $user = $request->user();
+
+        $hasApplied = Application::where('user_id', $user->id)
+            ->where('internship_id', $request->internship_id)
+            ->exists();
+
+        if ($hasApplied) {
+            return back()->with('error', 'Anda sudah melamar posisi ini.');
+        }
+
+        $user->applications()->create([
+            'users_id' => $user->id,
+            'internship_id' => $data['internship_id'],
+            'status' => 'submitted'
+        ]);
 
         Notification::query()->create([
             'user_id' => $request->user()->id,
@@ -26,10 +38,6 @@ class ApplicationController extends Controller
             'type' => 'application',
         ]);
 
-        if (! $application->wasRecentlyCreated) {
-            $application->update(['status' => 'submitted']);
-        }
-
-        return redirect()->route('internships.index');
+        return redirect()->route('internships.index')->with('success', 'Lamaran berhasil dikirim!');
     }
 }

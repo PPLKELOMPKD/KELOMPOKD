@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
         $student = User::factory()->mahasiswa()->create([
             'name' => 'Budi Santoso',
             'email' => 'mahasiswa@sikara.test',
+            'password' => "12345678",
         ]);
 
         MahasiswaProfile::query()->create([
