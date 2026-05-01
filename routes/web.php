@@ -34,6 +34,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/profile', [StudentProfileController::class, 'store'])->name('profile.store');
         Route::post('/profile/skills', [SkillController::class, 'store'])->name('skills.store');
         Route::get('/internships', [InternshipController::class, 'index'])->name('internships.index');
+        Route::get('/intenships/{internship}', [InternshipController::class, 'show'])->name('internships.show');
         Route::post('/internship-apply', [ApplicationController::class, 'store'])->name('internships.apply');
         Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
         Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
