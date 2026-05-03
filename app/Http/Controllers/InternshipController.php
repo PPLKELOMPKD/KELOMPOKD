@@ -28,9 +28,20 @@ class InternshipController extends Controller
             ? auth()->user()->applications()->where('internship_id', $internship->id)->exists()
             : false;
 
+        // Get related internships (same company or same location, excluding current)
+        $relatedInternships = Internship::where('is_published', true)
+            ->where('id', '!=', $internship->id)
+            ->where(function ($query) use ($internship) {
+                $query->where('company_name', $internship->company_name)
+                      ->orWhere('location', $internship->location);
+            })
+            ->limit(3)
+            ->get();
+
         return Inertia::render('Internships/Show', [
             'internship' => $internship,
-            'hasApplied' => $hasApplied
+            'hasApplied' => $hasApplied,
+            'relatedInternships' => $relatedInternships,
         ]);
     }
 
@@ -40,8 +51,18 @@ class InternshipController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        // Extract unique values for filter dropdowns
+        $companies = $internships->pluck('company_name')->unique()->filter()->values()->toArray();
+        $locations = $internships->pluck('location')->unique()->filter()->values()->toArray();
+        $workTypes = $internships->pluck('work_type')->unique()->filter()->values()->toArray();
+
         return Inertia::render('Features/Lowongan', [
-            'internships' => $internships
+            'internships' => $internships,
+            'filterOptions' => [
+                'companies' => $companies,
+                'locations' => $locations,
+                'workTypes' => $workTypes,
+            ],
         ]);
     }
 }

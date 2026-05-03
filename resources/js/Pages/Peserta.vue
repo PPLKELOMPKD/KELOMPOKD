@@ -49,30 +49,38 @@ const faqs = [
     <PortalLayout activeRole="peserta" loginRole="mahasiswa">
         <template #navigation>
             <Link :href="route('lowongan')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Cari Lowongan</Link>
-            <Link :href="route('perusahaan-list')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">List Perusahaan</Link>
+            <Link :href="route('perusahaan-list')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Daftar Perusahaan</Link>
             <Link :href="route('lms')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">LMS</Link>
             <Link :href="route('event')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Pelatihan</Link>
-            <Link :href="route('generate-cv')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Generate CV</Link>
+            <Link :href="route('generate-cv')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Buat CV</Link>
         </template>
 
         <!-- ── Welcome Banner (Authenticated) ── -->
-        <section v-if="user" class="bg-gradient-to-r from-[#2563EB] to-[#1E40AF] text-white">
-            <div class="mx-auto max-w-6xl px-6 py-8">
-                <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div class="flex items-center gap-5">
-                        <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 text-2xl font-black backdrop-blur-sm">
+        <section v-if="user" class="bg-gradient-to-br from-[#2563EB] via-[#1D4ED8] to-[#1E40AF] text-white relative overflow-hidden shadow-sm">
+            <div class="absolute top-0 right-0 -mr-20 -mt-20 w-72 h-72 rounded-full bg-white opacity-5 blur-3xl pointer-events-none"></div>
+            <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-[#60A5FA] opacity-10 blur-3xl pointer-events-none"></div>
+            <div class="mx-auto max-w-7xl px-6 py-10 relative z-10">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div class="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
+                        <div v-if="user.profile_photo_url || user.photo" class="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border-4 border-white/20 shadow-xl backdrop-blur-sm">
+                            <img :src="user.profile_photo_url || user.photo" alt="Profile" class="h-full w-full object-cover" />
+                        </div>
+                        <div v-else class="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border-4 border-white/20 bg-white/10 text-3xl font-black shadow-xl backdrop-blur-sm">
                             {{ user.name?.charAt(0)?.toUpperCase() }}
                         </div>
                         <div>
-                            <p class="text-sm font-medium text-white/70">Selamat datang kembali,</p>
-                            <h2 class="text-2xl font-bold">{{ user.name }}</h2>
-                            <p v-if="profileSummary" class="text-sm text-white/70 mt-0.5">{{ profileSummary.university }} · {{ profileSummary.department }}</p>
+                            <p class="text-sm font-medium text-blue-100 mb-1 tracking-wide">Selamat datang kembali,</p>
+                            <h2 class="text-3xl font-black tracking-tight">{{ user.name }}</h2>
+                            <p v-if="profileSummary" class="text-sm text-blue-200 mt-2 font-medium flex flex-wrap items-center justify-center md:justify-start gap-2">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                                {{ profileSummary.university }} <span class="text-blue-300/50">•</span> {{ profileSummary.department }}
+                            </p>
                         </div>
                     </div>
-                    <div v-if="stats" class="flex gap-6">
-                        <div v-for="stat in stats" :key="stat.label" class="text-center bg-white/10 rounded-xl px-5 py-3 backdrop-blur-sm">
-                            <p class="text-2xl font-black">{{ stat.value }}</p>
-                            <p class="text-xs font-medium text-white/70 mt-1">{{ stat.label }}</p>
+                    <div v-if="stats" class="flex flex-wrap md:flex-nowrap gap-4 w-full md:w-auto justify-center">
+                        <div v-for="stat in stats" :key="stat.label" class="flex-1 md:flex-none min-w-[120px] text-center bg-white/10 border border-white/10 rounded-2xl px-6 py-4 backdrop-blur-md shadow-lg transition-transform hover:-translate-y-1">
+                            <p class="text-3xl font-black text-white">{{ stat.value }}</p>
+                            <p class="text-xs font-bold text-blue-200 mt-2 tracking-wide uppercase">{{ stat.label }}</p>
                         </div>
                     </div>
                 </div>
@@ -80,19 +88,35 @@ const faqs = [
         </section>
 
         <!-- ── Hero Peserta ── -->
-        <section class="mx-auto max-w-6xl px-6 pt-24 pb-20 text-center">
-            <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-[#E2E8F0] bg-white px-4 py-1.5 shadow-sm">
-                <span class="text-xs font-bold text-[#2563EB]">Platform Pengembangan Karier Mahasiswa</span>
+        <section class="relative bg-white pt-24 pb-32 overflow-hidden border-b border-[#F1F5F9]">
+            <div class="absolute inset-0 bg-[url('/images/pattern-grid.svg')] opacity-[0.03] pointer-events-none"></div>
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-tr from-[#EFF6FF] to-[#DBEAFE] rounded-full blur-[120px] opacity-50 z-0 pointer-events-none"></div>
+
+            <div class="mx-auto max-w-6xl px-6 text-center relative z-10">
+                <div class="mb-8 inline-flex items-center gap-2 rounded-full border border-[#DBEAFE] bg-[#EFF6FF] px-5 py-2 shadow-sm transition-transform hover:scale-105">
+                    <span class="flex h-2 w-2 rounded-full bg-[#2563EB] animate-pulse"></span>
+                    <span class="text-xs font-bold text-[#1D4ED8] tracking-wide uppercase">Platform Pengembangan Karier Mahasiswa</span>
+                </div>
+
+                <h1 class="mx-auto max-w-5xl text-5xl font-black leading-tight tracking-tight text-[#0F172A] lg:text-7xl">
+                    Jembatan Menuju<br />
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#2563EB] via-[#3B82F6] to-[#06B6D4]">Karier Impian Anda</span>
+                </h1>
+
+                <p class="mx-auto mt-8 max-w-2xl text-lg text-[#475569] leading-relaxed font-medium">
+                    Tingkatkan kompetensi Anda melalui Pelatihan & LMS, temukan magang yang tepat dari ratusan mitra, dan buat CV profesional standar industri secara instan.
+                </p>
+                
+                <div class="mt-12 flex flex-wrap justify-center gap-4">
+                    <Link :href="route('lowongan')" class="inline-flex items-center justify-center rounded-xl bg-[#2563EB] px-8 py-4 text-base font-bold text-white transition-all hover:bg-[#1D4ED8] hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/30 w-full sm:w-auto">
+                        Mulai Eksplorasi
+                        <svg class="ml-2 h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </Link>
+                    <Link :href="route('perusahaan-list')" class="inline-flex items-center justify-center rounded-xl bg-white border-2 border-[#E2E8F0] px-8 py-4 text-base font-bold text-[#0F172A] transition-all hover:border-[#CBD5E1] hover:bg-[#F8FAFC] hover:-translate-y-1 w-full sm:w-auto shadow-sm">
+                        Lihat Mitra Perusahaan
+                    </Link>
+                </div>
             </div>
-
-            <h1 class="mx-auto max-w-4xl text-4xl font-extrabold leading-tight tracking-tight text-[#0F172A] lg:text-6xl">
-                Jembatan Menuju<br />
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#2563EB] to-[#60A5FA]">Karier Impian Anda</span>
-            </h1>
-
-            <p class="mx-auto mt-6 max-w-2xl text-base text-[#64748B] leading-relaxed">
-                Tingkatkan kompetensi Anda melalui Pelatihan & LMS, temukan magang yang tepat dari ratusan mitra, dan buat CV profesional standar industri secara instan.
-            </p>
         </section>
 
         <!-- ── Fitur Unggulan ── -->
@@ -289,15 +313,5 @@ const faqs = [
             </div>
         </section>
 
-        <!-- Footer -->
-        <footer class="bg-white border-t border-[#E2E8F0]">
-            <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
-                <div class="flex items-center gap-3">
-                    <img src="/images/Logo-SIKARA.png" alt="SIKARA" class="h-5 w-auto opacity-70" />
-                    <span class="text-xs font-bold text-[#64748B]">SIKARA</span>
-                </div>
-                <p class="text-xs font-medium text-[#94A3B8]">© 2026 Portal Peserta</p>
-            </div>
-        </footer>
     </PortalLayout>
 </template>
