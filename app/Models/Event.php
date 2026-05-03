@@ -7,28 +7,27 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Internship extends Model
+class Event extends Model
 {
-    /** @use HasFactory<\Database\Factories\InternshipFactory> */
     use HasFactory;
 
     protected $fillable = [
         'company_id',
         'title',
         'description',
-        'company_name',
+        'date',
+        'start_time',
+        'end_time',
         'location',
-        'requirements',
-        'deadline_at',
-        'quota',
-        'is_published',
+        'type',
+        'status',
+        'max_participants',
     ];
 
     protected function casts(): array
     {
         return [
-            'deadline_at' => 'datetime',
-            'is_published' => 'boolean',
+            'date' => 'date',
         ];
     }
 
@@ -37,8 +36,13 @@ class Internship extends Model
         return $this->belongsTo(User::class, 'company_id');
     }
 
-    public function applications(): HasMany
+    public function registrations(): HasMany
     {
-        return $this->hasMany(Application::class);
+        return $this->hasMany(EventRegistration::class);
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === 'published' && $this->date->isFuture();
     }
 }

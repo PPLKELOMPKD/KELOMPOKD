@@ -10,8 +10,10 @@ class CompanyInternshipController extends Controller
 {
     public function index()
     {
-        // Menampilkan daftar lowongan magang
-        $internships = Internship::latest()->get();
+        // Menampilkan daftar lowongan magang milik perusahaan yang login
+        $internships = Internship::where('company_id', auth()->id())
+            ->latest()
+            ->get();
         return Inertia::render('Perusahaan/Internships/Index', [
             'internships' => $internships
         ]);
@@ -45,6 +47,7 @@ class CompanyInternshipController extends Controller
         ]);
 
         $validated['is_published'] = true;
+        $validated['company_id'] = auth()->id();
         Internship::create($validated);
 
         return redirect()->route('perusahaan.internships.index')->with('success', 'Lowongan Magang Berhasil Ditambahkan');
