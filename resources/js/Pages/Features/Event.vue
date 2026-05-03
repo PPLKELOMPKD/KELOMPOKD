@@ -9,10 +9,10 @@ import PortalLayout from '@/Layouts/PortalLayout.vue';
     <PortalLayout activeRole="peserta" loginRole="mahasiswa">
         <template #navigation>
             <Link :href="route('lowongan')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Cari Lowongan</Link>
-            <Link :href="route('perusahaan-list')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">List Perusahaan</Link>
+            <Link :href="route('perusahaan-list')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Daftar Perusahaan</Link>
             <Link :href="route('lms')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">LMS</Link>
             <Link :href="route('event')" class="text-sm font-semibold text-[#2563EB]">Pelatihan</Link>
-            <Link :href="route('generate-cv')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Generate CV</Link>
+            <Link :href="route('generate-cv')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Buat CV</Link>
         </template>
 
         <div class="bg-white min-h-[calc(100vh-130px)] pb-24">
@@ -69,37 +69,6 @@ import PortalLayout from '@/Layouts/PortalLayout.vue';
                 </div>
             </div>
             
-            <!-- Large Footer like Magenta -->
-            <footer class="bg-white border-t border-[#E2E8F0] mt-32">
-                <div class="mx-auto max-w-6xl px-6 py-12">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                        <div class="col-span-1 md:col-span-2">
-                            <div class="flex items-center gap-3 mb-6">
-                                <img src="/images/Logo-SIKARA.png" alt="SIKARA" class="h-8 w-auto" />
-                                <span class="text-xl font-black tracking-tight text-[#0F172A]">SIKARA</span>
-                            </div>
-                            <h3 class="text-lg font-bold text-[#0F172A] mb-2">SIKARA Indonesia</h3>
-                            <p class="text-sm text-[#64748B]">Email: <a href="mailto:cs@sikara.id" class="text-[#2563EB] hover:underline">cs@sikara.id</a></p>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-[#0F172A] mb-6">Peserta</h4>
-                            <ul class="space-y-4">
-                                <li><Link :href="route('lowongan')" class="text-sm text-[#64748B] hover:text-[#2563EB]">Cari Lowongan</Link></li>
-                                <li><Link :href="route('event')" class="text-sm text-[#64748B] hover:text-[#2563EB]">Cari Event</Link></li>
-                                <li><Link :href="route('perusahaan-list')" class="text-sm text-[#64748B] hover:text-[#2563EB]">Daftar Perusahaan</Link></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 class="font-bold text-[#0F172A] mb-6">Tentang SIKARA</h4>
-                            <ul class="space-y-4">
-                                <li><a href="#" class="text-sm text-[#64748B] hover:text-[#2563EB]">Panduan</a></li>
-                                <li><a href="#" class="text-sm text-[#64748B] hover:text-[#2563EB]">Pusat Informasi</a></li>
-                                <li><Link :href="route('tentang')" class="text-sm text-[#64748B] hover:text-[#2563EB]">Tentang Kami</Link></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </footer>
         </div>
     </PortalLayout>
 </template>

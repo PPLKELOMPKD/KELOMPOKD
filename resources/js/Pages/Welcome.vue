@@ -93,6 +93,85 @@ onMounted(() => {
             </div>
         </section>
 
+        <!-- ── Tentang SIKARA ── -->
+        <section id="tentang" class="bg-white py-24 relative overflow-hidden">
+            <!-- Background Elements -->
+            <div class="absolute -top-40 -right-40 h-[500px] w-[500px] rounded-full bg-[#2563EB] opacity-[0.03] blur-[100px]"></div>
+            <div class="absolute -bottom-40 -left-40 h-[500px] w-[500px] rounded-full bg-[#10B981] opacity-[0.03] blur-[100px]"></div>
+            
+            <div class="mx-auto max-w-7xl px-6 relative z-10">
+                <div class="grid lg:grid-cols-2 gap-16 items-center">
+                    <!-- Image/Illustration Side -->
+                    <div class="relative group order-2 lg:order-1 animate-fade-in-up">
+                        <div class="absolute inset-0 bg-gradient-to-tr from-[#2563EB] to-[#10B981] rounded-[2.5rem] transform rotate-3 group-hover:rotate-6 transition-transform duration-500 opacity-20 blur-lg"></div>
+                        <div class="absolute inset-0 bg-gradient-to-tr from-[#2563EB] to-[#10B981] rounded-[2.5rem] transform -rotate-2 group-hover:-rotate-4 transition-transform duration-500 opacity-10"></div>
+                        
+                        <div class="relative bg-white p-2 rounded-[2.5rem] shadow-xl border border-[#E2E8F0]">
+                            <img src="/images/sdg4-illustration.png" alt="Tentang SIKARA" class="w-full h-auto rounded-[2rem] object-cover" onerror="this.src='https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1000&auto=format&fit=crop'" />
+                            
+                            <!-- Floating Badge -->
+                            <div class="absolute -bottom-6 -right-6 bg-white p-5 rounded-2xl shadow-xl border border-[#F1F5F9] max-w-[200px] animate-bounce-slow hidden md:block">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <div class="w-10 h-10 rounded-full bg-[#ECFDF5] flex items-center justify-center text-[#10B981] font-bold">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    </div>
+                                    <div class="font-bold text-[#0F172A] leading-tight text-sm">Terverifikasi<br/><span class="text-xs text-[#64748B] font-medium">Mitra Industri</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Text Side -->
+                    <div class="space-y-8 order-1 lg:order-2 animate-fade-in-up" style="animation-delay: 200ms;">
+                        <div>
+                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EFF6FF] text-[#2563EB] text-sm font-bold tracking-wide uppercase mb-4 border border-blue-100">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                                Tentang Kami
+                            </div>
+                            <h2 class="text-3xl font-black text-[#0F172A] lg:text-4xl leading-tight mb-6">
+                                Katalisator Karir &<br />
+                                <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#2563EB] to-[#10B981]">Pendidikan Berkualitas</span>
+                            </h2>
+                            <p class="text-lg text-[#64748B] leading-relaxed">
+                                SIKARA bukan sekadar portal lowongan kerja. Kami adalah ekosistem yang mensinergikan perguruan tinggi, mahasiswa, dan industri untuk mewujudkan <strong>SDG 4: Pendidikan Berkualitas</strong> di Indonesia.
+                            </p>
+                        </div>
+
+                        <div class="space-y-6">
+                            <!-- Feature 1 -->
+                            <div class="flex gap-4 group">
+                                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#F8FAFC] border border-[#F1F5F9] text-[#2563EB] group-hover:bg-[#2563EB] group-hover:text-white transition-colors duration-300">
+                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-bold text-[#0F172A] mb-1 group-hover:text-[#2563EB] transition-colors">Akselerasi Kompetensi</h4>
+                                    <p class="text-sm text-[#64748B] leading-relaxed">Menjembatani kesenjangan antara dunia akademik dan kebutuhan industri modern.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Feature 2 -->
+                            <div class="flex gap-4 group">
+                                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#F8FAFC] border border-[#F1F5F9] text-[#10B981] group-hover:bg-[#10B981] group-hover:text-white transition-colors duration-300">
+                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-bold text-[#0F172A] mb-1 group-hover:text-[#10B981] transition-colors">Akses Inklusif & Merata</h4>
+                                    <p class="text-sm text-[#64748B] leading-relaxed">Kesempatan berkarir yang adil dan terbuka untuk seluruh talenta muda nusantara.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-4">
+                            <Link :href="route('tentang')" class="inline-flex items-center justify-center gap-2 rounded-xl bg-white border border-[#E2E8F0] px-6 py-3 text-sm font-bold text-[#0F172A] transition-all hover:border-[#2563EB] hover:text-[#2563EB] hover:shadow-lg hover:shadow-[#2563EB]/10">
+                                Pelajari Lebih Lanjut
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- ── Modul Section ── -->
         <section id="modul" class="border-t border-[#F1F5F9] bg-[#F8FAFC]">
             <div class="mx-auto max-w-7xl px-6 py-24">
@@ -256,5 +335,13 @@ onMounted(() => {
 }
 .animate-fade-in {
     animation: fadeIn 0.8s ease-out forwards;
+}
+
+@keyframes bounce-slow {
+    0%, 100% { transform: translateY(-5%); animation-timing-function: cubic-bezier(0.8, 0, 1, 1); }
+    50% { transform: translateY(0); animation-timing-function: cubic-bezier(0, 0, 0.2, 1); }
+}
+.animate-bounce-slow {
+    animation: bounce-slow 3s infinite;
 }
 </style>

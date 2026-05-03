@@ -9,16 +9,16 @@ import PortalLayout from '@/Layouts/PortalLayout.vue';
     <PortalLayout activeRole="peserta" loginRole="mahasiswa">
         <template #navigation>
             <Link :href="route('lowongan')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Cari Lowongan</Link>
-            <Link :href="route('perusahaan-list')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">List Perusahaan</Link>
+            <Link :href="route('perusahaan-list')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Daftar Perusahaan</Link>
             <Link :href="route('lms')" class="text-sm font-semibold text-[#2563EB]">LMS</Link>
             <Link :href="route('event')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Pelatihan</Link>
-            <Link :href="route('generate-cv')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Generate CV</Link>
+            <Link :href="route('generate-cv')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Buat CV</Link>
         </template>
 
-        <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-16 px-6 py-20 lg:flex-row lg:py-32 relative">
+        <div class="mx-auto flex min-h-[calc(100vh-76px)] max-w-7xl flex-col items-center justify-between gap-12 px-6 py-12 lg:flex-row lg:py-16 relative">
             <div class="max-w-xl animate-fade-in-up">
                 <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-[#2563EB]/20 bg-[#EFF6FF] px-4 py-1.5 shadow-sm">
-                    <span class="text-xs font-black text-[#2563EB] tracking-widest uppercase">Learning Management System</span>
+                    <span class="text-xs font-black text-[#2563EB] tracking-widest uppercase">Sistem Manajemen Pembelajaran</span>
                 </div>
 
                 <h1 class="text-4xl font-black leading-tight text-[#0F172A] lg:text-6xl">
