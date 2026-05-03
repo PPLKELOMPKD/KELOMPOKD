@@ -46,7 +46,7 @@ const navItems = computed(() => {
                 active: route().current("lms"),
             },
             { label: "Pelatihan", href: "/event", active: route().current("/event") },
-            { label: "Generate CV", href: "#", active: false },
+            { label: "Buat CV", href: "#", active: false },
         );
     } else if (
         user.value?.role === "perusahaan" ||
@@ -97,7 +97,7 @@ const navItems = computed(() => {
                 active: route().current("event"),
             },
             {
-                label: "Generate CV",
+                label: "Buat CV",
                 href: route("generate-cv"),
                 active: route().current("generate-cv"),
             },
