@@ -5,6 +5,7 @@ use App\Http\Controllers\CvController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InternshipController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PesertaController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SkillController;
 use App\Http\Controllers\StudentProfileController;
@@ -15,7 +16,7 @@ Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('home');
 
-Route::get('/peserta', function () { return Inertia::render('Peserta'); })->name('peserta');
+Route::get('/peserta', PesertaController::class)->name('peserta');
 Route::get('/perusahaan', function () { return Inertia::render('Perusahaan'); })->name('perusahaan');
 Route::get('/tentang', function () { return Inertia::render('TentangSikara'); })->name('tentang');
 

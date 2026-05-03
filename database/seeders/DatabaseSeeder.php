@@ -50,10 +50,12 @@ class DatabaseSeeder extends Seeder
 
         Internship::query()->create([
             'title' => 'Backend Engineer Intern',
+            'description' => 'Mengatur Backend pada Website aplikasi PT SIKARA Nusantara',
             'company_name' => 'PT SIKARA Nusantara',
             'location' => 'Bandung',
             'requirements' => 'Memahami Laravel, MySQL, dan REST API.',
             'deadline_at' => now()->addDays(14),
+            'quota' => 2,
             'is_published' => true,
         ]);
 
@@ -67,11 +69,13 @@ class DatabaseSeeder extends Seeder
         User::factory()->perusahaan()->create([
             'name' => 'Mitra Perusahaan',
             'email' => 'perusahaan@sikara.test',
+            'password' => "12345678"
         ]);
 
         User::factory()->admin()->create([
             'name' => 'Admin Kampus',
             'email' => 'admin@sikara.test',
+            'password' => "12345678"
         ]);
     }
 }
