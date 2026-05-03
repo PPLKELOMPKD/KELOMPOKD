@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ApplicationController;
+use App\Http\Controllers\ApplicationTrackingController;
 use App\Http\Controllers\CvController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InternshipController;
@@ -37,6 +38,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/internships', [InternshipController::class, 'index'])->name('internships.index');
         Route::get('/intenships/{internship}', [InternshipController::class, 'show'])->name('internships.show');
         Route::post('/internship-apply', [ApplicationController::class, 'store'])->name('internships.apply');
+        Route::get('/applications', [ApplicationTrackingController::class, 'index'])->name('applications.index');
         Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
         Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
         Route::get('/cv/download', [CvController::class, 'download'])->name('cv.download');
