@@ -77,6 +77,16 @@ class User extends Authenticatable
         return $this->hasMany(Application::class);
     }
 
+    public function internships(): HasMany
+    {
+        return $this->hasMany(Internship::class, 'company_id');
+    }
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(Event::class, 'company_id');
+    }
+
     public function notificationsFeed(): HasMany
     {
         return $this->hasMany(Notification::class)->latest();
