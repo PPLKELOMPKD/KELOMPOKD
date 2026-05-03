@@ -38,6 +38,6 @@ class ApplicationController extends Controller
             'type' => 'application',
         ]);
 
-        return redirect()->route('internships.index')->with('success', 'Lamaran berhasil dikirim!');
+        return back()->with('success', 'Lamaran berhasil dikirim!');
     }
 }
