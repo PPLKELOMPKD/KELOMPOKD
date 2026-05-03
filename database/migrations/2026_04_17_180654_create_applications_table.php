@@ -17,7 +17,6 @@ return new class extends Migration
             $table->foreignId('internship_id')->constrained('internships')->cascadeOnDelete();
             $table->string('status')->default('submitted');
             $table->timestamps();
-
             $table->unique(['user_id', 'internship_id']);
         });
     }

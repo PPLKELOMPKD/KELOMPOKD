@@ -1,7 +1,8 @@
 <script setup>
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import SikaraLayout from '@/Layouts/SikaraLayout.vue';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
+import locationsData from '@/Data/locations.json';
 
 const props = defineProps({
     internship: {
@@ -15,9 +16,14 @@ const isEditing = computed(() => !!props.internship.id);
 const form = useForm({
     title: props.internship.title || '',
     company_name: props.internship.company_name || '',
+    company_logo: props.internship.company_logo || '',
     location: props.internship.location || '',
+    work_type: props.internship.work_type || 'Magang',
+    duration: props.internship.duration || '',
+    salary: props.internship.salary || '',
     description: props.internship.description || '',
     requirements: props.internship.requirements || '',
+    benefits: props.internship.benefits || '',
     deadline_at: props.internship.deadline_at ? props.internship.deadline_at.split('T')[0] : '',
     quota: props.internship.quota || 1,
     is_published: props.internship.is_published !== undefined ? props.internship.is_published : true,
@@ -29,6 +35,27 @@ const submit = () => {
     } else {
         form.post(route('perusahaan.internships.store'));
     }
+};
+
+const showLocationOptions = ref(false);
+const filteredLocations = ref([]);
+
+const filterLocations = () => {
+    if (form.location.length >= 3) {
+        const query = form.location.toLowerCase();
+        filteredLocations.value = locationsData.filter(loc => 
+            loc.toLowerCase().includes(query)
+        );
+        showLocationOptions.value = true;
+    } else {
+        showLocationOptions.value = false;
+        filteredLocations.value = [];
+    }
+};
+
+const selectLocation = (loc) => {
+    form.location = loc;
+    showLocationOptions.value = false;
 };
 </script>
 
@@ -71,6 +98,15 @@ const submit = () => {
                     </div>
                 </div>
 
+                <!-- Logo Perusahaan -->
+                <div>
+                    <label for="company_logo" class="block text-sm font-medium text-[#101828]">URL Logo Perusahaan</label>
+                    <div class="mt-2">
+                        <input type="text" id="company_logo" v-model="form.company_logo" class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] placeholder:text-[#98a2b3] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6" placeholder="Misal: https://example.com/logo.png">
+                    </div>
+                    <p v-if="form.errors.company_logo" class="mt-2 text-sm text-red-600">{{ form.errors.company_logo }}</p>
+                </div>
+
                 <!-- Deskripsi -->
                 <div>
                     <label for="description" class="block text-sm font-medium text-[#101828]">Deskripsi Pekerjaan <span class="text-red-500">*</span></label>
@@ -89,13 +125,81 @@ const submit = () => {
                     <p v-if="form.errors.requirements" class="mt-2 text-sm text-red-600">{{ form.errors.requirements }}</p>
                 </div>
 
+                <!-- Benefit -->
+                <div>
+                    <label for="benefits" class="block text-sm font-medium text-[#101828]">Benefit</label>
+                    <div class="mt-2">
+                        <textarea id="benefits" v-model="form.benefits" rows="3" class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] placeholder:text-[#98a2b3] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6" placeholder="Tuliskan benefit yang didapatkan (opsional)..."></textarea>
+                    </div>
+                    <p v-if="form.errors.benefits" class="mt-2 text-sm text-red-600">{{ form.errors.benefits }}</p>
+                </div>
+
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                    <!-- Tipe Pekerjaan -->
+                    <div>
+                        <label for="work_type" class="block text-sm font-medium text-[#101828]">Tipe Pekerjaan <span class="text-red-500">*</span></label>
+                        <div class="mt-2">
+                            <select id="work_type" v-model="form.work_type" class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6">
+                                <option value="Magang">Magang</option>
+                                <option value="Magang WFO">Magang WFO</option>
+                                <option value="Magang WFH">Magang WFH</option>
+                                <option value="Magang Hybrid">Magang Hybrid</option>
+                                <option value="Full-time">Full-time</option>
+                                <option value="Part-time">Part-time</option>
+                            </select>
+                        </div>
+                        <p v-if="form.errors.work_type" class="mt-2 text-sm text-red-600">{{ form.errors.work_type }}</p>
+                    </div>
+
+                    <!-- Durasi -->
+                    <div>
+                        <label for="duration" class="block text-sm font-medium text-[#101828]">Durasi</label>
+                        <div class="mt-2">
+                            <input type="text" id="duration" v-model="form.duration" class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] placeholder:text-[#98a2b3] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6" placeholder="Misal: 3 Bulan">
+                        </div>
+                        <p v-if="form.errors.duration" class="mt-2 text-sm text-red-600">{{ form.errors.duration }}</p>
+                    </div>
+
+                    <!-- Gaji/Uang Saku -->
+                    <div>
+                        <label for="salary" class="block text-sm font-medium text-[#101828]">Gaji/Uang Saku</label>
+                        <div class="mt-2">
+                            <input type="text" id="salary" v-model="form.salary" class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] placeholder:text-[#98a2b3] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6" placeholder="Misal: Rp 1.500.000 / Unpaid">
+                        </div>
+                        <p v-if="form.errors.salary" class="mt-2 text-sm text-red-600">{{ form.errors.salary }}</p>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
                     <!-- Lokasi -->
-                    <div>
+                    <div class="relative">
                         <label for="location" class="block text-sm font-medium text-[#101828]">Lokasi <span class="text-red-500">*</span></label>
                         <div class="mt-2">
-                            <input type="text" id="location" v-model="form.location" class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] placeholder:text-[#98a2b3] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6" placeholder="Misal: Jakarta Selatan / WFA">
+                            <input 
+                                type="text" 
+                                id="location" 
+                                v-model="form.location" 
+                                @input="filterLocations"
+                                @focus="filterLocations"
+                                @blur="setTimeout(() => showLocationOptions = false, 200)"
+                                class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] placeholder:text-[#98a2b3] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6" 
+                                placeholder="Misal: Jakarta Selatan / WFA"
+                                autocomplete="off"
+                            >
                         </div>
+
+                        <!-- Dropdown Opsi Lokasi -->
+                        <ul v-if="showLocationOptions && filteredLocations.length > 0" class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                            <li 
+                                v-for="(loc, index) in filteredLocations" 
+                                :key="index"
+                                @mousedown.prevent="selectLocation(loc)"
+                                class="relative cursor-pointer select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-[#10B981] hover:text-white"
+                            >
+                                <span class="block truncate">{{ loc }}</span>
+                            </li>
+                        </ul>
+
                         <p v-if="form.errors.location" class="mt-2 text-sm text-red-600">{{ form.errors.location }}</p>
                     </div>
 
