@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Internship;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -23,13 +24,24 @@ class InternshipController extends Controller
     }
 
     public function show(Internship $internship): Response {
-        $hasApplied = auth()->user()->applications()
-            ->where('internship_id', $internship->id)
-            ->exists();
+        $hasApplied = auth()->check() 
+            ? auth()->user()->applications()->where('internship_id', $internship->id)->exists()
+            : false;
 
         return Inertia::render('Internships/Show', [
             'internship' => $internship,
-            'hasApplied' => $hasApplied 
+            'hasApplied' => $hasApplied
+        ]);
+    }
+
+    public function lowongan(Request $request)
+    {
+        $internships = Internship::where('is_published', true)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return Inertia::render('Features/Lowongan', [
+            'internships' => $internships
         ]);
     }
 }

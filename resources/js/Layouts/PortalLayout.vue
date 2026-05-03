@@ -30,7 +30,7 @@ const logout = () => {
         <header class="sticky top-0 z-50 border-b border-[#E2E8F0] bg-white/95 backdrop-blur-md shadow-sm transition-all">
             <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
                 <!-- Logo -->
-                <Link :href="route('peserta')" class="flex items-center gap-3">
+                <Link :href="$page.props.auth.user ? route('peserta') : '/'" class="flex items-center gap-3">
                     <img src="/images/Logo-SIKARA.png" alt="SIKARA" class="h-8 w-auto" />
                     <span class="text-xl font-black tracking-tight text-[#0F172A]">SIKARA</span>
                 </Link>

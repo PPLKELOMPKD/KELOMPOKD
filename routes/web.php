@@ -22,7 +22,7 @@ Route::get('/perusahaan', function () { return Inertia::render('Perusahaan'); })
 Route::get('/tentang', function () { return Inertia::render('TentangSikara'); })->name('tentang');
 
 // Fitur Navigasi
-Route::get('/lowongan', function () { return Inertia::render('Features/Lowongan'); })->name('lowongan');
+Route::get('/lowongan', [InternshipController::class, 'lowongan'])->name('lowongan');
 Route::get('/perusahaan-list', function () { return Inertia::render('Features/CompanyList'); })->name('perusahaan-list');
 Route::get('/lms', function () { return Inertia::render('Features/Lms'); })->name('lms');
 Route::get('/event', function () { return Inertia::render('Features/Event'); })->name('event');

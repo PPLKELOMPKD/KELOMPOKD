@@ -36,7 +36,7 @@ import PortalLayout from '@/Layouts/PortalLayout.vue';
                     </p>
 
                     <div class="mt-10 flex flex-wrap items-center justify-center lg:justify-start gap-4">
-                        <Link :href="route('login', { role: 'mahasiswa' })" class="rounded-xl bg-[#2563EB] px-8 py-3.5 text-sm font-bold text-white transition-all hover:bg-[#1d4ed8] hover:shadow-lg hover:shadow-[#2563EB]/30">
+                        <Link :href="$page.props.auth.user ? '#' : route('login', { role: 'mahasiswa' })" class="rounded-xl bg-[#2563EB] px-8 py-3.5 text-sm font-bold text-white transition-all hover:bg-[#1d4ed8] hover:shadow-lg hover:shadow-[#2563EB]/30">
                             Buat CV Saya Sekarang
                         </Link>
                     </div>
