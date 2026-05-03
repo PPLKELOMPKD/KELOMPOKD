@@ -54,7 +54,23 @@ class InternshipController extends Controller
         // Extract unique values for filter dropdowns
         $companies = $internships->pluck('company_name')->unique()->filter()->values()->toArray();
         $locations = $internships->pluck('location')->unique()->filter()->values()->toArray();
-        $workTypes = $internships->pluck('work_type')->unique()->filter()->values()->toArray();
+        $workTypeOrder = [
+            'Magang',
+            'Magang WFO',
+            'Magang WFH',
+            'Magang Hybrid',
+            'Full-time',
+            'Part-time',
+        ];
+
+        $workTypeRanks = array_flip($workTypeOrder);
+
+        $workTypes = $internships->pluck('work_type')
+            ->unique()
+            ->filter()
+            ->sortBy(fn ($type) => $workTypeRanks[$type] ?? count($workTypeOrder))
+            ->values()
+            ->toArray();
 
         return Inertia::render('Features/Lowongan', [
             'internships' => $internships,

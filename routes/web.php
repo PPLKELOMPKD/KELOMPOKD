@@ -23,7 +23,8 @@ Route::get('/tentang', function () { return Inertia::render('TentangSikara'); })
 
 // Fitur Navigasi
 Route::get('/lowongan', [InternshipController::class, 'lowongan'])->name('lowongan');
-Route::get('/perusahaan-list', function () { return Inertia::render('Features/CompanyList'); })->name('perusahaan-list');
+Route::get('/perusahaan-list', [\App\Http\Controllers\CompanyController::class, 'index'])->name('perusahaan-list');
+Route::get('/perusahaan-profile/{id}', [\App\Http\Controllers\CompanyController::class, 'show'])->name('perusahaan.profile');
 Route::get('/lms', function () { return Inertia::render('Features/Lms'); })->name('lms');
 Route::get('/event', function () { return Inertia::render('Features/Event'); })->name('event');
 Route::get('/generate-cv', function () { return Inertia::render('Features/GenerateCv'); })->name('generate-cv');
@@ -45,6 +46,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::middleware('role:perusahaan')->prefix('perusahaan')->name('perusahaan.')->group(function () {
+        Route::get('/dashboard', DashboardController::class)->name('dashboard');
         Route::get('/internships', [\App\Http\Controllers\CompanyInternshipController::class, 'index'])->name('internships.index');
         Route::get('/internships/create', [\App\Http\Controllers\CompanyInternshipController::class, 'create'])->name('internships.create');
         Route::post('/internships', [\App\Http\Controllers\CompanyInternshipController::class, 'store'])->name('internships.store');

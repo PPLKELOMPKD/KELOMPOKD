@@ -16,6 +16,9 @@ class StudentProfileFrontendContractTest extends TestCase
         $this->assertStringContainsString('Profil berhasil diperbarui.', $source);
         $this->assertStringContainsString("route('skills.store')", $source);
         $this->assertStringContainsString("route('cv.download')", $source);
+        $this->assertStringContainsString('profilePhotoPreview', $source);
+        $this->assertStringContainsString('type="file"', $source);
+        $this->assertStringContainsString('profileForm.photo', $source);
         $this->assertStringNotContainsString('Sertifikasi', $source);
     }
 }

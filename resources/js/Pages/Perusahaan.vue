@@ -37,11 +37,7 @@ const faqs = [
     <Head title="Portal Perusahaan — SIKARA" />
 
     <PortalLayout activeRole="perusahaan" loginRole="perusahaan">
-        <template #navigation>
-            <a href="#cara-merekrut" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#10B981]">Cara Merekrut</a>
-            <a href="#mengapa-sikara" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#10B981]">Mengapa SIKARA</a>
-            <a href="#testimoni" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#10B981]">Testimoni Mitra</a>
-        </template>
+
 
         <!-- ── Hero Perusahaan (Distinct Dark/Split Design) ── -->
         <section class="bg-[#0F172A] relative overflow-hidden">

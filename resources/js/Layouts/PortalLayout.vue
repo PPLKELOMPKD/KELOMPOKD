@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { Link, usePage, router } from '@inertiajs/vue3';
 
 defineProps({
@@ -10,6 +10,7 @@ defineProps({
 const page = usePage();
 const user = page.props.auth?.user ?? null;
 const showUserMenu = ref(false);
+const profilePhotoUrl = computed(() => user?.profile_photo_url ?? user?.photo ?? null);
 
 const toggleUserMenu = () => {
     showUserMenu.value = !showUserMenu.value;
@@ -22,6 +23,13 @@ const closeUserMenu = () => {
 const logout = () => {
     router.post(route('logout'));
 };
+
+const homeRoute = computed(() => {
+    if (!user) return '/';
+    if (user.role === 'perusahaan') return route('perusahaan.dashboard');
+    if (user.role === 'admin') return route('dashboard');
+    return route('peserta');
+});
 </script>
 
 <template>
@@ -30,14 +38,20 @@ const logout = () => {
         <header class="sticky top-0 z-50 border-b border-[#E2E8F0] bg-white/80 backdrop-blur-xl shadow-sm transition-all">
             <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
                 <!-- Logo -->
-                <Link :href="$page.props.auth?.user ? route('peserta') : '/'" class="flex items-center gap-3 transition-transform hover:scale-105">
+                <Link :href="homeRoute" class="flex items-center gap-3 transition-transform hover:scale-105">
                     <img src="/images/Logo-SIKARA.png" alt="SIKARA" class="h-8 w-auto" />
                     <span class="text-xl font-black tracking-tight text-[#0F172A]">SIKARA</span>
                 </Link>
 
                 <!-- Navigation Slots -->
                 <nav class="hidden flex-1 items-center justify-end gap-8 pr-8 md:flex">
-                    <slot name="navigation" />
+                    <slot name="navigation">
+                        <Link :href="route('lowongan')" :class="route().current('lowongan') ? 'text-sm font-semibold text-[#2563EB]' : 'text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]'">Cari Lowongan</Link>
+                        <Link :href="route('perusahaan-list')" :class="route().current('perusahaan-list') ? 'text-sm font-semibold text-[#2563EB]' : 'text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]'">Daftar Perusahaan</Link>
+                        <Link :href="route('lms')" :class="route().current('lms') ? 'text-sm font-semibold text-[#2563EB]' : 'text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]'">LMS</Link>
+                        <Link :href="route('event')" :class="route().current('event') ? 'text-sm font-semibold text-[#2563EB]' : 'text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]'">Pelatihan</Link>
+                        <Link :href="route('generate-cv')" :class="route().current('generate-cv') ? 'text-sm font-semibold text-[#2563EB]' : 'text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]'">Buat CV</Link>
+                    </slot>
                 </nav>
 
                 <!-- User Menu (Authenticated) or Login Button (Guest) -->
@@ -47,15 +61,15 @@ const logout = () => {
                             @click="toggleUserMenu"
                             class="flex items-center gap-3 rounded-full border border-transparent px-2 py-1.5 transition-all hover:bg-white hover:border-[#E2E8F0] hover:shadow-sm"
                         >
-                            <div v-if="user.profile_photo_url || user.photo" class="h-9 w-9 overflow-hidden rounded-full border border-[#E2E8F0] shadow-sm">
-                                <img :src="user.profile_photo_url || user.photo" alt="Profile" class="h-full w-full object-cover" />
+                            <div v-if="profilePhotoUrl" class="h-9 w-9 overflow-hidden rounded-full border border-[#E2E8F0] shadow-sm">
+                                <img :src="profilePhotoUrl" alt="Profile" class="h-full w-full object-cover" />
                             </div>
                             <div v-else class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#2563EB] to-[#60A5FA] text-sm font-bold text-white shadow-md">
                                 {{ user.name?.charAt(0)?.toUpperCase() }}
                             </div>
                             <div class="hidden sm:block text-left pr-2">
                                 <p class="text-sm font-bold text-[#0F172A] leading-tight">{{ user.name }}</p>
-                                <p class="text-xs font-medium text-[#64748B]">Peserta</p>
+                                <p class="text-xs font-medium text-[#64748B] capitalize">{{ user.role }}</p>
                             </div>
                             <svg class="h-4 w-4 text-[#94A3B8] transition-transform duration-300" :class="{'rotate-180': showUserMenu}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
                         </button>
@@ -75,22 +89,30 @@ const logout = () => {
                                     <p class="text-xs font-medium text-[#64748B] truncate mt-0.5">{{ user.email }}</p>
                                 </div>
                                 <div class="space-y-1">
-                                    <Link :href="route('profile.show')" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-[#344054] hover:bg-[#EFF6FF] hover:text-[#2563EB] transition-colors">
-                                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>
-                                        Profil Saya
-                                    </Link>
-                                    <Link :href="route('notifications.index')" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-[#344054] hover:bg-[#EFF6FF] hover:text-[#2563EB] transition-colors">
-                                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
-                                        Notifikasi
-                                    </Link>
-                                    <Link :href="route('applications.index')" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-[#344054] hover:bg-[#EFF6FF] hover:text-[#2563EB] transition-colors">
-                                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1"/><path d="M4 7h16v12H4z"/><path d="M4 12h16"/></svg>
-                                        Lamaran Saya
-                                    </Link>
-                                    <Link :href="route('cv.download')" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-[#344054] hover:bg-[#EFF6FF] hover:text-[#2563EB] transition-colors">
-                                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h14a2 2 0 0 0 2-2V7.5L14.5 2H6a2 2 0 0 0-2 2v4"/><polyline points="14 2 14 8 20 8"/><path d="M3 15h6"/><path d="M3 18h6"/></svg>
-                                        Unduh CV
-                                    </Link>
+                                    <template v-if="user.role === 'perusahaan' || user.role === 'admin'">
+                                        <Link :href="user.role === 'perusahaan' ? route('perusahaan.dashboard') : route('dashboard')" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-[#344054] hover:bg-[#EFF6FF] hover:text-[#2563EB] transition-colors">
+                                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+                                            Dashboard
+                                        </Link>
+                                    </template>
+                                    <template v-else>
+                                        <Link :href="route('profile.show')" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-[#344054] hover:bg-[#EFF6FF] hover:text-[#2563EB] transition-colors">
+                                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>
+                                            Profil Saya
+                                        </Link>
+                                        <Link :href="route('notifications.index')" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-[#344054] hover:bg-[#EFF6FF] hover:text-[#2563EB] transition-colors">
+                                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
+                                            Notifikasi
+                                        </Link>
+                                        <Link :href="route('applications.index')" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-[#344054] hover:bg-[#EFF6FF] hover:text-[#2563EB] transition-colors">
+                                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1"/><path d="M4 7h16v12H4z"/><path d="M4 12h16"/></svg>
+                                            Lamaran Saya
+                                        </Link>
+                                        <Link :href="route('cv.download')" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-[#344054] hover:bg-[#EFF6FF] hover:text-[#2563EB] transition-colors">
+                                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h14a2 2 0 0 0 2-2V7.5L14.5 2H6a2 2 0 0 0-2 2v4"/><polyline points="14 2 14 8 20 8"/><path d="M3 15h6"/><path d="M3 18h6"/></svg>
+                                            Unduh CV
+                                        </Link>
+                                    </template>
                                 </div>
                                 <div class="border-t border-[#E2E8F0] mt-2 pt-2">
                                     <button @click="logout" class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
@@ -125,7 +147,7 @@ const logout = () => {
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
                     <!-- Brand -->
                     <div class="col-span-1 md:col-span-2">
-                        <Link :href="$page.props.auth?.user ? route('peserta') : '/'" class="flex items-center gap-3 mb-4">
+                        <Link :href="homeRoute" class="flex items-center gap-3 mb-4">
                             <img src="/images/Logo-SIKARA.png" alt="SIKARA" class="h-7 w-auto" />
                             <span class="text-lg font-black tracking-tight text-[#0F172A]">SIKARA</span>
                         </Link>
@@ -173,4 +195,3 @@ const logout = () => {
     animation: fadeIn 0.4s ease-out forwards;
 }
 </style>
-

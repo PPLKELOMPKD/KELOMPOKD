@@ -42,13 +42,7 @@ const getTypeColor = (type) => typeColors[type] || typeColors['Magang'];
     <Head :title="`${internship.title} — SIKARA`" />
 
     <PortalLayout activeRole="peserta" loginRole="mahasiswa">
-        <template #navigation>
-            <Link :href="route('lowongan')" class="text-sm font-semibold text-[#2563EB]">Cari Lowongan</Link>
-            <Link :href="route('perusahaan-list')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">List Perusahaan</Link>
-            <Link :href="route('lms')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">LMS</Link>
-            <Link :href="route('event')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Pelatihan</Link>
-            <Link :href="route('generate-cv')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Buat CV</Link>
-        </template>
+
 
         <!-- Hero Header -->
         <div class="relative bg-gradient-to-br from-[#0F172A] via-[#1E293B] to-[#0F172A] pt-10 pb-32 overflow-hidden">
@@ -86,7 +80,10 @@ const getTypeColor = (type) => typeColors[type] || typeColors['Magang'];
                         <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-tight">
                             {{ internship.title }}
                         </h1>
-                        <p class="mt-3 text-lg font-medium text-[#60A5FA]">{{ internship.company_name }}</p>
+                        <p class="mt-3 text-lg font-medium text-[#60A5FA]">
+                            <Link v-if="internship.company_id" :href="route('perusahaan.profile', internship.company_id)" class="hover:text-white hover:underline transition-colors">{{ internship.company_name }}</Link>
+                            <span v-else>{{ internship.company_name }}</span>
+                        </p>
 
                         <!-- Quick Info Pills -->
                         <div class="flex flex-wrap gap-3 mt-5">
@@ -235,7 +232,10 @@ const getTypeColor = (type) => typeColors[type] || typeColors['Magang'];
                                     {{ internship.company_name ? internship.company_name.charAt(0) : 'C' }}
                                 </div>
                                 <div>
-                                    <p class="text-sm font-bold text-[#0F172A]">{{ internship.company_name }}</p>
+                                    <p class="text-sm font-bold text-[#0F172A]">
+                                        <Link v-if="internship.company_id" :href="route('perusahaan.profile', internship.company_id)" class="hover:text-[#2563EB] hover:underline transition-colors">{{ internship.company_name }}</Link>
+                                        <span v-else>{{ internship.company_name }}</span>
+                                    </p>
                                     <p class="text-xs text-[#64748B]">{{ internship.location }}</p>
                                 </div>
                             </div>

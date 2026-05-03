@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -30,7 +31,20 @@ class StudentProfileController extends Controller
             'university' => ['nullable', 'string', 'max:255'],
             'location' => ['nullable', 'string', 'max:255'],
             'bio' => ['nullable', 'string'],
+            'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
+
+        unset($data['photo']);
+
+        $profile = $request->user()->mahasiswaProfile()->first();
+
+        if ($request->hasFile('photo')) {
+            if ($profile?->photo_path) {
+                Storage::disk('public')->delete($profile->photo_path);
+            }
+
+            $data['photo_path'] = $request->file('photo')->store('profile-photos', 'public');
+        }
 
         $request->user()->mahasiswaProfile()->updateOrCreate([], $data);
 

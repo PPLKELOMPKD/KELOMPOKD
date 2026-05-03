@@ -1,19 +1,16 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 import PortalLayout from '@/Layouts/PortalLayout.vue';
+
+defineProps({
+    companies: Array
+});
 </script>
 
 <template>
     <Head title="Direktori Perusahaan — SIKARA" />
 
     <PortalLayout activeRole="peserta" loginRole="mahasiswa">
-        <template #navigation>
-            <Link :href="route('lowongan')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Cari Lowongan</Link>
-            <Link :href="route('perusahaan-list')" class="text-sm font-semibold text-[#2563EB]">Daftar Perusahaan</Link>
-            <Link :href="route('lms')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">LMS</Link>
-            <Link :href="route('event')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Pelatihan</Link>
-            <Link :href="route('generate-cv')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Buat CV</Link>
-        </template>
 
         <!-- Elegant Hero Banner -->
         <div class="bg-[#0F172A] relative overflow-hidden py-24">
@@ -39,50 +36,26 @@ import PortalLayout from '@/Layouts/PortalLayout.vue';
 
         <div class="mx-auto max-w-7xl px-6 py-16 animate-fade-in">
             <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <!-- SIKARA Style Company Card 1 -->
-                <div class="rounded-2xl border border-[#E2E8F0] bg-white p-6 transition-all hover:-translate-y-1 hover:border-[#10B981] hover:shadow-xl hover:shadow-[#10B981]/10">
+                <div v-for="company in companies" :key="company.id" class="rounded-2xl border border-[#E2E8F0] bg-white p-6 transition-all hover:-translate-y-1 hover:border-[#10B981] hover:shadow-xl hover:shadow-[#10B981]/10">
                     <div class="flex items-center justify-between border-b border-[#F1F5F9] pb-4 mb-4">
-                        <div class="h-12 w-24 bg-[#F8FAFC] rounded-lg flex items-center justify-center text-sm font-black text-[#2563EB]">TELKOM</div>
+                        <div class="h-12 w-24 bg-[#F8FAFC] rounded-lg flex items-center justify-center text-sm font-black text-[#2563EB] truncate px-2">
+                            {{ company.name.substring(0, 10).toUpperCase() }}
+                        </div>
                         <div class="text-right">
                             <span class="text-xs font-bold text-[#64748B] block uppercase">Rating</span>
-                            <span class="text-sm font-bold text-[#F59E0B] flex items-center gap-1 justify-end"><svg class="h-4 w-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg> 4.9</span>
+                            <span class="text-sm font-bold text-[#F59E0B] flex items-center gap-1 justify-end"><svg class="h-4 w-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg> {{ company.rating }}</span>
                         </div>
                     </div>
                     
-                    <h3 class="text-xl font-bold text-[#0F172A]">PT Telekomunikasi Terpadu</h3>
-                    <p class="mt-1 text-sm text-[#64748B]">Industri Teknologi & Informasi</p>
+                    <h3 class="text-xl font-bold text-[#0F172A]">{{ company.name }}</h3>
+                    <p class="mt-1 text-sm text-[#64748B]">{{ company.industry }}</p>
                     
                     <div class="mt-6 flex items-center justify-between">
                         <div class="flex flex-col">
                             <span class="text-xs text-[#94A3B8]">Lowongan Aktif</span>
-                            <span class="text-lg font-black text-[#0F172A]">12</span>
+                            <span class="text-lg font-black text-[#0F172A]">{{ company.active_jobs }}</span>
                         </div>
-                        <Link :href="route('login', { role: 'mahasiswa' })" class="text-sm font-bold text-[#10B981] hover:text-[#059669] flex items-center gap-1">
-                            Kunjungi Profil
-                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                        </Link>
-                    </div>
-                </div>
-
-                <!-- SIKARA Style Company Card 2 -->
-                <div class="rounded-2xl border border-[#E2E8F0] bg-white p-6 transition-all hover:-translate-y-1 hover:border-[#10B981] hover:shadow-xl hover:shadow-[#10B981]/10">
-                    <div class="flex items-center justify-between border-b border-[#F1F5F9] pb-4 mb-4">
-                        <div class="h-12 w-24 bg-[#F8FAFC] rounded-lg flex items-center justify-center text-sm font-black text-[#10B981]">GO-TECH</div>
-                        <div class="text-right">
-                            <span class="text-xs font-bold text-[#64748B] block uppercase">Rating</span>
-                            <span class="text-sm font-bold text-[#F59E0B] flex items-center gap-1 justify-end"><svg class="h-4 w-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg> 4.8</span>
-                        </div>
-                    </div>
-                    
-                    <h3 class="text-xl font-bold text-[#0F172A]">PT Karya Anak Bangsa</h3>
-                    <p class="mt-1 text-sm text-[#64748B]">Transportasi & Logistik Modern</p>
-                    
-                    <div class="mt-6 flex items-center justify-between">
-                        <div class="flex flex-col">
-                            <span class="text-xs text-[#94A3B8]">Lowongan Aktif</span>
-                            <span class="text-lg font-black text-[#0F172A]">8</span>
-                        </div>
-                        <Link :href="route('login', { role: 'mahasiswa' })" class="text-sm font-bold text-[#10B981] hover:text-[#059669] flex items-center gap-1">
+                        <Link :href="route('perusahaan.profile', company.id)" class="text-sm font-bold text-[#10B981] hover:text-[#059669] flex items-center gap-1">
                             Kunjungi Profil
                             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                         </Link>
