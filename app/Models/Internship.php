@@ -13,10 +13,12 @@ class Internship extends Model
 
     protected $fillable = [
         'title',
+        'description',
         'company_name',
         'location',
         'requirements',
         'deadline_at',
+        'quota',
         'is_published',
     ];
 

@@ -31,6 +31,10 @@ const navItems = computed(() => {
             { label: 'Riwayat', href: '#', active: false, icon: 'history' },
             { label: 'Notifikasi', href: route('notifications.index'), active: route().current('notifications.*'), icon: 'bell' },
         );
+    } else if (user.value?.role === 'perusahaan' || user.value?.role === 'admin') {
+        items.push(
+            { label: 'Manajemen Lowongan', href: route('perusahaan.internships.index'), active: route().current('perusahaan.internships.*'), icon: 'briefcase' },
+        );
     }
 
     return items;

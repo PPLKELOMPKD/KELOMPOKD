@@ -6,6 +6,7 @@ import { computed } from 'vue';
 const props = defineProps({
     title: String,
     subtitle: String,
+    role: String,
     stats: Array,
     stubMessage: String,
     profileSummary: Object,
@@ -13,7 +14,8 @@ const props = defineProps({
     latestNotifications: Array,
 });
 
-const isStudentDashboard = computed(() => Boolean(props.profileSummary));
+const isStudentDashboard = computed(() => Boolean(props.profileSummary && props.role !== 'perusahaan'));
+const isCompanyDashboard = computed(() => props.role === 'perusahaan');
 </script>
 
 <template>
@@ -145,6 +147,115 @@ const isStudentDashboard = computed(() => Boolean(props.profileSummary));
                     <div class="flex items-center justify-between">
                         <h3 class="text-[28px] font-semibold tracking-[-0.03em] text-[#101828]">Notifikasi Terbaru</h3>
                         <Link :href="route('notifications.index')" class="text-sm font-medium text-black">Buka inbox</Link>
+                    </div>
+                    <div class="mt-6 space-y-4">
+                        <div v-for="item in latestNotifications" :key="item.id" class="rounded-xl bg-[#f9fafb] p-4">
+                            <p class="text-base font-semibold text-[#101828]">{{ item.title }}</p>
+                            <p class="mt-2 text-sm leading-6 text-[#667085]">{{ item.message }}</p>
+                            <p class="mt-3 text-xs font-medium uppercase tracking-[0.14em] text-[#98a2b3]">
+                                {{ item.type }}{{ item.read_at ? ` • ${item.read_at}` : ' • Baru' }}
+                            </p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <div v-else-if="isCompanyDashboard" class="grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
+            <div class="space-y-6">
+                <!-- Company Profile Card -->
+                <section class="rounded-[16px] border border-[#eaecf0] bg-white px-6 pt-6 pb-5 shadow-[0_1px_3px_rgba(16,24,40,0.1),0_1px_2px_rgba(16,24,40,0.06)]">
+                    <div class="flex flex-col items-center text-center">
+                        <div class="flex h-32 w-32 items-center justify-center rounded-full border-4 border-[#f3f4f6] bg-[#10B981] text-white text-4xl font-bold">
+                            {{ profileSummary.name?.charAt(0) }}
+                        </div>
+                        <h3 class="mt-5 text-[28px] font-semibold tracking-[-0.03em] text-[#101828]">{{ profileSummary.name }}</h3>
+                        <p class="mt-1 text-sm text-[#10B981] font-medium">{{ profileSummary.status }}</p>
+                        <p class="mt-3 text-sm leading-6 text-[#667085]">{{ profileSummary.bio }}</p>
+                    </div>
+
+                    <div class="mt-6 border-t border-[#f2f4f7] pt-5 text-sm text-[#344054]">
+                        <div class="flex items-center gap-3 py-2">
+                            <span class="text-[#98a2b3]">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path d="M4 6h16v12H4z" />
+                                    <path d="m4 7 8 6 8-6" />
+                                </svg>
+                            </span>
+                            <span>{{ profileSummary.email }}</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Quick Action Card -->
+                <section class="rounded-[16px] border border-[#eaecf0] bg-white p-6 shadow-[0_1px_3px_rgba(16,24,40,0.1),0_1px_2px_rgba(16,24,40,0.06)]">
+                    <h3 class="text-[24px] font-semibold tracking-[-0.03em] text-[#101828]">Aksi Cepat</h3>
+                    <p class="mt-2 text-sm text-[#475467]">Mulai kelola lowongan dan temukan talenta terbaik untuk perusahaan Anda.</p>
+                    
+                    <Link
+                        :href="route('perusahaan.internships.create')"
+                        class="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#10B981] px-4 text-base font-semibold text-white shadow-sm hover:bg-[#059669] transition-all"
+                    >
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        Buat Lowongan Baru
+                    </Link>
+                    
+                    <Link
+                        :href="route('perusahaan.internships.index')"
+                        class="mt-3 flex h-12 w-full items-center justify-center rounded-xl bg-white border border-[#d0d5dd] px-4 text-base font-medium text-[#344054] shadow-sm hover:bg-gray-50 transition-all"
+                    >
+                        Lihat Daftar Lowongan
+                    </Link>
+                </section>
+            </div>
+
+            <div class="space-y-6">
+                <!-- Stats Row -->
+                <section class="rounded-[16px] border border-[#eaecf0] bg-white p-6 shadow-[0_1px_3px_rgba(16,24,40,0.1),0_1px_2px_rgba(16,24,40,0.06)]">
+                    <div class="grid gap-4 md:grid-cols-3">
+                        <div v-for="stat in stats" :key="stat.label" class="rounded-[12px] bg-[#f9fafb] p-5 border border-[#f2f4f7]">
+                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[#667085]">{{ stat.label }}</p>
+                            <p class="mt-3 text-4xl font-bold text-[#101828]">{{ stat.value }}</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Latest Internships -->
+                <section class="rounded-[16px] border border-[#eaecf0] bg-white p-6 shadow-[0_1px_3px_rgba(16,24,40,0.1),0_1px_2px_rgba(16,24,40,0.06)]">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-[24px] font-semibold tracking-[-0.03em] text-[#101828]">Lowongan Terbaru Anda</h3>
+                        <Link :href="route('perusahaan.internships.index')" class="text-sm font-semibold text-[#10B981] hover:underline">Lihat semua</Link>
+                    </div>
+                    <div class="mt-6 space-y-4">
+                        <div v-for="internship in latestInternships" :key="internship.id" class="rounded-xl bg-[#f9fafb] border border-[#f2f4f7] p-5">
+                            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                                <div>
+                                    <div class="flex items-center gap-3">
+                                        <p class="text-lg font-bold text-[#101828]">{{ internship.title }}</p>
+                                        <span v-if="internship.is_published" class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Aktif</span>
+                                        <span v-else class="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">Ditutup</span>
+                                    </div>
+                                    <p class="mt-1 text-sm text-[#475467]">{{ internship.location }}</p>
+                                    <p class="mt-3 text-xs font-medium uppercase tracking-[0.14em] text-[#98a2b3]">Deadline {{ internship.deadline_at }}</p>
+                                </div>
+                                <Link :href="route('perusahaan.internships.edit', internship.id)" class="inline-flex h-10 items-center justify-center rounded-xl bg-white border border-[#d0d5dd] px-4 text-sm font-semibold text-[#344054] hover:bg-gray-50 transition-colors">
+                                    Edit
+                                </Link>
+                            </div>
+                        </div>
+                        <div v-if="!latestInternships || latestInternships.length === 0" class="py-8 text-center text-sm text-[#667085]">
+                            Belum ada lowongan yang ditambahkan.
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Latest Notifications -->
+                <section class="rounded-[16px] border border-[#eaecf0] bg-white p-6 shadow-[0_1px_3px_rgba(16,24,40,0.1),0_1px_2px_rgba(16,24,40,0.06)]">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-[24px] font-semibold tracking-[-0.03em] text-[#101828]">Notifikasi Terbaru</h3>
+                        <Link :href="route('notifications.index')" class="text-sm font-semibold text-[#10B981] hover:underline">Buka inbox</Link>
                     </div>
                     <div class="mt-6 space-y-4">
                         <div v-for="item in latestNotifications" :key="item.id" class="rounded-xl bg-[#f9fafb] p-4">
