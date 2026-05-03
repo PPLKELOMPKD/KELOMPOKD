@@ -3,7 +3,6 @@ import { ref, computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import PortalLayout from '@/Layouts/PortalLayout.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
-import locationsData from '@/Data/locations.json';
 
 const props = defineProps({
     internships: { type: Array, default: () => [] },
@@ -20,14 +19,18 @@ const filters = ref({
 });
 
 // Dynamic filter options from backend data
+const opsiLokasi = computed(() => props.filterOptions.locations);
 const opsiJenis = computed(() => ['Semua Jenis', ...props.filterOptions.workTypes]);
 const opsiPerusahaan = computed(() => ['Semua Perusahaan', ...props.filterOptions.companies]);
 
 // Color map for work types
 const typeColors = {
     'Magang': { bg: 'bg-[#ECFDF5]', text: 'text-[#059669]', dot: 'bg-[#10B981]' },
-    'Full Time': { bg: 'bg-[#EFF6FF]', text: 'text-[#2563EB]', dot: 'bg-[#3B82F6]' },
-    'Part Time': { bg: 'bg-[#FFF7ED]', text: 'text-[#EA580C]', dot: 'bg-[#F97316]' },
+    'Magang WFO': { bg: 'bg-[#EFF6FF]', text: 'text-[#2563EB]', dot: 'bg-[#3B82F6]' },
+    'Magang WFH': { bg: 'bg-[#F0FDF4]', text: 'text-[#16A34A]', dot: 'bg-[#22C55E]' },
+    'Magang Hybrid': { bg: 'bg-[#FDF4FF]', text: 'text-[#9333EA]', dot: 'bg-[#A855F7]' },
+    'Full-time': { bg: 'bg-[#EEF2FF]', text: 'text-[#4F46E5]', dot: 'bg-[#6366F1]' },
+    'Part-time': { bg: 'bg-[#FFF7ED]', text: 'text-[#EA580C]', dot: 'bg-[#F97316]' },
     'Freelance': { bg: 'bg-[#FDF4FF]', text: 'text-[#9333EA]', dot: 'bg-[#A855F7]' },
 };
 const getTypeColor = (type) => typeColors[type] || typeColors['Magang'];
@@ -109,13 +112,7 @@ const daysLeft = (d) => {
     <Head title="Cari Lowongan — SIKARA" />
 
     <PortalLayout activeRole="peserta" loginRole="mahasiswa">
-        <template #navigation>
-            <Link :href="route('lowongan')" class="text-sm font-semibold text-[#2563EB]">Cari Lowongan</Link>
-            <Link :href="route('perusahaan-list')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Daftar Perusahaan</Link>
-            <Link :href="route('lms')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">LMS</Link>
-            <Link :href="route('event')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Pelatihan</Link>
-            <Link :href="route('generate-cv')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Buat CV</Link>
-        </template>
+
 
         <!-- Hero Header -->
         <div class="bg-gradient-to-b from-[#F1F5F9] to-white pb-12 pt-20 relative z-30 w-full">
@@ -143,7 +140,7 @@ const daysLeft = (d) => {
                             <input type="text" v-model="filters.posisi" placeholder="Cari posisi, kata kunci, atau perusahaan..." class="w-full bg-transparent border-none p-0 focus:ring-0 text-sm text-[#0F172A] placeholder-[#94A3B8]" />
                         </div>
                         <div class="w-full md:w-[300px] relative z-30">
-                            <SearchableSelect v-model="filters.lokasi" :options="locationsData" placeholder="Lokasi" />
+                            <SearchableSelect v-model="filters.lokasi" :options="opsiLokasi" placeholder="Lokasi" />
                         </div>
                         <button v-if="hasActiveFilters" @click="resetFilters" class="bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#64748B] p-3 rounded-xl transition-all flex items-center justify-center shrink-0" title="Reset Filter">
                             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>

@@ -41,6 +41,8 @@ class AuthenticatedSessionController extends Controller
 
         if ($user->isMahasiswa()) {
             return redirect()->intended(route('peserta', absolute: false));
+        } elseif ($user->isPerusahaan()) {
+            return redirect()->intended(route('perusahaan.dashboard', absolute: false));
         }
 
         return redirect()->intended(route('dashboard', absolute: false));

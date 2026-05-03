@@ -21,6 +21,7 @@ class MahasiswaProfile extends Model
         'university',
         'location',
         'bio',
+        'photo_path',
     ];
 
     public function user(): BelongsTo

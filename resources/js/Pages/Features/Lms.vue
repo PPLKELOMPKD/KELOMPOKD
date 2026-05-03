@@ -7,13 +7,7 @@ import PortalLayout from '@/Layouts/PortalLayout.vue';
     <Head title="LMS — SIKARA" />
 
     <PortalLayout activeRole="peserta" loginRole="mahasiswa">
-        <template #navigation>
-            <Link :href="route('lowongan')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Cari Lowongan</Link>
-            <Link :href="route('perusahaan-list')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Daftar Perusahaan</Link>
-            <Link :href="route('lms')" class="text-sm font-semibold text-[#2563EB]">LMS</Link>
-            <Link :href="route('event')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Pelatihan</Link>
-            <Link :href="route('generate-cv')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Buat CV</Link>
-        </template>
+
 
         <div class="mx-auto flex min-h-[calc(100vh-76px)] max-w-7xl flex-col items-center justify-between gap-12 px-6 py-12 lg:flex-row lg:py-16 relative">
             <div class="max-w-xl animate-fade-in-up">

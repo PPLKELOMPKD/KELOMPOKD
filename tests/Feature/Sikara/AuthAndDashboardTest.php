@@ -107,6 +107,7 @@ class AuthAndDashboardTest extends TestCase
             'title' => 'Frontend Engineer Intern',
             'company_name' => 'PT SIKARA Nusantara',
             'location' => 'Jakarta',
+            'description' => 'Lowongan frontend engineer intern.',
             'requirements' => 'Vue, Tailwind, dan komunikasi yang baik.',
             'deadline_at' => now()->addDays(7),
             'is_published' => true,
@@ -127,6 +128,34 @@ class AuthAndDashboardTest extends TestCase
                 ->where('profileSummary.department', 'Teknik Informatika')
                 ->where('latestInternships.0.title', 'Frontend Engineer Intern')
                 ->where('latestNotifications.0.title', 'Lamaran sedang ditinjau')
+            );
+    }
+
+    public function test_shared_auth_user_includes_profile_photo_url_for_navbar(): void
+    {
+        $student = User::factory()->create([
+            'role' => 'mahasiswa',
+        ]);
+
+        DB::table('mahasiswa_profiles')->insert([
+            'user_id' => $student->id,
+            'nim' => '1301213888',
+            'department' => 'Teknik Informatika',
+            'study_program' => 'S1 Informatika',
+            'gpa' => '3.85',
+            'phone' => '081234567890',
+            'location' => 'Jakarta',
+            'bio' => 'Mahasiswa aktif.',
+            'photo_path' => 'profile-photos/avatar.png',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($student)
+            ->get('/profile')
+            ->assertSuccessful()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('auth.user.profile_photo_url', '/storage/profile-photos/avatar.png')
             );
     }
 }

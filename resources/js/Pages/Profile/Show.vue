@@ -13,6 +13,7 @@ const user = computed(() => page.props.auth.user);
 const isProfileDrawerOpen = ref(false);
 const isSkillFormOpen = ref(false);
 const profileSuccessMessage = ref('');
+const profilePhotoPreview = ref(null);
 
 const filled = (value) => value !== null && value !== undefined && String(value).trim() !== '';
 const fallback = (value, text = 'Belum diisi') => (filled(value) ? value : text);
@@ -26,6 +27,7 @@ const profileForm = useForm({
     university: props.profile?.university ?? '',
     location: props.profile?.location ?? '',
     bio: props.profile?.bio ?? '',
+    photo: null,
 });
 
 const skillForm = useForm({
@@ -44,6 +46,7 @@ const profileFields = computed(() => [
     props.profile?.university,
     props.profile?.location,
     props.profile?.bio,
+    props.profile?.photo_path,
 ]);
 
 const profileCompletion = computed(() => {
@@ -54,6 +57,14 @@ const profileCompletion = computed(() => {
 const initials = computed(() => {
     const names = (user.value?.name ?? 'SIKARA').trim().split(/\s+/).slice(0, 2);
     return names.map((name) => name.charAt(0).toUpperCase()).join('');
+});
+
+const profilePhotoUrl = computed(() => {
+    if (profilePhotoPreview.value) {
+        return profilePhotoPreview.value;
+    }
+
+    return props.profile?.photo_path ? `/storage/${props.profile.photo_path}` : null;
 });
 
 const topSkills = computed(() =>
@@ -93,8 +104,10 @@ watch(
             university: profile?.university ?? '',
             location: profile?.location ?? '',
             bio: profile?.bio ?? '',
+            photo: null,
         });
         profileForm.reset();
+        profilePhotoPreview.value = null;
     },
 );
 
@@ -117,6 +130,7 @@ const validateGpa = () => {
 
 const openProfileDrawer = () => {
     profileSuccessMessage.value = '';
+    profilePhotoPreview.value = null;
     isProfileDrawerOpen.value = true;
 };
 
@@ -127,7 +141,14 @@ const closeProfileDrawer = () => {
 
     profileForm.clearErrors();
     profileForm.reset();
+    profilePhotoPreview.value = null;
     isProfileDrawerOpen.value = false;
+};
+
+const updateProfilePhoto = (event) => {
+    const file = event.target.files?.[0] ?? null;
+    profileForm.photo = file;
+    profilePhotoPreview.value = file ? URL.createObjectURL(file) : null;
 };
 
 const submitProfile = () => {
@@ -143,10 +164,13 @@ const submitProfile = () => {
             gpa: filled(data.gpa) ? Number(data.gpa) : data.gpa,
         }))
         .post(route('profile.store'), {
+            forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {
                 isProfileDrawerOpen.value = false;
                 profileSuccessMessage.value = 'Profil berhasil diperbarui.';
+                profileForm.photo = null;
+                profilePhotoPreview.value = null;
             },
         });
 };
@@ -171,14 +195,7 @@ const submitSkill = () => {
     <Head title="Profil Mahasiswa" />
 
     <PortalLayout activeRole="peserta" loginRole="mahasiswa">
-        <!-- Navigasi Utama -->
-        <template #navigation>
-            <Link :href="route('lowongan')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Cari Lowongan</Link>
-            <Link :href="route('perusahaan-list')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">List Perusahaan</Link>
-            <Link :href="route('lms')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">LMS</Link>
-            <Link :href="route('event')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Pelatihan</Link>
-            <Link :href="route('generate-cv')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Buat CV</Link>
-        </template>
+
 
         <!-- Area Konten Utama -->
         <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 relative z-10">
@@ -212,8 +229,11 @@ const submitSkill = () => {
             <div class="grid gap-6 xl:grid-cols-12">
                 <section class="xl:col-span-4">
                     <div class="rounded-[20px] border border-slate-200 bg-white p-6 text-center shadow-[0_16px_40px_rgba(15,23,42,0.04)] md:p-8">
-                        <div class="mx-auto flex h-32 w-32 items-center justify-center rounded-full border-4 border-slate-50 bg-gradient-to-br from-blue-50 to-emerald-50 text-4xl font-bold text-[#2563EB]">
+                        <div class="mx-auto flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-4 border-slate-50 bg-gradient-to-br from-blue-50 to-emerald-50 text-4xl font-bold text-[#2563EB]">
+                            <img v-if="profilePhotoUrl" :src="profilePhotoUrl" :alt="`Foto profil ${user?.name}`" class="h-full w-full object-cover" />
+                            <span v-else>
                             {{ initials }}
+                            </span>
                         </div>
 
                         <h2 class="mt-6 text-2xl font-bold tracking-tight text-[#0F172A]">{{ user?.name }}</h2>
@@ -472,6 +492,25 @@ const submitSkill = () => {
 
                 <form class="flex-1 overflow-y-auto px-6 py-6" @submit.prevent="submitProfile">
                     <div class="grid gap-5 sm:grid-cols-2">
+                        <div class="sm:col-span-2">
+                            <label class="text-xs font-bold uppercase tracking-wider text-[#64748B]">Foto Profil</label>
+                            <div class="mt-3 flex items-center gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                                <div class="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white text-xl font-bold text-[#2563EB] ring-1 ring-slate-200">
+                                    <img v-if="profilePhotoUrl" :src="profilePhotoUrl" alt="Preview foto profil" class="h-full w-full object-cover" />
+                                    <span v-else>{{ initials }}</span>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <input
+                                        type="file"
+                                        accept="image/png,image/jpeg,image/webp"
+                                        class="block w-full text-sm text-[#64748B] file:mr-4 file:rounded-xl file:border-0 file:bg-[#2563EB] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-700"
+                                        @change="updateProfilePhoto"
+                                    />
+                                    <p class="mt-2 text-xs text-[#64748B]">Gunakan JPG, PNG, atau WebP maksimal 2MB.</p>
+                                    <p v-if="profileForm.errors.photo" class="mt-2 text-xs text-red-600">{{ profileForm.errors.photo }}</p>
+                                </div>
+                            </div>
+                        </div>
                         <div>
                             <label class="text-xs font-bold uppercase tracking-wider text-[#64748B]">NIM</label>
                             <input v-model="profileForm.nim" type="text" class="mt-2 h-11 w-full rounded-xl border-slate-200 text-sm focus:border-[#2563EB] focus:ring-[#2563EB]" />

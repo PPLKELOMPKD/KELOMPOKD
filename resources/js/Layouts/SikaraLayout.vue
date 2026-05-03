@@ -16,6 +16,7 @@ defineProps({
 const page = usePage();
 const user = computed(() => page.props.auth?.user ?? null);
 const showUserMenu = ref(false);
+const profilePhotoUrl = computed(() => user.value?.profile_photo_url ?? null);
 
 const toggleUserMenu = () => {
     showUserMenu.value = !showUserMenu.value;
@@ -28,6 +29,12 @@ const closeUserMenu = () => {
 const logout = () => {
     router.post(route("logout"));
 };
+
+const homeRoute = computed(() => {
+    if (user.value?.role === 'perusahaan') return route('perusahaan.dashboard');
+    if (user.value?.role === 'admin') return route('dashboard');
+    return route('peserta');
+});
 
 const navItems = computed(() => {
     const items = [];
@@ -53,6 +60,11 @@ const navItems = computed(() => {
         user.value?.role === "admin"
     ) {
         items.push(
+            {
+                label: "Dashboard",
+                href: user.value?.role === "perusahaan" ? route("perusahaan.dashboard") : route("dashboard"),
+                active: user.value?.role === "perusahaan" ? route().current("perusahaan.dashboard") : route().current("dashboard"),
+            },
             {
                 label: "Kelola Pelamar",
                 href: route("perusahaan.applicants.index"),
@@ -116,7 +128,7 @@ const navItems = computed(() => {
             <div
                 class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4"
             >
-                <Link :href="route('peserta')" class="flex items-center gap-3">
+                <Link :href="homeRoute" class="flex items-center gap-3">
                     <img
                         src="/images/Logo-SIKARA.png"
                         alt="SIKARA"
@@ -153,9 +165,10 @@ const navItems = computed(() => {
                         @click="toggleUserMenu"
                     >
                         <div
-                            class="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#2563EB] to-[#60A5FA] text-sm font-bold text-white shadow-md"
+                            class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[#2563EB] to-[#60A5FA] text-sm font-bold text-white shadow-md"
                         >
-                            {{ user?.name?.charAt(0)?.toUpperCase() || "U" }}
+                            <img v-if="profilePhotoUrl" :src="profilePhotoUrl" alt="Profile" class="h-full w-full object-cover" />
+                            <span v-else>{{ user?.name?.charAt(0)?.toUpperCase() || "U" }}</span>
                         </div>
                         <div class="hidden text-left sm:block">
                             <p

@@ -11,8 +11,8 @@
 /.phpunit.cache
 /.vscode
 /.zed
-/.graphifyignore
-/graphify-out
+/.graphify*
+/graphify-out/
 /auth.json
 /node_modules
 /public/build
