@@ -30,28 +30,22 @@ const logout = () => {
 };
 
 const navItems = computed(() => {
-    const items = [
-        {
-            label: "Dashboard",
-            href: route("dashboard"),
-            active: route().current("dashboard"),
-        },
-    ];
+    const items = [];
 
     if (user.value?.role === "mahasiswa") {
         items.push(
             {
                 label: "Cari Lowongan",
-                href: route("internships.index"),
-                active: route().current("internships.*"),
+                href: "/lowongan",
+                active: route().current("lowongan"),
             },
-            { label: "List Perusahaan", href: "#", active: false },
+            { label: "List Perusahaan", href: "/perusahaan-list", active: false },
             {
                 label: "LMS",
                 href: route("lms"),
                 active: route().current("lms"),
             },
-            { label: "Pelatihan", href: "#", active: false },
+            { label: "Pelatihan", href: "/event", active: route().current("/event") },
             { label: "Generate CV", href: "#", active: false },
         );
     } else if (
@@ -247,7 +241,7 @@ const navItems = computed(() => {
                                     Notifikasi
                                 </Link>
                                 <Link
-                                    :href="route('internships.index')"
+                                    :href="route('applications.index')"
                                     class="flex items-center gap-3 px-4 py-2.5 text-sm text-[#344054] transition-colors hover:bg-[#F8FAFC]"
                                 >
                                     <svg

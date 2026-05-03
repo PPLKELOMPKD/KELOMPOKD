@@ -75,7 +75,7 @@ const getAvatarColor = (name) => {
             <h3 class="mt-6 text-xl font-bold text-[#344054]">Belum Ada Lamaran</h3>
             <p class="mt-2 text-sm text-[#667085] max-w-md mx-auto">Mulai eksplorasi lowongan magang dan kirim lamaran pertama Anda sekarang!</p>
             <Link
-                :href="route('internships.index')"
+                :href="route('lowongan')"
                 class="mt-8 inline-flex items-center gap-2 rounded-xl bg-[#2563EB] px-8 py-3 text-sm font-bold text-white transition-all hover:bg-[#1d4ed8] hover:shadow-lg hover:shadow-blue-500/25"
             >
                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
