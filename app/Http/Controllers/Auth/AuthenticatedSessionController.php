@@ -37,6 +37,12 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        $user = $request->user();
+
+        if ($user->isMahasiswa()) {
+            return redirect()->intended(route('peserta', absolute: false));
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
