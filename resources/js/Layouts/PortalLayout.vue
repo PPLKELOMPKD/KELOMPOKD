@@ -26,22 +26,11 @@ const logout = () => {
 
 <template>
     <div class="min-h-screen bg-white font-sans text-[#0F172A]">
-        <!-- ── Top Bar ── -->
-        <div class="bg-[#1E293B] text-white">
-            <div class="mx-auto flex max-w-7xl justify-end px-6 py-2.5 text-xs font-semibold tracking-wide">
-                <div class="flex gap-7">
-                    <Link :href="route('peserta')" :class="['transition-colors hover:text-white', activeRole === 'peserta' ? 'text-white' : 'text-[#94A3B8]']">Peserta</Link>
-                    <Link :href="route('perusahaan')" :class="['transition-colors hover:text-white', activeRole === 'perusahaan' ? 'text-white' : 'text-[#94A3B8]']">Perusahaan</Link>
-                    <Link :href="route('tentang')" :class="['transition-colors hover:text-white', activeRole === 'tentang' ? 'text-white' : 'text-[#94A3B8]']">Tentang SIKARA</Link>
-                </div>
-            </div>
-        </div>
-
         <!-- ── Main Navbar ── -->
         <header class="sticky top-0 z-50 border-b border-[#E2E8F0] bg-white/95 backdrop-blur-md shadow-sm transition-all">
             <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
                 <!-- Logo -->
-                <Link :href="route('home')" class="flex items-center gap-3">
+                <Link :href="route('peserta')" class="flex items-center gap-3">
                     <img src="/images/Logo-SIKARA.png" alt="SIKARA" class="h-8 w-auto" />
                     <span class="text-xl font-black tracking-tight text-[#0F172A]">SIKARA</span>
                 </Link>
@@ -90,9 +79,9 @@ const logout = () => {
                                     <svg class="h-4 w-4 text-[#94A3B8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
                                     Notifikasi
                                 </Link>
-                                <Link :href="route('internships.index')" class="flex items-center gap-3 px-4 py-2.5 text-sm text-[#344054] hover:bg-[#F8FAFC] transition-colors">
+                                <Link :href="route('applications.index')" class="flex items-center gap-3 px-4 py-2.5 text-sm text-[#344054] hover:bg-[#F8FAFC] transition-colors">
                                     <svg class="h-4 w-4 text-[#94A3B8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1"/><path d="M4 7h16v12H4z"/><path d="M4 12h16"/></svg>
-                                    Lamaran Saya
+                                    Tracking Lamaran
                                 </Link>
                                 <Link :href="route('cv.download')" class="flex items-center gap-3 px-4 py-2.5 text-sm text-[#344054] hover:bg-[#F8FAFC] transition-colors">
                                     <svg class="h-4 w-4 text-[#94A3B8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h14a2 2 0 0 0 2-2V7.5L14.5 2H6a2 2 0 0 0-2 2v4"/><polyline points="14 2 14 8 20 8"/><path d="M3 15h6"/><path d="M3 18h6"/></svg>
