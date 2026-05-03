@@ -49,6 +49,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/internships/{internship}/edit', [\App\Http\Controllers\CompanyInternshipController::class, 'edit'])->name('internships.edit');
         Route::put('/internships/{internship}', [\App\Http\Controllers\CompanyInternshipController::class, 'update'])->name('internships.update');
         Route::delete('/internships/{internship}', [\App\Http\Controllers\CompanyInternshipController::class, 'destroy'])->name('internships.destroy');
+        
+        // Placeholder routes for Company Features
+        Route::get('/applicants', function () { return \Inertia\Inertia::render('Company/Applicants/Index'); })->name('applicants.index');
+        Route::get('/events', function () { return \Inertia\Inertia::render('Company/Events/Index'); })->name('events.index');
+        Route::get('/reports', function () { return \Inertia\Inertia::render('Company/Reports/Index'); })->name('reports.index');
     });
 
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
