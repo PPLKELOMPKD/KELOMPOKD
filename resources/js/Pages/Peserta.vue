@@ -1,7 +1,17 @@
 <script setup>
-import { ref } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import PortalLayout from '@/Layouts/PortalLayout.vue';
+
+const page = usePage();
+const user = computed(() => page.props.auth?.user ?? null);
+
+const props = defineProps({
+    profileSummary: Object,
+    stats: Array,
+    latestInternships: Array,
+    latestNotifications: Array,
+});
 
 const activeFaq = ref(null);
 
@@ -42,8 +52,32 @@ const faqs = [
             <Link :href="route('perusahaan-list')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">List Perusahaan</Link>
             <Link :href="route('lms')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">LMS</Link>
             <Link :href="route('event')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Pelatihan</Link>
-            <Link href="#" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Generate CV</Link>
+            <Link :href="route('generate-cv')" class="text-sm font-semibold text-[#64748B] transition-colors hover:text-[#2563EB]">Generate CV</Link>
         </template>
+
+        <!-- ── Welcome Banner (Authenticated) ── -->
+        <section v-if="user" class="bg-gradient-to-r from-[#2563EB] to-[#1E40AF] text-white">
+            <div class="mx-auto max-w-6xl px-6 py-8">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div class="flex items-center gap-5">
+                        <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 text-2xl font-black backdrop-blur-sm">
+                            {{ user.name?.charAt(0)?.toUpperCase() }}
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-white/70">Selamat datang kembali,</p>
+                            <h2 class="text-2xl font-bold">{{ user.name }}</h2>
+                            <p v-if="profileSummary" class="text-sm text-white/70 mt-0.5">{{ profileSummary.university }} · {{ profileSummary.department }}</p>
+                        </div>
+                    </div>
+                    <div v-if="stats" class="flex gap-6">
+                        <div v-for="stat in stats" :key="stat.label" class="text-center bg-white/10 rounded-xl px-5 py-3 backdrop-blur-sm">
+                            <p class="text-2xl font-black">{{ stat.value }}</p>
+                            <p class="text-xs font-medium text-white/70 mt-1">{{ stat.label }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <!-- ── Hero Peserta ── -->
         <section class="mx-auto max-w-6xl px-6 pt-24 pb-20 text-center">
@@ -229,14 +263,29 @@ const faqs = [
         <section class="bg-[#EFF6FF] py-24 border-t border-[#E2E8F0] relative overflow-hidden">
             <div class="absolute inset-0 bg-[url('/images/pattern-grid.svg')] opacity-5"></div>
             <div class="mx-auto max-w-4xl px-6 text-center relative z-10">
-                <h2 class="text-3xl font-black text-[#0F172A] lg:text-5xl leading-tight">Siap Memulai Langkah Pertamamu?</h2>
-                <p class="mt-6 text-lg text-[#64748B] max-w-2xl mx-auto">Ratusan perusahaan top sedang mencari talenta muda seperti Anda. Jangan tunggu lulus untuk membangun profil profesional.</p>
-                <div class="mt-10">
-                    <Link :href="route('login', { role: 'mahasiswa' })" class="inline-flex items-center rounded-xl bg-[#2563EB] px-10 py-4 text-base font-bold text-white transition-all hover:bg-[#1d4ed8] hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/30">
-                        Buat Akun Peserta Gratis
-                        <svg class="ml-2 h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                    </Link>
-                </div>
+                <template v-if="user">
+                    <h2 class="text-3xl font-black text-[#0F172A] lg:text-5xl leading-tight">Mulai Eksplorasi Kariermu!</h2>
+                    <p class="mt-6 text-lg text-[#64748B] max-w-2xl mx-auto">Temukan lowongan magang impian, tingkatkan skill lewat LMS, dan buat CV profesional untuk melamar sekarang.</p>
+                    <div class="mt-10 flex flex-wrap justify-center gap-4">
+                        <Link :href="route('lowongan')" class="inline-flex items-center rounded-xl bg-[#2563EB] px-10 py-4 text-base font-bold text-white transition-all hover:bg-[#1d4ed8] hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/30">
+                            Cari Lowongan
+                            <svg class="ml-2 h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </Link>
+                        <Link :href="route('profile.show')" class="inline-flex items-center rounded-xl bg-white border border-[#E2E8F0] px-8 py-4 text-base font-bold text-[#0F172A] transition-all hover:bg-[#F8FAFC] hover:-translate-y-1 hover:shadow-lg">
+                            Lengkapi Profil
+                        </Link>
+                    </div>
+                </template>
+                <template v-else>
+                    <h2 class="text-3xl font-black text-[#0F172A] lg:text-5xl leading-tight">Siap Memulai Langkah Pertamamu?</h2>
+                    <p class="mt-6 text-lg text-[#64748B] max-w-2xl mx-auto">Ratusan perusahaan top sedang mencari talenta muda seperti Anda. Jangan tunggu lulus untuk membangun profil profesional.</p>
+                    <div class="mt-10">
+                        <Link :href="route('login', { role: 'mahasiswa' })" class="inline-flex items-center rounded-xl bg-[#2563EB] px-10 py-4 text-base font-bold text-white transition-all hover:bg-[#1d4ed8] hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/30">
+                            Buat Akun Peserta Gratis
+                            <svg class="ml-2 h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </Link>
+                    </div>
+                </template>
             </div>
         </section>
 
