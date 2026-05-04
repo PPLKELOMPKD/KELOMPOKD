@@ -6,7 +6,7 @@ import SearchableSelect from '@/Components/SearchableSelect.vue';
 
 const props = defineProps({
     internships: { type: Array, default: () => [] },
-    filterOptions: { type: Object, default: () => ({ companies: [], locations: [], workTypes: [] }) },
+    filterOptions: { type: Object, default: () => ({ companies: [], locations: [], workTypes: [], educationLevels: [], salaryRanges: [] }) },
 });
 
 const activeTab = ref('Semua Lowongan');
@@ -16,6 +16,8 @@ const filters = ref({
     lokasi: '',
     jenis: '',
     perusahaan: '',
+    pendidikan: '',
+    gaji: '',
     sort: 'terbaru'
 });
 
@@ -23,6 +25,8 @@ const filters = ref({
 const opsiLokasi = computed(() => props.filterOptions.locations);
 const opsiJenis = computed(() => ['Semua Jenis', ...props.filterOptions.workTypes]);
 const opsiPerusahaan = computed(() => ['Semua Perusahaan', ...props.filterOptions.companies]);
+const opsiPendidikan = computed(() => ['Semua Jenjang', ...props.filterOptions.educationLevels]);
+const opsiGaji = computed(() => ['Semua Gaji', ...props.filterOptions.salaryRanges]);
 
 // Color map for work types
 const typeColors = {
@@ -74,6 +78,16 @@ const filteredInternships = computed(() => {
         result = result.filter(i => i.company_name === filters.value.perusahaan);
     }
 
+    // Pendidikan filter
+    if (filters.value.pendidikan && filters.value.pendidikan !== '' && filters.value.pendidikan !== 'Semua Jenjang') {
+        result = result.filter(i => i.education_level === filters.value.pendidikan);
+    }
+
+    // Gaji filter
+    if (filters.value.gaji && filters.value.gaji !== '' && filters.value.gaji !== 'Semua Gaji') {
+        result = result.filter(i => i.salary_range === filters.value.gaji);
+    }
+
     // Sort
     if (filters.value.sort === 'terbaru') {
         result.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -89,12 +103,12 @@ const filteredInternships = computed(() => {
 });
 
 const resetFilters = () => {
-    filters.value = { posisi: '', lokasi: '', jenis: '', perusahaan: '', sort: 'terbaru' };
+    filters.value = { posisi: '', lokasi: '', jenis: '', perusahaan: '', pendidikan: '', gaji: '', sort: 'terbaru' };
     activeTab.value = 'Semua Lowongan';
 };
 
 const hasActiveFilters = computed(() => {
-    return filters.value.posisi || filters.value.lokasi || filters.value.jenis || filters.value.perusahaan || activeTab.value !== 'Semua Lowongan';
+    return filters.value.posisi || filters.value.lokasi || filters.value.jenis || filters.value.perusahaan || filters.value.pendidikan || filters.value.gaji || activeTab.value !== 'Semua Lowongan';
 });
 
 const formatDate = (d) => {
@@ -149,9 +163,11 @@ const daysLeft = (d) => {
                     </div>
 
                     <!-- Secondary Filters Row -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 relative z-20">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 relative z-20">
                         <SearchableSelect v-model="filters.jenis" :options="opsiJenis" placeholder="Jenis Lowongan" />
                         <SearchableSelect v-model="filters.perusahaan" :options="opsiPerusahaan" placeholder="Perusahaan" />
+                        <SearchableSelect v-model="filters.pendidikan" :options="opsiPendidikan" placeholder="Jenjang Pendidikan" />
+                        <SearchableSelect v-model="filters.gaji" :options="opsiGaji" placeholder="Rentang Gaji" />
                     </div>
                 </div>
             </div>

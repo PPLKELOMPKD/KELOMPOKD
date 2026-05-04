@@ -72,12 +72,17 @@ class InternshipController extends Controller
             ->values()
             ->toArray();
 
+        $educationLevels = ['D3', 'D4', 'S1', 'S2', 'S3'];
+        $salaryRanges = $internships->pluck('salary_range')->unique()->filter()->values()->toArray();
+
         return Inertia::render('Features/Lowongan', [
             'internships' => $internships,
             'filterOptions' => [
                 'companies' => $companies,
                 'locations' => $locations,
                 'workTypes' => $workTypes,
+                'educationLevels' => $educationLevels,
+                'salaryRanges' => $salaryRanges,
             ],
         ]);
     }
