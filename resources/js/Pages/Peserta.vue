@@ -98,7 +98,7 @@ const faqs = [
                 </h1>
 
                 <p class="mx-auto mt-8 max-w-2xl text-lg text-[#475569] leading-relaxed font-medium">
-                    Tingkatkan kompetensi Anda melalui Pelatihan & LMS, temukan magang yang tepat dari ratusan mitra, dan buat CV profesional standar industri secara instan.
+                    Tingkatkan kompetensi Anda melalui Event & LMS, temukan magang yang tepat dari ratusan mitra, dan buat CV profesional standar industri secara instan.
                 </p>
                 
                 <div class="mt-12 flex flex-wrap justify-center gap-4">
@@ -145,7 +145,7 @@ const faqs = [
                                 <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
                             </svg>
                         </div>
-                        <h3 class="text-lg font-bold text-[#0F172A]">LMS & Pelatihan</h3>
+                        <h3 class="text-lg font-bold text-[#0F172A]">LMS & Event</h3>
                         <p class="mt-2 text-sm text-[#64748B]">Tingkatkan kemampuan teknis dan soft-skill Anda lewat modul pembelajaran eksklusif.</p>
                     </div>
                 </div>
