@@ -17,15 +17,31 @@ const statusConfig = {
         label: 'Seleksi Berkas',
         classes: 'border border-[#93C5FD] bg-[#EFF6FF] text-[#2563EB]',
     },
+    'menunggu ulasan': {
+        label: 'Menunggu Ulasan',
+        classes: 'border border-[#93C5FD] bg-[#EFF6FF] text-[#2563EB]',
+    },
     interview: {
         label: 'Wawancara',
         classes: 'border border-[#86EFAC] bg-[#F0FDF4] text-[#16A34A]',
+    },
+    wawancara: {
+        label: 'Wawancara',
+        classes: 'border border-[#C4B5FD] bg-[#F5F3FF] text-[#7C3AED]',
     },
     accepted: {
         label: 'Diterima',
         classes: 'border-0 bg-[#16A34A] text-white',
     },
+    lolos: {
+        label: 'Diterima',
+        classes: 'border-0 bg-[#16A34A] text-white',
+    },
     rejected: {
+        label: 'Ditolak',
+        classes: 'border-0 bg-[#EF4444] text-white',
+    },
+    'tidak lolos': {
         label: 'Ditolak',
         classes: 'border-0 bg-[#EF4444] text-white',
     },

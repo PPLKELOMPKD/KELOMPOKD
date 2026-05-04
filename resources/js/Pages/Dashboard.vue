@@ -1,7 +1,7 @@
 <script setup>
 import SikaraLayout from '@/Layouts/SikaraLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 
 const props = defineProps({
     title: String,
@@ -32,6 +32,32 @@ const getColorClass = (color, type) => {
 
 const isStudentDashboard = computed(() => Boolean(props.profileSummary && props.role !== 'perusahaan'));
 const isCompanyDashboard = computed(() => props.role === 'perusahaan');
+
+// ── Modal state for Terima/Tolak on dashboard ──
+const showModal = ref(false);
+const modalAction = ref('');
+const modalApplicant = ref(null);
+const processing = ref(false);
+
+const openModal = (applicant, action) => { modalApplicant.value = applicant; modalAction.value = action; showModal.value = true; };
+const closeModal = () => { showModal.value = false; modalApplicant.value = null; modalAction.value = ''; };
+const confirmAction = () => {
+    if (!modalApplicant.value) return;
+    processing.value = true;
+    router.patch(route('perusahaan.applicants.updateStatus', modalApplicant.value.id), {
+        status: modalAction.value, redirect: 'index',
+    }, {
+        preserveScroll: true,
+        onFinish: () => { processing.value = false; closeModal(); },
+    });
+};
+const modalConfig = computed(() => {
+    const c = {
+        lolos:         { title: 'Terima Pelamar', msg: `Terima ${modalApplicant.value?.name} untuk posisi ${modalApplicant.value?.position}?`, iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', btnClass: 'bg-emerald-600 hover:bg-emerald-700', btnText: 'Ya, Terima' },
+        'tidak lolos': { title: 'Tolak Pelamar',  msg: `Tolak ${modalApplicant.value?.name} untuk posisi ${modalApplicant.value?.position}?`,  iconBg: 'bg-red-100',     iconColor: 'text-red-600',     btnClass: 'bg-red-600 hover:bg-red-700',         btnText: 'Ya, Tolak' },
+    };
+    return c[modalAction.value] || c.lolos;
+});
 </script>
 
 <template>
@@ -313,9 +339,9 @@ const isCompanyDashboard = computed(() => props.role === 'perusahaan');
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex items-center justify-end gap-2 text-xs font-semibold">
-                                        <button class="rounded-md bg-emerald-50 text-emerald-600 px-3 py-1.5 hover:bg-emerald-500 hover:text-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 active:scale-95">Terima</button>
-                                        <button class="rounded-md bg-red-50 text-red-600 px-3 py-1.5 hover:bg-red-500 hover:text-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 active:scale-95">Tolak</button>
-                                        <Link :href="route('perusahaan.applicants.index')" class="rounded-md border border-[#eaecf0] bg-white text-[#344054] px-3 py-1.5 hover:bg-slate-800 hover:text-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 active:scale-95 inline-flex items-center justify-center">Detail</Link>
+                                        <button v-if="applicant.statusRaw !== 'lolos'" @click="openModal(applicant, 'lolos')" class="rounded-md bg-emerald-50 text-emerald-600 px-3 py-1.5 hover:bg-emerald-500 hover:text-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 active:scale-95">Terima</button>
+                                        <button v-if="applicant.statusRaw !== 'tidak lolos'" @click="openModal(applicant, 'tidak lolos')" class="rounded-md bg-red-50 text-red-600 px-3 py-1.5 hover:bg-red-500 hover:text-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 active:scale-95">Tolak</button>
+                                        <Link :href="route('perusahaan.applicants.show', applicant.id)" class="rounded-md border border-[#eaecf0] bg-white text-[#344054] px-3 py-1.5 hover:bg-slate-800 hover:text-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 active:scale-95 inline-flex items-center justify-center">Detail</Link>
                                     </div>
                                 </td>
                             </tr>
@@ -440,4 +466,34 @@ const isCompanyDashboard = computed(() => props.role === 'perusahaan');
             </div>
         </div>
     </SikaraLayout>
+
+    <!-- Confirmation Modal for Dashboard Terima/Tolak -->
+    <Teleport to="body">
+        <Transition enter-active-class="transition ease-out duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition ease-in duration-150" leave-from-class="opacity-100" leave-to-class="opacity-0">
+            <div v-if="showModal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="closeModal"></div>
+                <div class="relative w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
+                    <div class="text-center">
+                        <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full" :class="modalConfig.iconBg">
+                            <svg v-if="modalAction === 'lolos'" class="h-8 w-8 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                            <svg v-else class="h-8 w-8 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-[#101828]">{{ modalConfig.title }}</h3>
+                        <p class="mt-3 text-sm text-[#667085] leading-relaxed">{{ modalConfig.msg }}</p>
+                        <p class="mt-2 text-xs text-[#98a2b3]">Notifikasi akan otomatis dikirim ke pelamar.</p>
+                    </div>
+                    <div class="mt-8 flex gap-3">
+                        <button @click="closeModal" class="flex-1 rounded-xl border border-[#d0d5dd] bg-white py-3 text-sm font-semibold text-[#344054] hover:bg-[#f9fafb] transition-all">Batal</button>
+                        <button @click="confirmAction" :disabled="processing" :class="['flex-1 rounded-xl py-3 text-sm font-semibold text-white transition-all shadow-sm disabled:opacity-50', modalConfig.btnClass]">
+                            <span v-if="processing" class="flex items-center justify-center gap-2">
+                                <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25"/><path fill="currentColor" class="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                                Memproses...
+                            </span>
+                            <span v-else>{{ modalConfig.btnText }}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Transition>
+    </Teleport>
 </template>

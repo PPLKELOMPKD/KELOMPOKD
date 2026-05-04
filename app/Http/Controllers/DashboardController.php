@@ -140,6 +140,7 @@ class DashboardController extends Controller
                         'major'       => $profile?->department ?? '-',
                         'date'        => optional($app->created_at)->format('d M Y'),
                         'status'      => ucwords($status),
+                        'statusRaw'   => $status,
                         'statusColor' => $statusColorMap[$status] ?? 'blue',
                     ];
                 });

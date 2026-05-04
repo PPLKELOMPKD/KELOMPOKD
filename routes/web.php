@@ -56,8 +56,10 @@ Route::middleware('auth')->group(function () {
         Route::put('/internships/{internship}', [\App\Http\Controllers\CompanyInternshipController::class, 'update'])->name('internships.update');
         Route::delete('/internships/{internship}', [\App\Http\Controllers\CompanyInternshipController::class, 'destroy'])->name('internships.destroy');
         
-        // Placeholder routes for Company Features
-        Route::get('/applicants', function () { return \Inertia\Inertia::render('Company/Applicants/Index'); })->name('applicants.index');
+        // Kelola Pelamar
+        Route::get('/applicants', [\App\Http\Controllers\CompanyApplicantController::class, 'index'])->name('applicants.index');
+        Route::get('/applicants/{application}', [\App\Http\Controllers\CompanyApplicantController::class, 'show'])->name('applicants.show');
+        Route::patch('/applicants/{application}/status', [\App\Http\Controllers\CompanyApplicantController::class, 'updateStatus'])->name('applicants.updateStatus');
         Route::get('/events', function () { return \Inertia\Inertia::render('Company/Events/Index'); })->name('events.index');
         Route::get('/reports', function () { return \Inertia\Inertia::render('Company/Reports/Index'); })->name('reports.index');
     });
