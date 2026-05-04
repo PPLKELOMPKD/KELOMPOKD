@@ -10,6 +10,7 @@ const props = defineProps({
 });
 
 const activeTab = ref('Semua Lowongan');
+
 const filters = ref({
     posisi: '',
     lokasi: '',
