@@ -18,9 +18,11 @@ const form = useForm({
     company_name: props.internship.company_name || '',
     company_logo: props.internship.company_logo || '',
     location: props.internship.location || '',
+    education_level: props.internship.education_level || 'S1',
     work_type: props.internship.work_type || 'Magang',
     duration: props.internship.duration || '',
     salary: props.internship.salary || '',
+    salary_range: props.internship.salary_range || 'Di bawah Rp 1.000.000',
     description: props.internship.description || '',
     requirements: props.internship.requirements || '',
     benefits: props.internship.benefits || '',
@@ -151,6 +153,21 @@ const selectLocation = (loc) => {
                         <p v-if="form.errors.work_type" class="mt-2 text-sm text-red-600">{{ form.errors.work_type }}</p>
                     </div>
 
+                    <!-- Pendidikan -->
+                    <div>
+                        <label for="education_level" class="block text-sm font-medium text-[#101828]">Jenjang Pendidikan Minimal</label>
+                        <div class="mt-2">
+                            <select id="education_level" v-model="form.education_level" class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6">
+                                <option value="D3">D3</option>
+                                <option value="D4">D4</option>
+                                <option value="S1">S1</option>
+                                <option value="S2">S2</option>
+                                <option value="S3">S3</option>
+                            </select>
+                        </div>
+                        <p v-if="form.errors.education_level" class="mt-2 text-sm text-red-600">{{ form.errors.education_level }}</p>
+                    </div>
+
                     <!-- Durasi -->
                     <div>
                         <label for="duration" class="block text-sm font-medium text-[#101828]">Durasi</label>
@@ -162,11 +179,26 @@ const selectLocation = (loc) => {
 
                     <!-- Gaji/Uang Saku -->
                     <div>
-                        <label for="salary" class="block text-sm font-medium text-[#101828]">Gaji/Uang Saku</label>
+                        <label for="salary" class="block text-sm font-medium text-[#101828]">Detail Gaji/Uang Saku</label>
                         <div class="mt-2">
                             <input type="text" id="salary" v-model="form.salary" class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] placeholder:text-[#98a2b3] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6" placeholder="Misal: Rp 1.500.000 / Unpaid">
                         </div>
                         <p v-if="form.errors.salary" class="mt-2 text-sm text-red-600">{{ form.errors.salary }}</p>
+                    </div>
+
+                    <!-- Rentang Gaji -->
+                    <div>
+                        <label for="salary_range" class="block text-sm font-medium text-[#101828]">Rentang Gaji</label>
+                        <div class="mt-2">
+                            <select id="salary_range" v-model="form.salary_range" class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6">
+                                <option value="Unpaid">Unpaid</option>
+                                <option value="Di bawah Rp 1.000.000">Di bawah Rp 1.000.000</option>
+                                <option value="Rp 1.000.000 - Rp 3.000.000">Rp 1.000.000 - Rp 3.000.000</option>
+                                <option value="Rp 3.000.000 - Rp 5.000.000">Rp 3.000.000 - Rp 5.000.000</option>
+                                <option value="Di atas Rp 5.000.000">Di atas Rp 5.000.000</option>
+                            </select>
+                        </div>
+                        <p v-if="form.errors.salary_range" class="mt-2 text-sm text-red-600">{{ form.errors.salary_range }}</p>
                     </div>
                 </div>
 

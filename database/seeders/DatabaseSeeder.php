@@ -85,8 +85,10 @@ class DatabaseSeeder extends Seeder
             'description' => 'Mendesain UI/UX untuk produk digital.',
             'company_name' => 'PT Telekomunikasi Terpadu',
             'location' => 'Jakarta Selatan',
+            'education_level' => 'S1',
             'requirements' => 'Memahami Figma dan UX Research.',
             'deadline_at' => now()->addDays(14),
+            'salary_range' => 'Rp 1.000.000 - Rp 3.000.000',
             'quota' => 2,
             'is_published' => true,
         ]);
@@ -97,8 +99,10 @@ class DatabaseSeeder extends Seeder
             'description' => 'Mengatur Backend pada aplikasi perusahaan.',
             'company_name' => 'PT Telekomunikasi Terpadu',
             'location' => 'Remote',
+            'education_level' => 'D4',
             'requirements' => 'Memahami Node.js atau Go.',
             'deadline_at' => now()->addDays(14),
+            'salary_range' => 'Rp 3.000.000 - Rp 5.000.000',
             'quota' => 2,
             'is_published' => true,
         ]);
@@ -129,8 +133,10 @@ class DatabaseSeeder extends Seeder
             'description' => 'Menganalisis data transaksi harian.',
             'company_name' => 'PT Karya Anak Bangsa',
             'location' => 'Jakarta Pusat',
+            'education_level' => 'S2',
             'requirements' => 'Memahami SQL dan Python.',
             'deadline_at' => now()->addDays(20),
+            'salary_range' => 'Di atas Rp 5.000.000',
             'quota' => 5,
             'is_published' => true,
         ]);
