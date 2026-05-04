@@ -52,7 +52,7 @@ const navItems = computed(() => {
                 href: route("lms"),
                 active: route().current("lms"),
             },
-            { label: "Pelatihan", href: "/event", active: route().current("/event") },
+            { label: "Event", href: "/event", active: route().current("/event") },
             { label: "Buat CV", href: "#", active: false },
         );
     } else if (
@@ -104,7 +104,7 @@ const navItems = computed(() => {
                 active: route().current("lms"),
             },
             {
-                label: "Pelatihan",
+                label: "Event",
                 href: route("event"),
                 active: route().current("event"),
             },

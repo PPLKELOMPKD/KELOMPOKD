@@ -360,10 +360,10 @@ const modalConfig = computed(() => {
             </div>
             
             <div class="grid gap-6 lg:grid-cols-2">
-                 <!-- Pelatihan & Event Mendatang -->
+                 <!-- Event Mendatang -->
                  <div class="rounded-2xl border border-[#eaecf0] bg-white p-6 shadow-[0_1px_3px_rgba(16,24,40,0.1),0_1px_2px_rgba(16,24,40,0.06)]">
                     <div class="flex items-center justify-between">
-                         <h3 class="text-xl font-semibold text-[#101828]">Pelatihan & Event Mendatang</h3>
+                         <h3 class="text-xl font-semibold text-[#101828]">Event Mendatang</h3>
                          <Link :href="route('perusahaan.events.index')" class="text-sm font-semibold text-[#2563EB] hover:text-[#1d4ed8] hover:underline transition-all">Kelola Event</Link>
                     </div>
                     <div class="mt-6 space-y-4">

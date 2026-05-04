@@ -28,7 +28,10 @@ Route::get('/lowongan', [InternshipController::class, 'lowongan'])->name('lowong
 Route::get('/perusahaan-list', [\App\Http\Controllers\CompanyController::class, 'index'])->name('perusahaan-list');
 Route::get('/perusahaan-profile/{id}', [\App\Http\Controllers\CompanyController::class, 'show'])->name('perusahaan.profile');
 Route::get('/lms', function () { return Inertia::render('Features/Lms'); })->name('lms');
-Route::get('/event', function () { return Inertia::render('Features/Event'); })->name('event');
+Route::get('/event', function () {
+    $events = \App\Models\Event::with(['company', 'company.perusahaanProfile'])->where('status', 'published')->latest()->get();
+    return Inertia::render('Features/Event', ['events' => $events]);
+})->name('event');
 Route::get('/generate-cv', function () { return Inertia::render('Features/GenerateCv'); })->name('generate-cv');
 
 Route::middleware('auth')->group(function () {
@@ -60,7 +63,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/applicants', [\App\Http\Controllers\CompanyApplicantController::class, 'index'])->name('applicants.index');
         Route::get('/applicants/{application}', [\App\Http\Controllers\CompanyApplicantController::class, 'show'])->name('applicants.show');
         Route::patch('/applicants/{application}/status', [\App\Http\Controllers\CompanyApplicantController::class, 'updateStatus'])->name('applicants.updateStatus');
-        Route::get('/events', function () { return \Inertia\Inertia::render('Company/Events/Index'); })->name('events.index');
+        Route::resource('/events', \App\Http\Controllers\CompanyEventController::class)->except('show');
         Route::get('/reports', function () { return \Inertia\Inertia::render('Company/Reports/Index'); })->name('reports.index');
     });
 
