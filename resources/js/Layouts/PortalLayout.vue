@@ -171,8 +171,8 @@ const homeRoute = computed(() => {
                     <div>
                         <h3 class="font-bold text-[#0F172A] text-sm tracking-wider uppercase mb-4">Tentang SIKARA</h3>
                         <ul class="space-y-3">
-                            <li><Link href="#" class="text-sm font-medium text-[#64748B] hover:text-[#2563EB] transition-colors">Panduan</Link></li>
-                            <li><Link href="#" class="text-sm font-medium text-[#64748B] hover:text-[#2563EB] transition-colors">Pusat Informasi</Link></li>
+                            <li><Link :href="route('panduan')" class="text-sm font-medium text-[#64748B] hover:text-[#2563EB] transition-colors">Panduan</Link></li>
+                            <li><Link :href="route('pusat-informasi')" class="text-sm font-medium text-[#64748B] hover:text-[#2563EB] transition-colors">Pusat Informasi</Link></li>
                             <li><Link :href="route('tentang')" class="text-sm font-medium text-[#64748B] hover:text-[#2563EB] transition-colors">Tentang Kami</Link></li>
                         </ul>
                     </div>

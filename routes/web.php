@@ -20,6 +20,8 @@ Route::get('/', function () {
 Route::get('/peserta', PesertaController::class)->name('peserta');
 Route::get('/perusahaan', function () { return Inertia::render('Perusahaan'); })->name('perusahaan');
 Route::get('/tentang', function () { return Inertia::render('TentangSikara'); })->name('tentang');
+Route::get('/panduan', function () { return Inertia::render('Panduan'); })->name('panduan');
+Route::get('/pusat-informasi', function () { return Inertia::render('PusatInformasi'); })->name('pusat-informasi');
 
 // Fitur Navigasi
 Route::get('/lowongan', [InternshipController::class, 'lowongan'])->name('lowongan');
