@@ -81,6 +81,11 @@ const navItems = computed(() => {
                 active: route().current("perusahaan.events.*"),
             },
             {
+                label: "LMS",
+                href: route("perusahaan.lms.index"),
+                active: route().current("perusahaan.lms.*"),
+            },
+            {
                 label: "Laporan",
                 href: route("perusahaan.reports.index"),
                 active: route().current("perusahaan.reports.*"),

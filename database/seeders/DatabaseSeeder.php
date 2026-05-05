@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(LmsCourseSeeder::class);
+
         $student = User::factory()->mahasiswa()->create([
             'name' => 'Budi Santoso',
             'email' => 'mahasiswa@sikara.test',
