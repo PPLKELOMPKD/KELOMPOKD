@@ -5,6 +5,7 @@ use App\Http\Controllers\ApplicationTrackingController;
 use App\Http\Controllers\CvController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InternshipController;
+use App\Http\Controllers\LmsController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PesertaController;
 use App\Http\Controllers\ProfileController;
@@ -27,7 +28,8 @@ Route::get('/pusat-informasi', function () { return Inertia::render('PusatInform
 Route::get('/lowongan', [InternshipController::class, 'lowongan'])->name('lowongan');
 Route::get('/perusahaan-list', [\App\Http\Controllers\CompanyController::class, 'index'])->name('perusahaan-list');
 Route::get('/perusahaan-profile/{id}', [\App\Http\Controllers\CompanyController::class, 'show'])->name('perusahaan.profile');
-Route::get('/lms', function () { return Inertia::render('Features/Lms'); })->name('lms');
+Route::get('/lms', [LmsController::class, 'index'])->name('lms');
+Route::get('/lms/module/{course}', [LmsController::class, 'show'])->name('lms.module.show');
 Route::get('/event', function () {
     $events = \App\Models\Event::with(['company', 'company.perusahaanProfile'])->where('status', 'published')->latest()->get();
     return Inertia::render('Features/Event', ['events' => $events]);
@@ -48,6 +50,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
         Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
         Route::get('/cv/download', [CvController::class, 'download'])->name('cv.download');
+        
+        Route::post('/lms/{course}/enroll', [\App\Http\Controllers\LmsEnrollmentController::class, 'store'])->name('lms.enrollments.store');
+        Route::post('/lms/lessons/{lesson}/complete', [\App\Http\Controllers\LmsLessonCompletionController::class, 'store'])->name('lms.lessons.complete');
+        Route::post('/lms/quizzes/{quiz}/submit', [\App\Http\Controllers\LmsQuizAttemptController::class, 'store'])->name('lms.quizzes.submit');
     });
 
     Route::middleware('role:perusahaan')->prefix('perusahaan')->name('perusahaan.')->group(function () {
@@ -65,6 +71,16 @@ Route::middleware('auth')->group(function () {
         Route::patch('/applicants/{application}/status', [\App\Http\Controllers\CompanyApplicantController::class, 'updateStatus'])->name('applicants.updateStatus');
         Route::resource('/events', \App\Http\Controllers\CompanyEventController::class)->except('show');
         Route::get('/reports', function () { return \Inertia\Inertia::render('Company/Reports/Index'); })->name('reports.index');
+
+        Route::resource('/lms', \App\Http\Controllers\CompanyLmsCourseController::class)->names('lms');
+        Route::post('/lms/{course}/publish', [\App\Http\Controllers\CompanyLmsCourseController::class, 'publish'])->name('lms.publish');
+        Route::post('/lms/{course}/unpublish', [\App\Http\Controllers\CompanyLmsCourseController::class, 'unpublish'])->name('lms.unpublish');
+        Route::get('/lms/{course}/builder', [\App\Http\Controllers\CompanyLmsContentController::class, 'builder'])->name('lms.builder');
+        Route::post('/lms/{course}/chapters', [\App\Http\Controllers\CompanyLmsContentController::class, 'storeChapter'])->name('lms.chapters.store');
+        Route::post('/lms/chapters/{chapter}/lessons', [\App\Http\Controllers\CompanyLmsContentController::class, 'storeLesson'])->name('lms.lessons.store');
+        Route::post('/lms/chapters/{chapter}/quiz', [\App\Http\Controllers\CompanyLmsContentController::class, 'storeQuiz'])->name('lms.quizzes.store');
+        Route::post('/lms/quizzes/{quiz}/questions', [\App\Http\Controllers\CompanyLmsContentController::class, 'storeQuestion'])->name('lms.questions.store');
+        Route::post('/lms/questions/{question}/options', [\App\Http\Controllers\CompanyLmsContentController::class, 'storeOption'])->name('lms.options.store');
     });
 
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
