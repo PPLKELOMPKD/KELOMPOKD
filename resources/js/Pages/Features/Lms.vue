@@ -42,6 +42,14 @@ const levelClass = (level) => {
 const enroll = (course) => {
     router.post(route('lms.enrollments.store', course.slug));
 };
+
+const selectedCourseForDetail = ref(null);
+const showDetailModal = ref(false);
+
+const openDetail = (course) => {
+    selectedCourseForDetail.value = course;
+    showDetailModal.value = true;
+};
 </script>
 
 <template>
@@ -52,6 +60,61 @@ const enroll = (course) => {
     </Head>
 
     <PortalLayout activeRole="peserta" loginRole="mahasiswa">
+        <!-- Modal Detail -->
+        <div v-if="showDetailModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" @click.self="showDetailModal = false">
+            <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+                <div class="relative h-56 w-full">
+                    <img :src="selectedCourseForDetail.image_url" class="w-full h-full object-cover rounded-t-2xl">
+                    <button @click="showDetailModal = false" class="absolute top-4 right-4 bg-black/20 hover:bg-black/40 text-white rounded-full p-2 backdrop-blur-md transition-colors">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                    <div class="absolute bottom-4 left-4">
+                        <span class="rounded-md border border-white/20 bg-white/90 px-3 py-1 text-xs font-semibold tracking-[0.05em] shadow-sm backdrop-blur-sm" :class="levelClass(selectedCourseForDetail.level)">
+                            {{ selectedCourseForDetail.level }}
+                        </span>
+                    </div>
+                </div>
+                <div class="p-8">
+                    <div class="mb-6">
+                        <p class="text-sm font-bold text-blue-600 uppercase tracking-widest mb-2">{{ selectedCourseForDetail.provider }}</p>
+                        <h2 class="text-3xl font-black text-[#0F172A] mb-4">{{ selectedCourseForDetail.title }}</h2>
+                        <div class="flex flex-wrap gap-4 text-sm text-slate-600 border-y border-slate-100 py-4 mb-6">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-blue-500">calendar_today</span>
+                                <span>{{ selectedCourseForDetail.started_at }} - {{ selectedCourseForDetail.ends_at }}</span>
+                            </div>
+                            <div class="flex items-center gap-2" v-if="selectedCourseForDetail.location">
+                                <span class="material-symbols-outlined text-blue-500">location_on</span>
+                                <span>{{ selectedCourseForDetail.location }}</span>
+                            </div>
+                            <div class="flex items-center gap-2" v-if="selectedCourseForDetail.start_time">
+                                <span class="material-symbols-outlined text-blue-500">schedule</span>
+                                <span>Pukul {{ selectedCourseForDetail.start_time }}</span>
+                            </div>
+                            <div class="flex items-center gap-2" v-if="selectedCourseForDetail.quota">
+                                <span class="material-symbols-outlined text-blue-500">groups</span>
+                                <span>Kuota: {{ selectedCourseForDetail.enrolled_count }} / {{ selectedCourseForDetail.quota }}</span>
+                            </div>
+                        </div>
+                        <div class="prose prose-slate max-w-none text-slate-600 leading-relaxed">
+                            <h4 class="text-slate-900 font-bold mb-2">Deskripsi Pelatihan</h4>
+                            <p>{{ selectedCourseForDetail.description || 'Tidak ada deskripsi tersedia.' }}</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 pt-4 border-t border-slate-100">
+                        <button v-if="!selectedCourseForDetail.is_enrolled" @click="enroll(selectedCourseForDetail); showDetailModal = false" class="flex-1 rounded-xl bg-[#10b981] py-4 text-sm font-bold text-white hover:bg-[#059669] transition-all shadow-lg shadow-emerald-200">
+                            Daftar Sekarang
+                        </button>
+                        <Link v-else :href="route('lms.module.show', selectedCourseForDetail.slug)" class="flex-1 text-center rounded-xl bg-[#2563eb] py-4 text-sm font-bold text-white hover:bg-[#1d4ed8] transition-all shadow-lg shadow-blue-200">
+                            Lanjutkan Belajar
+                        </Link>
+                        <button @click="showDetailModal = false" class="flex-1 rounded-xl border border-slate-200 py-4 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="mx-auto flex min-h-[calc(100vh-76px)] max-w-7xl flex-col items-center justify-between gap-12 px-6 py-12 lg:flex-row lg:py-16 relative">
             <div class="max-w-xl animate-fade-in-up">
                 <div class="mb-6 inline-flex items-center gap-2 rounded-full border border-[#2563EB]/20 bg-[#EFF6FF] px-4 py-1.5 shadow-sm">
@@ -222,12 +285,15 @@ const enroll = (course) => {
                                         </div>
                                     </template>
                                 </div>
-                                <div class="mt-4">
-                                    <Link v-if="course.is_enrolled" :href="route('lms.module.show', course.slug)" class="block text-center rounded-lg bg-[#2563eb] py-2 text-sm font-semibold text-white hover:bg-[#004ac6]">
+                                <div class="mt-4 flex gap-2">
+                                    <button @click="openDetail(course)" class="flex-1 rounded-lg border border-slate-200 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+                                        Lihat Detail
+                                    </button>
+                                    <Link v-if="course.is_enrolled" :href="route('lms.module.show', course.slug)" class="flex-1 text-center rounded-lg bg-[#2563eb] py-2 text-sm font-semibold text-white hover:bg-[#004ac6]">
                                         Lanjutkan Belajar
                                     </Link>
-                                    <button v-else @click="enroll(course)" class="block w-full rounded-lg bg-[#10b981] py-2 text-sm font-semibold text-white hover:bg-[#059669]">
-                                        Daftar Sekarang
+                                    <button v-else @click="enroll(course)" class="flex-1 rounded-lg bg-[#10b981] py-2 text-sm font-semibold text-white hover:bg-[#059669]">
+                                        Daftar
                                     </button>
                                 </div>
                             </div>

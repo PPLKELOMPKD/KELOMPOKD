@@ -400,5 +400,44 @@ const navItems = computed(() => {
 
             <slot />
         </main>
+
+        <!-- Flash Notifications -->
+        <TransitionGroup 
+            enter-active-class="transform ease-out duration-300 transition"
+            enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+            enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
+            leave-active-class="transition ease-in duration-100"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+            class="fixed bottom-0 right-0 z-[100] p-6 space-y-3 pointer-events-none"
+        >
+            <div 
+                v-if="page.props.flash?.success" 
+                key="success"
+                class="max-w-md w-full bg-emerald-50 border border-emerald-200 shadow-lg rounded-xl p-4 flex items-start gap-3 pointer-events-auto"
+            >
+                <div class="h-6 w-6 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                    <svg class="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-bold text-emerald-900">Berhasil!</p>
+                    <p class="text-xs text-emerald-700 mt-0.5">{{ page.props.flash.success }}</p>
+                </div>
+            </div>
+
+            <div 
+                v-if="page.props.flash?.error" 
+                key="error"
+                class="max-w-md w-full bg-red-50 border border-red-200 shadow-lg rounded-xl p-4 flex items-start gap-3 pointer-events-auto"
+            >
+                <div class="h-6 w-6 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                    <svg class="h-4 w-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" /></svg>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-bold text-red-900">Gagal!</p>
+                    <p class="text-xs text-red-700 mt-0.5">{{ page.props.flash.error }}</p>
+                </div>
+            </div>
+        </TransitionGroup>
     </div>
 </template>

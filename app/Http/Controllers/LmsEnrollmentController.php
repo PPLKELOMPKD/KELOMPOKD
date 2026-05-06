@@ -17,8 +17,22 @@ class LmsEnrollmentController extends Controller
             'student_id' => $request->user()->id,
         ], [
             'enrolled_at' => now(),
+            'status' => 'accepted',
         ]);
 
         return redirect()->route('lms.module.show', $course);
+    }
+
+    public function destroy(Request $request, LmsCourse $course)
+    {
+        abort_if($request->user()->role !== 'mahasiswa', 403);
+
+        $enrollment = LmsEnrollment::where('course_id', $course->id)
+            ->where('student_id', $request->user()->id)
+            ->firstOrFail();
+
+        $enrollment->delete();
+
+        return redirect()->route('lms')->with('success', 'Berhasil membatalkan pendaftaran pelatihan.');
     }
 }

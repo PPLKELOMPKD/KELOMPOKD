@@ -21,6 +21,21 @@ const submitQuiz = (quizId) => {
     quizForm.post(route('lms.quizzes.submit', quizId), { preserveScroll: true });
 };
 
+const assignmentForm = useForm({ file: null });
+
+const submitAssignment = (assignmentId) => {
+    assignmentForm.post(route('lms.assignments.submit', { course: props.course.slug, assignment: assignmentId }), {
+        preserveScroll: true,
+        onSuccess: () => assignmentForm.reset()
+    });
+};
+
+const revokeAssignment = (assignmentId, submissionId) => {
+    if (confirm('Yakin ingin membatalkan tugas yang sudah dikumpulkan?')) {
+        router.delete(route('lms.assignments.revoke', { course: props.course.slug, assignment: assignmentId, submission: submissionId }), { preserveScroll: true });
+    }
+};
+
 const completeLesson = (lessonId) => {
     router.post(route('lms.lessons.complete', lessonId), {}, { 
         preserveScroll: true,
@@ -77,16 +92,40 @@ const lesson = computed(() => {
 
     return {
         id: selectedLesson?.id,
+        type: selectedLesson?.type ?? 'article',
+        video_url: selectedLesson?.video_url ?? null,
         state: selectedLesson?.state ?? 'available',
-        title: selectedLesson?.title ?? 'Video: Publik vs Privat',
-        description_title: selectedLesson?.description_title ?? selectedLesson?.title ?? 'Memahami Perbedaan Public dan Private Cloud',
-        description: selectedLesson?.description ?? 'Materi ini membantu Anda memahami konsep utama pada bab yang dipilih sebelum melanjutkan ke aktivitas berikutnya.',
+        title: selectedLesson?.title ?? '',
+        description_title: selectedLesson?.description_title ?? selectedLesson?.title ?? '',
+        description: selectedLesson?.description ?? selectedLesson?.content ?? '',
         video_image_url: selectedLesson?.video_image_url ?? props.course.image_url,
         isQuiz: selectedLesson?.isQuiz ?? false,
+        isAssignment: selectedLesson?.isAssignment ?? false,
+        assignment: selectedLesson?.assignment ?? null,
+        submission: selectedLesson?.submission ?? null,
+        latest_score: selectedLesson?.latest_score ?? null,
+        passing_score: selectedLesson?.passing_score ?? null,
+        time_limit: selectedLesson?.time_limit ?? null,
+        max_attempts: selectedLesson?.max_attempts ?? 1,
+        attempts_count: selectedLesson?.attempts_count ?? 0,
         questions: selectedLesson?.questions ?? [],
         goals: selectedLesson?.goals ?? [],
     };
 });
+
+const getEmbedUrl = (url) => {
+    if (!url) return null;
+    
+    // YouTube
+    let match = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=)?(.+)/);
+    if (match) return `https://www.youtube.com/embed/${match[1]}`;
+    
+    // Vimeo
+    match = url.match(/(?:https?:\/\/)?(?:www\.)?vimeo\.com\/(.+)/);
+    if (match) return `https://player.vimeo.com/video/${match[1]}`;
+    
+    return url;
+};
 
 const selectedChapter = computed(() => selectedEntry.value?.chapter ?? {
     title: 'Bab 3: Model Deployment',
@@ -149,6 +188,43 @@ const selectLesson = (chapter, item, chapterIndex, lessonIndex) => {
     selectedLessonKey.value = lessonKey(chapterIndex, lessonIndex);
     openChapters.value = new Set([...openChapters.value, chapterIndex]);
 };
+
+const timeLeft = ref(null);
+let timerInterval = null;
+
+const startTimer = (minutes) => {
+    if (!minutes) return;
+    timeLeft.value = minutes * 60;
+    timerInterval = setInterval(() => {
+        if (timeLeft.value > 0) {
+            timeLeft.value--;
+        } else {
+            clearInterval(timerInterval);
+            submitQuiz(lesson.value.id);
+        }
+    }, 1000);
+};
+
+const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
+
+// Start timer when a quiz lesson with time limit is selected
+const isTimerStarted = ref(false);
+import { watch } from 'vue';
+watch(() => lesson.value.id, (newId) => {
+    if (timerInterval) clearInterval(timerInterval);
+    isTimerStarted.value = false;
+    timeLeft.value = null;
+    
+    if (lesson.value.isQuiz && lesson.value.time_limit && lesson.value.attempts_count < lesson.value.max_attempts) {
+        // We might want a "Start Quiz" button before starting timer, but user asked for "waktu mengerjakan quiz muncul"
+        startTimer(lesson.value.time_limit);
+        isTimerStarted.value = true;
+    }
+}, { immediate: true });
 
 const goToLesson = (entry) => {
     if (!entry) return;
@@ -228,10 +304,23 @@ const goToLesson = (entry) => {
                     </div>
                 </nav>
 
-                <div class="border-t border-[#c3c6d7] bg-white p-6">
-                    <button class="flex w-full items-center justify-center gap-2 rounded-lg bg-[#2563eb] px-4 py-3 text-base font-semibold text-white transition-colors duration-200 hover:bg-[#004ac6]">
-                        Resume Learning
+                <div class="border-t border-[#c3c6d7] bg-white p-6 space-y-3">
+                    <a v-if="course.is_graduated" :href="route('lms.certificate.download', course.slug)" target="_blank" class="flex w-full items-center justify-center gap-2 rounded-lg bg-[#4edea3] px-4 py-3 text-base font-semibold text-white transition-colors duration-200 hover:bg-[#3eb382]">
+                        <span class="material-symbols-outlined">workspace_premium</span>
+                        Unduh Sertifikat
+                    </a>
+                    <div v-else-if="course.progress === 100" class="flex w-full flex-col items-center justify-center gap-2 rounded-lg bg-amber-50 border border-amber-200 p-4 text-center">
+                        <span class="material-symbols-outlined text-amber-500">hourglass_empty</span>
+                        <p class="text-xs font-semibold text-amber-700 uppercase">Menunggu Kelulusan</p>
+                        <p class="text-[10px] text-amber-600">Pelatihan selesai. Sertifikat akan tersedia setelah dikonfirmasi perusahaan.</p>
+                    </div>
+                    <button v-else class="flex w-full items-center justify-center gap-2 rounded-lg bg-[#2563eb] px-4 py-3 text-base font-semibold text-white transition-colors duration-200 hover:bg-[#004ac6]">
+                        Lanjutkan Belajar
                     </button>
+
+                    <Link as="button" method="delete" :href="route('lms.enrollments.destroy', course.slug)" class="flex w-full items-center justify-center gap-2 rounded-lg border border-red-500 px-4 py-3 text-base font-semibold text-red-500 transition-colors duration-200 hover:bg-red-50 hover:text-red-600">
+                        Batalkan Pendaftaran
+                    </Link>
                 </div>
             </aside>
 
@@ -260,7 +349,18 @@ const goToLesson = (entry) => {
                     </nav>
 
                     <div class="overflow-hidden rounded-xl border border-[#c3c6d7] bg-white shadow-sm">
-                        <div class="group relative flex aspect-video cursor-pointer items-center justify-center bg-[#213145]">
+                        <!-- Video Player -->
+                        <div v-if="lesson.type === 'video' && lesson.video_url" class="aspect-video bg-black">
+                            <iframe 
+                                :src="getEmbedUrl(lesson.video_url)" 
+                                class="h-full w-full" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen
+                            ></iframe>
+                        </div>
+                        <!-- Article/Default Placeholder -->
+                        <div v-else class="group relative flex aspect-video cursor-pointer items-center justify-center bg-[#213145]">
                             <img :src="lesson.video_image_url || course.image_url" alt="Video Player Placeholder" class="absolute inset-0 h-full w-full object-cover opacity-60" />
                             <div class="absolute inset-0 flex items-center justify-center">
                                 <div class="flex h-16 w-16 items-center justify-center rounded-full bg-[#2563eb]/90 text-white shadow-lg transition-transform duration-300 group-hover:scale-110">
@@ -282,8 +382,6 @@ const goToLesson = (entry) => {
                     <section class="flex min-h-[400px] flex-1 flex-col rounded-xl border border-[#c3c6d7] bg-white shadow-sm">
                         <div class="flex border-b border-[#c3c6d7] px-6 pt-4">
                             <button class="mr-4 border-b-2 border-[#2563eb] px-6 py-2 text-base font-semibold text-[#2563eb]">Deskripsi</button>
-                            <button class="mr-4 px-6 py-2 text-base font-semibold text-[#737686] transition-colors hover:text-[#0b1c30]">Sumber Daya</button>
-                            <button class="px-6 py-2 text-base font-semibold text-[#737686] transition-colors hover:text-[#0b1c30]">Diskusi</button>
                         </div>
 
                         <div class="flex-1 overflow-y-auto p-6 md:p-10">
@@ -292,6 +390,27 @@ const goToLesson = (entry) => {
                                 <p class="mb-4">{{ lesson.description }}</p>
 
                                 <template v-if="lesson.isQuiz">
+                                    <div v-if="lesson.latest_score !== undefined && lesson.latest_score !== null" class="mb-6 p-4 rounded-xl border border-blue-200 bg-blue-50 flex items-center justify-between">
+                                        <div>
+                                            <p class="text-sm font-semibold text-blue-800">Skor Terakhir Anda</p>
+                                            <p class="text-xs text-blue-600">Nilai Kelulusan: {{ lesson.passing_score }} | Kesempatan: {{ lesson.attempts_count }} / {{ lesson.max_attempts }}</p>
+                                        </div>
+                                        <div class="text-3xl font-black" :class="lesson.latest_score >= lesson.passing_score ? 'text-green-600' : 'text-amber-500'">{{ lesson.latest_score }}</div>
+                                    </div>
+                                    <div v-else class="mb-6 p-4 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between">
+                                        <div>
+                                            <p class="text-sm font-semibold text-slate-800">Kesempatan Mengerjakan</p>
+                                            <p class="text-xs text-slate-600">Anda memiliki {{ lesson.max_attempts }} kali kesempatan untuk lulus kuis ini.</p>
+                                        </div>
+                                        <div class="text-xl font-bold text-slate-500">{{ lesson.attempts_count }} / {{ lesson.max_attempts }}</div>
+                                    </div>
+
+                                    <!-- Quiz Timer Display -->
+                                    <div v-if="timeLeft !== null" class="sticky top-0 z-10 mb-6 flex items-center justify-center gap-3 bg-red-600 p-3 rounded-xl text-white shadow-lg animate-pulse">
+                                        <span class="material-symbols-outlined">timer</span>
+                                        <span class="text-xl font-black tracking-widest">SISA WAKTU: {{ formatTime(timeLeft) }}</span>
+                                    </div>
+
                                     <form @submit.prevent="submitQuiz(lesson.id)" class="mt-6 space-y-8">
                                         <div v-for="(question, qIndex) in lesson.questions" :key="question.id" class="p-6 rounded-xl border border-slate-200 bg-slate-50">
                                             <p class="font-semibold text-slate-900 mb-4">{{ qIndex + 1 }}. {{ question.question }}</p>
@@ -302,12 +421,70 @@ const goToLesson = (entry) => {
                                                 </label>
                                             </div>
                                         </div>
-                                        <div class="pt-4 border-t border-slate-200">
-                                            <button type="submit" class="rounded bg-[#2563eb] px-6 py-3 text-white font-semibold hover:bg-[#004ac6] w-full sm:w-auto" :disabled="quizForm.processing">
-                                                Kirim Jawaban Kuis
+                                        <div class="pt-4 border-t border-slate-200 flex flex-col gap-3">
+                                            <div v-if="lesson.attempts_count >= lesson.max_attempts" class="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 font-semibold">
+                                                Anda sudah menghabiskan seluruh kesempatan pengerjaan kuis ini.
+                                            </div>
+                                            <button 
+                                                v-else
+                                                type="submit" 
+                                                class="rounded bg-[#2563eb] px-6 py-3 text-white font-semibold hover:bg-[#004ac6] w-full sm:w-auto disabled:opacity-50" 
+                                                :disabled="quizForm.processing"
+                                            >
+                                                Kirim Jawaban Kuis (Percobaan ke-{{ lesson.attempts_count + 1 }})
                                             </button>
                                         </div>
                                     </form>
+                                </template>
+                                <template v-else-if="lesson.isAssignment">
+                                    <div class="mt-6 flex flex-col p-6 rounded-xl border border-slate-200 bg-slate-50 space-y-4">
+                                        <div v-if="lesson.assignment.file_url" class="mb-2">
+                                            <a :href="lesson.assignment.file_url" target="_blank" class="text-sm font-semibold text-[#2563eb] hover:underline flex items-center gap-1">
+                                                <span class="material-symbols-outlined text-[18px]">download</span> Unduh Lampiran Tugas
+                                            </a>
+                                        </div>
+                                        <div v-if="lesson.assignment.deadline_at" class="text-sm font-semibold text-red-600 block mb-4">
+                                            Batas Waktu: {{ new Date(lesson.assignment.deadline_at).toLocaleString() }}
+                                        </div>
+                                        
+                                        <div v-if="lesson.submission" class="bg-white p-4 rounded-lg border border-slate-200 space-y-3 shadow-sm">
+                                            <div class="flex justify-between items-center border-b pb-2">
+                                                <span class="font-semibold text-green-600">Tugas Telah Dikumpulkan</span>
+                                                <span class="text-xs text-slate-500 font-mono">{{ new Date(lesson.submission.submitted_at).toLocaleString() }}</span>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <a :href="lesson.submission.file_url" target="_blank" class="text-sm font-medium text-blue-600 hover:underline">Lihat Dokumen Terkumpul</a>
+                                            </div>
+
+                                            <div v-if="lesson.submission.score !== null">
+                                                <div class="mt-4 pt-4 border-t border-slate-100 flex items-start gap-4">
+                                                    <div class="bg-blue-50 border border-blue-200 rounded p-2 text-center min-w-[70px]">
+                                                        <span class="block text-xs font-bold text-slate-500 uppercase">Nilai</span>
+                                                        <span class="text-xl font-bold text-blue-700">{{ lesson.submission.score }}</span>
+                                                    </div>
+                                                    <div class="flex-1 bg-slate-50 border border-slate-200 rounded p-3 text-sm italic text-slate-700">
+                                                        "{{ lesson.submission.feedback || 'Tidak ada catatan/feedback dari pengajar.' }}"
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div v-else class="text-xs text-amber-600 mt-2">
+                                                Menunggu Penilaian...
+                                            </div>
+                                            
+                                            <div class="mt-4 pt-4 border-t flex justify-end" v-if="!lesson.assignment.deadline_at || new Date() <= new Date(lesson.assignment.deadline_at)">
+                                                <form @submit.prevent="revokeAssignment(lesson.assignment.id, lesson.submission.id)">
+                                                    <button type="submit" class="text-red-500 text-sm font-semibold hover:underline bg-red-50 px-3 py-1.5 rounded border border-red-200" :disabled="assignmentForm.processing">Tarik / Batalkan Tugas</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        
+                                        <form v-else @submit.prevent="submitAssignment(lesson.assignment.id)" class="bg-white p-4 rounded-lg border border-slate-200 space-y-4 shadow-sm">
+                                            <label class="block font-semibold">Upload File Jawaban Tugas</label>
+                                            <input type="file" @change="e => assignmentForm.file = e.target.files[0]" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-[#2563eb] hover:file:bg-blue-100" required>
+                                            <p class="text-xs text-slate-500">Maks. 10MB (PDF, DOC/DOCX, ZIP, MP4).</p>
+                                            <button type="submit" class="mt-2 rounded bg-[#2563eb] px-6 py-2 text-white font-semibold hover:bg-[#004ac6] w-full sm:w-auto" :disabled="assignmentForm.processing">Kumpulkan Tugas</button>
+                                        </form>
+                                    </div>
                                 </template>
                                 <template v-else>
                                     <h3 class="mb-2 mt-6 text-base font-semibold text-[#0b1c30]" v-if="lesson.goals?.length">Tujuan Pembelajaran:</h3>
@@ -325,7 +502,7 @@ const goToLesson = (entry) => {
                                 </template>
                             </div>
                             
-                            <div v-if="!lesson.isQuiz" class="mt-8 border-t pt-6">
+                            <div v-if="!lesson.isQuiz && !lesson.isAssignment" class="mt-8 border-t pt-6">
                                 <button v-if="lesson.state !== 'completed'" @click="completeLesson(lesson.id)" class="rounded bg-[#2563eb] px-4 py-2 text-white text-sm hover:bg-[#004ac6]">
                                     Selesaikan Materi
                                 </button>

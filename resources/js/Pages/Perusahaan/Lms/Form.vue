@@ -12,7 +12,12 @@ const form = useForm({
     description: props.course?.description || '',
     level: props.course?.level || 'BEGINNER',
     image: null,
-    image_alt: props.course?.image_alt || '',
+    location: props.course?.location || '',
+    quota: props.course?.quota || '',
+    started_at: props.course?.started_at || '',
+    ends_at: props.course?.ends_at || '',
+    start_time: props.course?.start_time || '',
+    passing_grade: props.course?.passing_grade || 70,
 });
 
 const submit = () => {
@@ -56,6 +61,35 @@ const submit = () => {
                     <input @input="form.image = $event.target.files[0]" type="file" accept="image/*" class="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:font-semibold file:bg-[#EFF6FF] file:text-[#2563EB] hover:file:bg-[#DBEAFE]" />
                     <div v-if="form.progress" class="mt-2 text-sm text-[#2563EB]">
                         Uploading: {{ form.progress.percentage }}%
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Lokasi</label>
+                        <input v-model="form.location" type="text" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-[#2563EB] focus:ring-[#2563EB] sm:text-sm" placeholder="Contoh: Jakarta atau Online" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Kuota Peserta</label>
+                        <input v-model="form.quota" type="number" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-[#2563EB] focus:ring-[#2563EB] sm:text-sm" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">KKM (Nilai Kelulusan)</label>
+                        <input v-model="form.passing_grade" type="number" min="0" max="100" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-[#2563EB] focus:ring-[#2563EB] sm:text-sm" required />
+                        <p class="text-[10px] text-slate-500 mt-1 italic">*Nilai rata-rata minimal untuk lulus</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Tanggal Mulai</label>
+                        <input v-model="form.started_at" type="date" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-[#2563EB] focus:ring-[#2563EB] sm:text-sm" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Tanggal Selesai</label>
+                        <input v-model="form.ends_at" type="date" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-[#2563EB] focus:ring-[#2563EB] sm:text-sm" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Waktu Mulai</label>
+                        <input v-model="form.start_time" type="time" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-[#2563EB] focus:ring-[#2563EB] sm:text-sm" />
                     </div>
                 </div>
                 <div>

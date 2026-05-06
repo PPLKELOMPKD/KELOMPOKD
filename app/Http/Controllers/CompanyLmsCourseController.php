@@ -12,7 +12,7 @@ class CompanyLmsCourseController extends Controller
     public function index(Request $request)
     {
         $courses = LmsCourse::where('company_id', $request->user()->id)
-            ->withCount('chapters')
+            ->withCount(['chapters', 'enrollments'])
             ->latest()
             ->get();
 
@@ -35,6 +35,12 @@ class CompanyLmsCourseController extends Controller
             'level' => 'required|string|in:BEGINNER,INTERMEDIATE,ADVANCED',
             'image' => 'nullable|image|max:2048',
             'image_alt' => 'nullable|string|max:255',
+            'location' => 'nullable|string|max:255',
+            'quota' => 'nullable|integer|min:0',
+            'passing_grade' => 'required|integer|min:0|max:100',
+            'started_at' => 'nullable|date',
+            'ends_at' => 'nullable|date|after_or_equal:started_at',
+            'start_time' => 'nullable|string',
         ]);
 
         $imageUrl = '';
@@ -47,11 +53,17 @@ class CompanyLmsCourseController extends Controller
 
         LmsCourse::create([
             'title' => $validated['title'],
-            'provider' => $validated['provider'],
-            'description' => $validated['description'],
+            'provider' => $validated['provider'] ?? null,
+            'description' => $validated['description'] ?? null,
             'level' => $validated['level'],
             'image_url' => $imageUrl,
-            'image_alt' => $validated['image_alt'],
+            'image_alt' => $validated['image_alt'] ?? null,
+            'location' => $validated['location'] ?? null,
+            'quota' => $validated['quota'] ?? null,
+            'passing_grade' => $validated['passing_grade'] ?? 70,
+            'started_at' => $validated['started_at'] ?? null,
+            'ends_at' => $validated['ends_at'] ?? null,
+            'start_time' => $validated['start_time'] ?? null,
             'company_id' => $request->user()->id,
             'slug' => $slug,
             'status' => LmsCourse::STATUS_DRAFT,
@@ -60,18 +72,18 @@ class CompanyLmsCourseController extends Controller
         return redirect()->route('perusahaan.lms.index');
     }
 
-    public function edit(Request $request, LmsCourse $lms)
+    public function edit(Request $request, LmsCourse $course)
     {
-        abort_if($lms->company_id !== $request->user()->id, 403);
-        
+        abort_if($course->company_id !== $request->user()->id, 403);
+
         return Inertia::render('Perusahaan/Lms/Form', [
-            'course' => $lms,
+            'course' => $course,
         ]);
     }
 
-    public function update(Request $request, LmsCourse $lms)
+    public function update(Request $request, LmsCourse $course)
     {
-        abort_if($lms->company_id !== $request->user()->id, 403);
+        abort_if($course->company_id !== $request->user()->id, 403);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -80,14 +92,26 @@ class CompanyLmsCourseController extends Controller
             'level' => 'required|string|in:BEGINNER,INTERMEDIATE,ADVANCED',
             'image' => 'nullable|image|max:2048',
             'image_alt' => 'nullable|string|max:255',
+            'location' => 'nullable|string|max:255',
+            'quota' => 'nullable|integer|min:0',
+            'passing_grade' => 'required|integer|min:0|max:100',
+            'started_at' => 'nullable|date',
+            'ends_at' => 'nullable|date|after_or_equal:started_at',
+            'start_time' => 'nullable|string',
         ]);
 
         $data = [
             'title' => $validated['title'],
-            'provider' => $validated['provider'],
-            'description' => $validated['description'],
+            'provider' => $validated['provider'] ?? $course->provider,
+            'description' => $validated['description'] ?? $course->description,
             'level' => $validated['level'],
-            'image_alt' => $validated['image_alt'],
+            'image_alt' => $validated['image_alt'] ?? $course->image_alt,
+            'location' => $validated['location'] ?? $course->location,
+            'quota' => $validated['quota'] ?? $course->quota,
+            'passing_grade' => $validated['passing_grade'],
+            'started_at' => $validated['started_at'] ?? $course->started_at,
+            'ends_at' => $validated['ends_at'] ?? $course->ends_at,
+            'start_time' => $validated['start_time'] ?? $course->start_time,
         ];
 
         if ($request->hasFile('image')) {
@@ -95,26 +119,29 @@ class CompanyLmsCourseController extends Controller
             $data['image_url'] = '/storage/' . $path;
         }
 
-        $lms->update($data);
+        $course->update($data);
 
         return redirect()->route('perusahaan.lms.index');
     }
 
-    public function destroy(Request $request, LmsCourse $lms)
+    public function destroy(Request $request, LmsCourse $course)
     {
-        abort_if($lms->company_id !== $request->user()->id, 403);
-        $lms->delete();
+        abort_if($course->company_id !== $request->user()->id, 403);
+        $course->delete();
         return redirect()->route('perusahaan.lms.index');
     }
 
     public function publish(Request $request, LmsCourse $course)
     {
         abort_if($course->company_id !== $request->user()->id, 403);
-        abort_if($course->chapters()->count() === 0, 422, 'Cannot publish course without chapters');
+        
+        if ($course->chapters()->count() === 0) {
+            return back()->with('error', 'Gagal mempublish: Modul harus memiliki setidaknya satu Bab materi sebelum dipublikasikan.');
+        }
 
         $course->update(['status' => LmsCourse::STATUS_PUBLISHED]);
 
-        return back();
+        return back()->with('success', 'Modul berhasil dipublikasikan!');
     }
 
     public function unpublish(Request $request, LmsCourse $course)

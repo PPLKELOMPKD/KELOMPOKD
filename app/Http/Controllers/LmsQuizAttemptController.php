@@ -20,6 +20,13 @@ class LmsQuizAttemptController extends Controller
         $enrollment = $request->user()->lmsEnrollments()->where('course_id', $course->id)->first();
         abort_if(!$enrollment, 403);
 
+        $existingAttempts = $enrollment->quizAttempts()->where('quiz_id', $quiz->id)->count();
+        if ($existingAttempts >= $quiz->max_attempts) {
+            return redirect()->back()->with('flash', [
+                'error' => 'Anda telah mencapai batas maksimum pengerjaan kuis ini (' . $quiz->max_attempts . ' kali).',
+            ]);
+        }
+
         $result = $progressService->scoreQuiz($quiz, $validated['answers']);
 
         $enrollment->quizAttempts()->create([

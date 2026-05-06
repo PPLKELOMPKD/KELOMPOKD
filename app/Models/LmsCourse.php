@@ -20,9 +20,13 @@ class LmsCourse extends Model
         'level',
         'status',
         'started_at',
+        'start_time',
         'ends_at',
         'image_url',
         'image_alt',
+        'location',
+        'quota',
+        'passing_grade',
     ];
 
     protected function casts(): array
