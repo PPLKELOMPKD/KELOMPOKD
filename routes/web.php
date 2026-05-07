@@ -67,6 +67,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/lms/lessons/{lesson}/complete', [\App\Http\Controllers\LmsLessonCompletionController::class, 'store'])->name('lms.lessons.complete');
         Route::post('/lms/quizzes/{quiz}/submit', [\App\Http\Controllers\LmsQuizAttemptController::class, 'store'])->name('lms.quizzes.submit');
         Route::post('/lms/courses/{course}/assignments/{assignment}/submit', [\App\Http\Controllers\LmsAssignmentSubmissionController::class, 'store'])->name('lms.assignments.submit');
+        // Route ini ditambahkan/diperbaiki di remote
         Route::delete('/lms/courses/{course}/assignments/{assignment}/submissions/{submission}', [\App\Http\Controllers\LmsAssignmentSubmissionController::class, 'destroy'])->name('lms.assignments.revoke');
         Route::get('/lms/{course}/certificate', [\App\Http\Controllers\LmsCertificateController::class, 'download'])->name('lms.certificate.download');
     });
@@ -96,7 +97,7 @@ Route::middleware('auth')->group(function () {
             return \Inertia\Inertia::render('Company/Reports/Index');
         })->name('reports.index');
 
-        // LMS — Kelola Kursus (CRUD) — menggunakan resource dari remote
+        // LMS — Kelola Kursus (CRUD)
         Route::resource('/lms', \App\Http\Controllers\CompanyLmsCourseController::class)->parameters(['lms' => 'course'])->names('lms');
         Route::post('/lms/{course}/publish', [\App\Http\Controllers\CompanyLmsCourseController::class, 'publish'])->name('lms.publish');
         Route::post('/lms/{course}/unpublish', [\App\Http\Controllers\CompanyLmsCourseController::class, 'unpublish'])->name('lms.unpublish');

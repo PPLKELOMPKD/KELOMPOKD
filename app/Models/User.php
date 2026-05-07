@@ -99,6 +99,11 @@ class User extends Authenticatable
         return $this->hasMany(Notification::class)->latest();
     }
 
+    public function lmsEnrollments(): HasMany
+    {
+        return $this->hasMany(LmsEnrollment::class, 'student_id');
+    }
+
     public function isMahasiswa(): bool
     {
         return $this->role === self::ROLE_MAHASISWA;
