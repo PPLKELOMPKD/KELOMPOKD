@@ -32,7 +32,7 @@ Route::get('/pusat-informasi', function () {
     return Inertia::render('PusatInformasi');
 })->name('pusat-informasi');
 
-// Fitur Navigasi
+// Fitur Navigasi (publik)
 Route::get('/lowongan', [InternshipController::class, 'lowongan'])->name('lowongan');
 Route::get('/perusahaan-list', [\App\Http\Controllers\CompanyController::class, 'index'])->name('perusahaan-list');
 Route::get('/perusahaan-profile/{id}', [\App\Http\Controllers\CompanyController::class, 'show'])->name('perusahaan.profile');
@@ -49,6 +49,7 @@ Route::get('/generate-cv', function () {
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
+    // ── Mahasiswa ─────────────────────────────────────────────────────
     Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
         Route::get('/profile', [StudentProfileController::class, 'show'])->name('profile.show');
         Route::post('/profile', [StudentProfileController::class, 'store'])->name('profile.store');
@@ -70,8 +71,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/lms/{course}/certificate', [\App\Http\Controllers\LmsCertificateController::class, 'download'])->name('lms.certificate.download');
     });
 
+    // ── Perusahaan ────────────────────────────────────────────────────
     Route::middleware(['auth', 'role:perusahaan'])->prefix('perusahaan')->name('perusahaan.')->group(function () {
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
+
+        // Lowongan
         Route::get('/internships', [\App\Http\Controllers\CompanyInternshipController::class, 'index'])->name('internships.index');
         Route::get('/internships/create', [\App\Http\Controllers\CompanyInternshipController::class, 'create'])->name('internships.create');
         Route::post('/internships', [\App\Http\Controllers\CompanyInternshipController::class, 'store'])->name('internships.store');
@@ -83,19 +87,27 @@ Route::middleware('auth')->group(function () {
         Route::get('/applicants', [\App\Http\Controllers\CompanyApplicantController::class, 'index'])->name('applicants.index');
         Route::get('/applicants/{application}', [\App\Http\Controllers\CompanyApplicantController::class, 'show'])->name('applicants.show');
         Route::patch('/applicants/{application}/status', [\App\Http\Controllers\CompanyApplicantController::class, 'updateStatus'])->name('applicants.updateStatus');
+
+        // Event
         Route::resource('/events', \App\Http\Controllers\CompanyEventController::class)->except('show');
+
+        // Laporan
         Route::get('/reports', function () {
             return \Inertia\Inertia::render('Company/Reports/Index');
         })->name('reports.index');
 
+        // LMS — Kelola Kursus (CRUD) — menggunakan resource dari remote
         Route::resource('/lms', \App\Http\Controllers\CompanyLmsCourseController::class)->parameters(['lms' => 'course'])->names('lms');
         Route::post('/lms/{course}/publish', [\App\Http\Controllers\CompanyLmsCourseController::class, 'publish'])->name('lms.publish');
         Route::post('/lms/{course}/unpublish', [\App\Http\Controllers\CompanyLmsCourseController::class, 'unpublish'])->name('lms.unpublish');
 
+        // LMS — Enrollments & Grading
         Route::get('/lms/{course}/enrollments', [\App\Http\Controllers\CompanyLmsEnrollmentController::class, 'index'])->name('lms.enrollments.index');
         Route::patch('/lms/{course}/enrollments/{enrollment}/graduate', [\App\Http\Controllers\CompanyLmsEnrollmentController::class, 'toggleGraduation'])->name('lms.enrollments.graduate');
         Route::post('/lms/{course}/enrollments/{enrollment}/reset', [\App\Http\Controllers\CompanyLmsEnrollmentController::class, 'resetProgress'])->name('lms.enrollments.reset');
         Route::delete('/lms/{course}/enrollments/{enrollment}', [\App\Http\Controllers\CompanyLmsEnrollmentController::class, 'destroy'])->name('lms.enrollments.destroy');
+
+        // LMS — Builder (Konten Bab, Materi, Quiz, Tugas)
         Route::get('/lms/{course}/builder', [\App\Http\Controllers\CompanyLmsContentController::class, 'builder'])->name('lms.builder');
         Route::post('/lms/{course}/chapters', [\App\Http\Controllers\CompanyLmsContentController::class, 'storeChapter'])->name('lms.chapters.store');
         Route::put('/lms/chapters/{chapter}', [\App\Http\Controllers\CompanyLmsContentController::class, 'updateChapter'])->name('lms.chapters.update');
