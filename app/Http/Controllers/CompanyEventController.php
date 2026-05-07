@@ -27,6 +27,7 @@ class CompanyEventController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'category' => 'required|in:webinar,workshop,seminar',
             'description' => 'required|string',
             'date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|date_format:H:i',
@@ -76,6 +77,7 @@ class CompanyEventController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'category' => 'required|in:webinar,workshop,seminar',
             'description' => 'required|string',
             'date' => 'required|date',
             'start_time' => 'required|date_format:H:i',

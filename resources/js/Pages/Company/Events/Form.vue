@@ -14,6 +14,7 @@ const isEditing = computed(() => !!props.event.id);
 
 const form = useForm({
     title: props.event.title || '',
+    category: props.event.category || '',
     description: props.event.description || '',
     location: props.event.location || '',
     type: props.event.type || 'offline',
@@ -62,6 +63,20 @@ const submit = () => {
                         <p v-if="form.errors.title" class="mt-2 text-sm text-red-600">{{ form.errors.title }}</p>
                     </div>
 
+                    <!-- Kategori Event -->
+                    <div>
+                        <label for="category" class="block text-sm font-medium text-[#101828]">Kategori Event <span class="text-red-500">*</span></label>
+                        <div class="mt-2">
+                            <select id="category" v-model="form.category" class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6">
+                                <option value="" disabled>Pilih Kategori</option>
+                                <option value="webinar">Webinar</option>
+                                <option value="workshop">Workshop</option>
+                                <option value="seminar">Seminar</option>
+                            </select>
+                        </div>
+                        <p v-if="form.errors.category" class="mt-2 text-sm text-red-600">{{ form.errors.category }}</p>
+                    </div>
+
                     <!-- Tipe Event -->
                     <div>
                         <label for="type" class="block text-sm font-medium text-[#101828]">Tipe Event <span class="text-red-500">*</span></label>
@@ -75,7 +90,7 @@ const submit = () => {
                     </div>
 
                     <!-- Lokasi / Link -->
-                    <div>
+                    <div class="sm:col-span-2">
                         <label for="location" class="block text-sm font-medium text-[#101828]">Lokasi / Link Online <span class="text-red-500">*</span></label>
                         <div class="mt-2">
                             <input type="text" id="location" v-model="form.location" class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] placeholder:text-[#98a2b3] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6" placeholder="Alamat gedung atau link zoom">
