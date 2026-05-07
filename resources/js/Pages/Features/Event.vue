@@ -36,7 +36,7 @@ const filteredEvents = computed(() => {
 
     if (filters.value.tipe && filters.value.tipe !== '') {
         const t = filters.value.tipe.toLowerCase();
-        result = result.filter(e => (e.title || '').toLowerCase().includes(t));
+        result = result.filter(e => (e.category || '').toLowerCase() === t);
     }
 
     return result;
@@ -133,6 +133,11 @@ const formatTime = (timeString) => {
                                             {{ event.company?.name ? event.company.name.charAt(0) : 'C' }}
                                         </div>
                                         <p class="text-xs font-bold text-[#64748B] uppercase tracking-wider">{{ event.company?.name || 'Perusahaan' }}</p>
+                                    </div>
+                                    <div v-if="event.category" class="mt-1">
+                                        <span class="text-[10px] font-extrabold uppercase bg-[#F1F5F9] text-[#475569] px-2 py-0.5 rounded-md border border-[#E2E8F0]">
+                                            {{ event.category }}
+                                        </span>
                                     </div>
                                 </div>
                                 <span :class="event.type === 'online' ? 'bg-[#EFF6FF] text-[#2563EB] border-[#BFDBFE]' : 'bg-[#F0FDF4] text-[#16A34A] border-[#BBF7D0]'" class="inline-block rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wider">
