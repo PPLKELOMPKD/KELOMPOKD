@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -26,30 +27,48 @@ class CompanyEventController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'category' => 'required|in:webinar,workshop,seminar',
-            'description' => 'required|string',
-            'date' => 'required|date|after_or_equal:today',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-            'location' => 'required|string|max:255',
-            'type' => 'required|in:online,offline',
-            'status' => 'required|in:draft,published,completed',
+            'title'            => 'required|string|max:255',
+            'category'         => 'required|in:webinar,workshop,seminar',
+            'description'      => 'required|string',
+            'date'             => 'required|date|after_or_equal:today',
+            'start_time'       => 'required|date_format:H:i',
+            'end_time'         => 'required|date_format:H:i|after:start_time',
+            'location'         => 'required|string|max:255',
+            'type'             => 'required|in:online,offline',
+            'status'           => 'required|in:draft,published,completed',
             'max_participants' => 'required|integer|min:1',
         ], [
-            'title.required' => 'Judul wajib diisi.',
-            'description.required' => 'Deskripsi wajib diisi.',
-            'date.required' => 'Tanggal acara wajib diisi.',
-            'date.after_or_equal' => 'Tanggal acara tidak boleh kurang dari hari ini.',
-            'start_time.required' => 'Waktu mulai wajib diisi.',
-            'end_time.required' => 'Waktu selesai wajib diisi.',
-            'end_time.after' => 'Waktu selesai harus setelah waktu mulai.',
-            'location.required' => 'Lokasi wajib diisi.',
-            'type.required' => 'Tipe acara wajib diisi.',
-            'status.required' => 'Status wajib diisi.',
+            'title.required'            => 'Judul wajib diisi.',
+            'description.required'      => 'Deskripsi wajib diisi.',
+            'date.required'             => 'Tanggal acara wajib diisi.',
+            'date.after_or_equal'       => 'Tanggal acara tidak boleh kurang dari hari ini.',
+            'start_time.required'       => 'Waktu mulai wajib diisi.',
+            'end_time.required'         => 'Waktu selesai wajib diisi.',
+            'end_time.after'            => 'Waktu selesai harus setelah waktu mulai.',
+            'location.required'         => 'Lokasi wajib diisi.',
+            'type.required'             => 'Tipe acara wajib diisi.',
+            'status.required'           => 'Status wajib diisi.',
             'max_participants.required' => 'Maksimal peserta wajib diisi.',
-            'max_participants.min' => 'Maksimal peserta harus lebih dari 0.',
+            'max_participants.min'      => 'Maksimal peserta harus lebih dari 0.',
         ]);
+
+        // Extra check: if the event is scheduled for today, times must not have already passed.
+        $today = Carbon::today()->toDateString();
+        if ($validated['date'] === $today) {
+            $now = Carbon::now()->format('H:i');
+
+            if ($validated['start_time'] <= $now) {
+                return back()->withErrors([
+                    'start_time' => 'Waktu mulai tidak boleh di waktu yang sudah lewat. Pilih waktu yang akan datang.',
+                ])->withInput();
+            }
+
+            if ($validated['end_time'] <= $now) {
+                return back()->withErrors([
+                    'end_time' => 'Waktu selesai tidak boleh di waktu yang sudah lewat.',
+                ])->withInput();
+            }
+        }
 
         $validated['company_id'] = auth()->id();
         Event::create($validated);

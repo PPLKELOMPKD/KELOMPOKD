@@ -1,7 +1,7 @@
 <script setup>
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import SikaraLayout from '@/Layouts/SikaraLayout.vue';
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 const props = defineProps({
     event: {
@@ -25,13 +25,113 @@ const form = useForm({
     status: props.event.status || 'draft',
 });
 
+// ─── Local client-side errors ───────────────────────────────────────────────
+const localErrors = ref({
+    date: '',
+    start_time: '',
+    end_time: '',
+});
+
+/** Returns today's date string in YYYY-MM-DD (local timezone) */
+const todayStr = () => {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm   = String(now.getMonth() + 1).padStart(2, '0');
+    const dd   = String(now.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+};
+
+/** Returns current time as "HH:MM" */
+const nowTimeStr = () => {
+    const now = new Date();
+    return String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+};
+
+/** True when the selected date is today */
+const isToday = computed(() => form.date === todayStr());
+
+// ─── Validators ─────────────────────────────────────────────────────────────
+const validateDate = () => {
+    if (!form.date) {
+        localErrors.value.date = '';
+        return true;
+    }
+    if (form.date < todayStr()) {
+        localErrors.value.date = 'Tanggal event tidak boleh di masa lalu. Pilih tanggal hari ini atau yang akan datang.';
+        return false;
+    }
+    localErrors.value.date = '';
+    return true;
+};
+
+const validateStartTime = () => {
+    if (!form.start_time) {
+        localErrors.value.start_time = '';
+        return true;
+    }
+    // If date is today, start_time must be in the future
+    if (isToday.value && form.start_time <= nowTimeStr()) {
+        localErrors.value.start_time = 'Waktu mulai tidak boleh di waktu yang sudah lewat. Pilih waktu yang akan datang.';
+        return false;
+    }
+    localErrors.value.start_time = '';
+    return true;
+};
+
+const validateEndTime = () => {
+    if (!form.end_time) {
+        localErrors.value.end_time = '';
+        return true;
+    }
+    // end_time must be after start_time
+    if (form.start_time && form.end_time <= form.start_time) {
+        localErrors.value.end_time = 'Waktu selesai harus setelah waktu mulai.';
+        return false;
+    }
+    // If date is today, end_time must also be in the future
+    if (isToday.value && form.end_time <= nowTimeStr()) {
+        localErrors.value.end_time = 'Waktu selesai tidak boleh di waktu yang sudah lewat.';
+        return false;
+    }
+    localErrors.value.end_time = '';
+    return true;
+};
+
+// ─── Watchers: re-validate on change ────────────────────────────────────────
+watch(() => form.date, () => {
+    validateDate();
+    // Re-validate times when date changes (today vs future)
+    if (form.start_time) validateStartTime();
+    if (form.end_time)   validateEndTime();
+});
+watch(() => form.start_time, () => {
+    validateStartTime();
+    if (form.end_time) validateEndTime();
+});
+watch(() => form.end_time, () => validateEndTime());
+
+// ─── Submit ──────────────────────────────────────────────────────────────────
 const submit = () => {
+    const dateOk  = validateDate();
+    const startOk = validateStartTime();
+    const endOk   = validateEndTime();
+
+    if (!dateOk || !startOk || !endOk) {
+        // Scroll to first error
+        const firstError = document.querySelector('.field-error');
+        if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
     if (isEditing.value) {
         form.put(route('perusahaan.events.update', props.event.id));
     } else {
         form.post(route('perusahaan.events.store'));
     }
 };
+
+/** Min attribute for the date input (today) */
+const minDate = todayStr();
 </script>
 
 <template>
@@ -60,7 +160,7 @@ const submit = () => {
                         <div class="mt-2">
                             <input type="text" id="title" v-model="form.title" class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] placeholder:text-[#98a2b3] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6" placeholder="Misal: Workshop Frontend Development">
                         </div>
-                        <p v-if="form.errors.title" class="mt-2 text-sm text-red-600">{{ form.errors.title }}</p>
+                        <p v-if="form.errors.title" class="mt-2 text-sm text-red-600 field-error">{{ form.errors.title }}</p>
                     </div>
 
                     <!-- Kategori Event -->
@@ -74,7 +174,7 @@ const submit = () => {
                                 <option value="seminar">Seminar</option>
                             </select>
                         </div>
-                        <p v-if="form.errors.category" class="mt-2 text-sm text-red-600">{{ form.errors.category }}</p>
+                        <p v-if="form.errors.category" class="mt-2 text-sm text-red-600 field-error">{{ form.errors.category }}</p>
                     </div>
 
                     <!-- Tipe Event -->
@@ -86,7 +186,7 @@ const submit = () => {
                                 <option value="online">Online</option>
                             </select>
                         </div>
-                        <p v-if="form.errors.type" class="mt-2 text-sm text-red-600">{{ form.errors.type }}</p>
+                        <p v-if="form.errors.type" class="mt-2 text-sm text-red-600 field-error">{{ form.errors.type }}</p>
                     </div>
 
                     <!-- Lokasi / Link -->
@@ -95,7 +195,7 @@ const submit = () => {
                         <div class="mt-2">
                             <input type="text" id="location" v-model="form.location" class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] placeholder:text-[#98a2b3] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6" placeholder="Alamat gedung atau link zoom">
                         </div>
-                        <p v-if="form.errors.location" class="mt-2 text-sm text-red-600">{{ form.errors.location }}</p>
+                        <p v-if="form.errors.location" class="mt-2 text-sm text-red-600 field-error">{{ form.errors.location }}</p>
                     </div>
                 </div>
 
@@ -105,7 +205,7 @@ const submit = () => {
                     <div class="mt-2">
                         <textarea id="description" v-model="form.description" rows="4" class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] placeholder:text-[#98a2b3] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6" placeholder="Jelaskan detail event..."></textarea>
                     </div>
-                    <p v-if="form.errors.description" class="mt-2 text-sm text-red-600">{{ form.errors.description }}</p>
+                    <p v-if="form.errors.description" class="mt-2 text-sm text-red-600 field-error">{{ form.errors.description }}</p>
                 </div>
 
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
@@ -113,27 +213,72 @@ const submit = () => {
                     <div>
                         <label for="date" class="block text-sm font-medium text-[#101828]">Tanggal Event <span class="text-red-500">*</span></label>
                         <div class="mt-2">
-                            <input type="date" id="date" v-model="form.date" class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6">
+                            <input
+                                type="date"
+                                id="date"
+                                v-model="form.date"
+                                :min="minDate"
+                                @change="validateDate"
+                                :class="[
+                                    'block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6',
+                                    (localErrors.date || form.errors.date) ? 'ring-red-400 focus:ring-red-500' : 'ring-[#d0d5dd] focus:ring-[#10B981]'
+                                ]"
+                            >
                         </div>
-                        <p v-if="form.errors.date" class="mt-2 text-sm text-red-600">{{ form.errors.date }}</p>
+                        <p v-if="localErrors.date" class="mt-2 text-sm text-red-600 field-error flex items-start gap-1">
+                            <svg class="mt-0.5 h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd"/></svg>
+                            {{ localErrors.date }}
+                        </p>
+                        <p v-else-if="form.errors.date" class="mt-2 text-sm text-red-600 field-error">{{ form.errors.date }}</p>
                     </div>
 
                     <!-- Waktu Mulai -->
                     <div>
                         <label for="start_time" class="block text-sm font-medium text-[#101828]">Waktu Mulai <span class="text-red-500">*</span></label>
                         <div class="mt-2">
-                            <input type="time" id="start_time" v-model="form.start_time" class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6">
+                            <input
+                                type="time"
+                                id="start_time"
+                                v-model="form.start_time"
+                                @change="validateStartTime"
+                                :class="[
+                                    'block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6',
+                                    (localErrors.start_time || form.errors.start_time) ? 'ring-red-400 focus:ring-red-500' : 'ring-[#d0d5dd] focus:ring-[#10B981]'
+                                ]"
+                            >
                         </div>
-                        <p v-if="form.errors.start_time" class="mt-2 text-sm text-red-600">{{ form.errors.start_time }}</p>
+                        <p v-if="localErrors.start_time" class="mt-2 text-sm text-red-600 field-error flex items-start gap-1">
+                            <svg class="mt-0.5 h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd"/></svg>
+                            {{ localErrors.start_time }}
+                        </p>
+                        <p v-else-if="form.errors.start_time" class="mt-2 text-sm text-red-600 field-error">{{ form.errors.start_time }}</p>
+                        <!-- Info hint when date is today -->
+                        <p v-if="isToday && !localErrors.start_time && !form.errors.start_time" class="mt-1 text-xs text-amber-600 flex items-center gap-1">
+                            <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd"/></svg>
+                            Event hari ini: pilih waktu yang belum lewat
+                        </p>
                     </div>
 
                     <!-- Waktu Selesai -->
                     <div>
                         <label for="end_time" class="block text-sm font-medium text-[#101828]">Waktu Selesai <span class="text-red-500">*</span></label>
                         <div class="mt-2">
-                            <input type="time" id="end_time" v-model="form.end_time" class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6">
+                            <input
+                                type="time"
+                                id="end_time"
+                                v-model="form.end_time"
+                                @change="validateEndTime"
+                                :class="[
+                                    'block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6',
+                                    (localErrors.end_time || form.errors.end_time) ? 'ring-red-400 focus:ring-red-500' : 'ring-[#d0d5dd] focus:ring-[#10B981]'
+                                ]"
+                            >
                         </div>
-                        <p v-if="form.errors.end_time" class="mt-2 text-sm text-red-600">{{ form.errors.end_time }}</p>
+                        <p v-if="localErrors.end_time" class="mt-2 text-sm text-red-600 field-error flex items-start gap-1">
+                            <svg class="mt-0.5 h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd"/></svg>
+                            {{ localErrors.end_time }}
+                        </p>
+                        <p v-else-if="form.errors.end_time" class="mt-2 text-sm text-red-600 field-error">{{ form.errors.end_time }}</p>
                     </div>
 
                     <!-- Kuota -->
@@ -142,7 +287,7 @@ const submit = () => {
                         <div class="mt-2">
                             <input type="number" id="max_participants" v-model="form.max_participants" min="1" class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6">
                         </div>
-                        <p v-if="form.errors.max_participants" class="mt-2 text-sm text-red-600">{{ form.errors.max_participants }}</p>
+                        <p v-if="form.errors.max_participants" class="mt-2 text-sm text-red-600 field-error">{{ form.errors.max_participants }}</p>
                     </div>
 
                     <!-- Status -->
@@ -155,7 +300,7 @@ const submit = () => {
                                 <option value="completed">Completed</option>
                             </select>
                         </div>
-                        <p v-if="form.errors.status" class="mt-2 text-sm text-red-600">{{ form.errors.status }}</p>
+                        <p v-if="form.errors.status" class="mt-2 text-sm text-red-600 field-error">{{ form.errors.status }}</p>
                     </div>
                 </div>
 
