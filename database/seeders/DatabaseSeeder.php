@@ -143,10 +143,5 @@ class DatabaseSeeder extends Seeder
             'is_published' => true,
         ]);
 
-        User::factory()->admin()->create([
-            'name' => 'Admin Kampus',
-            'email' => 'admin@sikara.test',
-            'password' => "12345678"
-        ]);
     }
 }
