@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\ApplicationTrackingController;
 use App\Http\Controllers\CvController;
@@ -136,6 +137,12 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/lms/{course}/assignments/{assignment}/submissions', [\App\Http\Controllers\CompanyLmsGradingController::class, 'index'])->name('lms.grading.index');
         Route::patch('/lms/{course}/assignments/{assignment}/submissions/{submission}', [\App\Http\Controllers\CompanyLmsGradingController::class, 'update'])->name('lms.grading.update');
+    });
+
+    // ── Admin ─────────────────────────────────────────────────────────
+    Route::middleware(['auth', 'role:admin', 'strict.admin'])->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+        // Fitur lain seperti manajemen user, verifikasi, dll akan ditambahkan di sini
     });
 
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
