@@ -110,7 +110,7 @@ const navigation = [
         </aside>
 
         <!-- Main Content -->
-        <main class="transition-all duration-300" :class="isSidebarOpen ? 'pl-64' : 'pl-0'">
+        <main class="transition-all duration-300 min-h-screen" :style="isSidebarOpen ? 'padding-left: 16rem;' : 'padding-left: 0;'">
             <!-- Header -->
             <header class="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-[#E2E8F0] bg-white/80 px-8 backdrop-blur-md">
                 <div class="flex items-center gap-4">
