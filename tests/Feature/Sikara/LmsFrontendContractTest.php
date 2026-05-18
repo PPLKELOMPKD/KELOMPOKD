@@ -86,4 +86,14 @@ class LmsFrontendContractTest extends TestCase
         $this->assertStringContainsString('selectedQuizAnswers', $module);
         $this->assertStringContainsString('course.progress', $module);
     }
+
+    public function test_lms_enrollment_button_is_guarded_by_student_role(): void
+    {
+        $source = file_get_contents(resource_path('js/Pages/Features/Lms.vue'));
+
+        $this->assertStringContainsString('isAuthenticated', $source);
+        $this->assertStringContainsString('isMahasiswa', $source);
+        $this->assertStringContainsString('!isAuthenticated', $source);
+        $this->assertStringContainsString('isMahasiswa &&', $source);
+    }
 }
