@@ -5,6 +5,7 @@ use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\ApplicationTrackingController;
 use App\Http\Controllers\CvController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DirectMessageController;
 use App\Http\Controllers\InternshipController;
 use App\Http\Controllers\LmsController;
 use App\Http\Controllers\NotificationController;
@@ -49,6 +50,15 @@ Route::get('/generate-cv', function () {
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+
+    Route::prefix('dm')->name('dm.')->group(function () {
+        Route::get('/conversations', [DirectMessageController::class, 'index'])->name('conversations.index');
+        Route::get('/users', [DirectMessageController::class, 'users'])->name('users.index');
+        Route::post('/conversations', [DirectMessageController::class, 'store'])->name('conversations.store');
+        Route::get('/conversations/{conversation}/messages', [DirectMessageController::class, 'messages'])->name('conversations.messages');
+        Route::post('/conversations/{conversation}/messages', [DirectMessageController::class, 'send'])->name('conversations.send');
+        Route::post('/conversations/{conversation}/read', [DirectMessageController::class, 'read'])->name('conversations.read');
+    });
 
     // ── Mahasiswa ─────────────────────────────────────────────────────
     Route::middleware(['auth', 'role:mahasiswa'])->group(function () {

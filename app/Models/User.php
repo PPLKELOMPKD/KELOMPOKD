@@ -104,6 +104,16 @@ class User extends Authenticatable
         return $this->hasMany(LmsEnrollment::class, 'student_id');
     }
 
+    public function sentConversationMessages(): HasMany
+    {
+        return $this->hasMany(ConversationMessage::class, 'sender_id');
+    }
+
+    public function conversationParticipants(): HasMany
+    {
+        return $this->hasMany(ConversationParticipant::class);
+    }
+
     public function isMahasiswa(): bool
     {
         return $this->role === self::ROLE_MAHASISWA;

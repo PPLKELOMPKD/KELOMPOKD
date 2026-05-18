@@ -8,10 +8,19 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    isAuthenticated: {
+        type: Boolean,
+        default: false,
+    },
+    isMahasiswa: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const search = ref('');
 const activeFilter = ref('all');
+const canEnroll = computed(() => props.isMahasiswa && props.isAuthenticated);
 
 const filters = [
     { label: 'ALL', value: 'all' },
@@ -40,6 +49,15 @@ const levelClass = (level) => {
 };
 
 const enroll = (course) => {
+    if (!props.isAuthenticated) {
+        router.visit(route('login', { role: 'mahasiswa' }));
+        return;
+    }
+
+    if (!props.isMahasiswa) {
+        return;
+    }
+
     router.post(route('lms.enrollments.store', course.slug));
 };
 
@@ -102,8 +120,14 @@ const openDetail = (course) => {
                         </div>
                     </div>
                     <div class="flex gap-4 pt-4 border-t border-slate-100">
-                        <button v-if="!selectedCourseForDetail.is_enrolled" @click="enroll(selectedCourseForDetail); showDetailModal = false" class="flex-1 rounded-xl bg-[#10b981] py-4 text-sm font-bold text-white hover:bg-[#059669] transition-all shadow-lg shadow-emerald-200">
+                        <button v-if="!selectedCourseForDetail.is_enrolled && canEnroll" @click="enroll(selectedCourseForDetail); showDetailModal = false" class="flex-1 rounded-xl bg-[#10b981] py-4 text-sm font-bold text-white hover:bg-[#059669] transition-all shadow-lg shadow-emerald-200">
                             Daftar Sekarang
+                        </button>
+                        <Link v-else-if="!selectedCourseForDetail.is_enrolled && !isAuthenticated" :href="route('login', { role: 'mahasiswa' })" class="flex-1 text-center rounded-xl bg-[#10b981] py-4 text-sm font-bold text-white hover:bg-[#059669] transition-all shadow-lg shadow-emerald-200">
+                            Login untuk Daftar
+                        </Link>
+                        <button v-else-if="!selectedCourseForDetail.is_enrolled && !isMahasiswa" type="button" disabled class="flex-1 rounded-xl bg-slate-100 py-4 text-sm font-bold text-slate-500">
+                            Khusus Mahasiswa
                         </button>
                         <Link v-else :href="route('lms.module.show', selectedCourseForDetail.slug)" class="flex-1 text-center rounded-xl bg-[#2563eb] py-4 text-sm font-bold text-white hover:bg-[#1d4ed8] transition-all shadow-lg shadow-blue-200">
                             Lanjutkan Belajar
@@ -292,8 +316,14 @@ const openDetail = (course) => {
                                     <Link v-if="course.is_enrolled" :href="route('lms.module.show', course.slug)" class="flex-1 text-center rounded-lg bg-[#2563eb] py-2 text-sm font-semibold text-white hover:bg-[#004ac6]">
                                         Lanjutkan Belajar
                                     </Link>
-                                    <button v-else @click="enroll(course)" class="flex-1 rounded-lg bg-[#10b981] py-2 text-sm font-semibold text-white hover:bg-[#059669]">
+                                    <button v-else-if="canEnroll" @click="enroll(course)" class="flex-1 rounded-lg bg-[#10b981] py-2 text-sm font-semibold text-white hover:bg-[#059669]">
                                         Daftar
+                                    </button>
+                                    <Link v-else-if="!isAuthenticated" :href="route('login', { role: 'mahasiswa' })" class="flex-1 text-center rounded-lg bg-[#10b981] py-2 text-sm font-semibold text-white hover:bg-[#059669]">
+                                        Login
+                                    </Link>
+                                    <button v-else type="button" disabled class="flex-1 rounded-lg bg-slate-100 py-2 text-sm font-semibold text-slate-500">
+                                        Khusus Mahasiswa
                                     </button>
                                 </div>
                             </div>
