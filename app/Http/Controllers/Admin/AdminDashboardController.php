@@ -114,12 +114,47 @@ class AdminDashboardController extends Controller
             ['name' => 'Data Lamaran',      'desc' => 'Pantau seluruh proses rekrutmen',       'icon' => 'inbox',     'color' => 'pink',   'count' => $totalApplications, 'unit' => 'lamaran'],
         ];
 
+        // ── Chart data: User distribution by role ─────────────────────
+        $totalAdmin = User::where('role', 'admin')->count();
+        $userDistribution = [
+            ['label' => 'Mahasiswa',  'value' => $totalMahasiswa,  'color' => '#6366F1'],
+            ['label' => 'Perusahaan', 'value' => $totalPerusahaan, 'color' => '#10B981'],
+            ['label' => 'Admin',      'value' => $totalAdmin,      'color' => '#8B5CF6'],
+        ];
+
+        // ── Chart data: Monthly user registrations (last 6 months) ────
+        $monthlyRegistrations = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $monthlyRegistrations[] = [
+                'month' => $date->translatedFormat('M'),
+                'count' => User::whereYear('created_at', $date->year)
+                               ->whereMonth('created_at', $date->month)
+                               ->count(),
+            ];
+        }
+
+        // ── Chart data: Monthly applications (last 6 months) ──────────
+        $monthlyApplications = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $monthlyApplications[] = [
+                'month' => $date->translatedFormat('M'),
+                'count' => Application::whereYear('created_at', $date->year)
+                                      ->whereMonth('created_at', $date->month)
+                                      ->count(),
+            ];
+        }
+
         return Inertia::render('Admin/Dashboard', [
-            'stats'              => $stats,
-            'pipeline'           => $pipeline,
-            'recentUsers'        => $recentUsers,
-            'recentApplications' => $recentApplications,
-            'platformModules'    => $platformModules,
+            'stats'                => $stats,
+            'pipeline'             => $pipeline,
+            'recentUsers'          => $recentUsers,
+            'recentApplications'   => $recentApplications,
+            'platformModules'      => $platformModules,
+            'userDistribution'     => $userDistribution,
+            'monthlyRegistrations' => $monthlyRegistrations,
+            'monthlyApplications'  => $monthlyApplications,
         ]);
     }
 }
