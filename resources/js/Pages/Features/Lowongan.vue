@@ -7,6 +7,8 @@ import SearchableSelect from '@/Components/SearchableSelect.vue';
 const props = defineProps({
     internships: { type: Array, default: () => [] },
     filterOptions: { type: Object, default: () => ({ companies: [], locations: [], workTypes: [], educationLevels: [], salaryRanges: [] }) },
+    recommendedInternships: { type: Array, default: () => [] },
+    hasSkills: { type: Boolean, default: false },
 });
 
 const activeTab = ref('Semua Lowongan');
@@ -20,6 +22,8 @@ const filters = ref({
     gaji: '',
     sort: 'terbaru'
 });
+
+
 
 // Dynamic filter options from backend data
 const opsiLokasi = computed(() => props.filterOptions.locations);
@@ -102,6 +106,59 @@ const filteredInternships = computed(() => {
     return result;
 });
 
+const filteredRecommendations = computed(() => {
+    let result = [...props.recommendedInternships];
+
+    // Jika ada variabel activeTab di kodingan Anda, ikut sertakan juga filter tab-nya
+    if (typeof activeTab !== 'undefined') {
+        if (activeTab.value === 'Lowongan Magang') {
+            result = result.filter(i => (i.work_type || 'Magang') === 'Magang');
+        } else if (activeTab.value === 'Lowongan Kerja') {
+            result = result.filter(i => (i.work_type || 'Magang') !== 'Magang');
+        }
+    }
+
+    // 1. Filter Search (Posisi/Perusahaan/Deskripsi)
+    if (filters.value.posisi.trim()) {
+        const q = filters.value.posisi.toLowerCase();
+        result = result.filter(i =>
+            (i.title || '').toLowerCase().includes(q) ||
+            (i.company_name || '').toLowerCase().includes(q) ||
+            (i.description || '').toLowerCase().includes(q) ||
+            (i.requirements || '').toLowerCase().includes(q)
+        );
+    }
+
+    // 2. Filter Dropdown Lokasi
+    if (filters.value.lokasi && filters.value.lokasi !== '') {
+        const loc = filters.value.lokasi.toLowerCase();
+        result = result.filter(i => (i.location || '').toLowerCase().includes(loc));
+    }
+
+    // 3. Filter Dropdown Jenis Pekerjaan
+    if (filters.value.jenis && filters.value.jenis !== '' && filters.value.jenis !== 'Semua Jenis') {
+        result = result.filter(i => (i.work_type || 'Magang') === filters.value.jenis);
+    }
+
+    // 4. Filter Dropdown Perusahaan
+    if (filters.value.perusahaan && filters.value.perusahaan !== '' && filters.value.perusahaan !== 'Semua Perusahaan') {
+        result = result.filter(i => i.company_name === filters.value.perusahaan);
+    }
+
+    // 5. Filter Dropdown Pendidikan
+    if (filters.value.pendidikan && filters.value.pendidikan !== '' && filters.value.pendidikan !== 'Semua Jenjang') {
+        result = result.filter(i => i.education_level === filters.value.pendidikan);
+    }
+
+    // 6. Filter Dropdown Gaji
+    if (filters.value.gaji && filters.value.gaji !== '' && filters.value.gaji !== 'Semua Gaji') {
+        result = result.filter(i => i.salary_range === filters.value.gaji);
+    }
+
+    // Return hasil rekomendasi yang sudah disaring tanpa mengubah urutan akurasi (match_count)
+    return result;
+});
+
 const resetFilters = () => {
     filters.value = { posisi: '', lokasi: '', jenis: '', perusahaan: '', pendidikan: '', gaji: '', sort: 'terbaru' };
     activeTab.value = 'Semua Lowongan';
@@ -175,6 +232,101 @@ const daysLeft = (d) => {
 
         <!-- Job Listings -->
         <div class="mx-auto w-full max-w-7xl px-6 lg:px-8 py-16 relative z-10">
+            <div v-if="$page.props.auth.user" class="mb-12">
+                <div v-if="!hasSkills" class="rounded-2xl border border-blue-200 bg-gradient-to-r from-blue-50 to-white p-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div>
+                        <h4 class="text-lg font-bold text-[#0F172A] flex items-center gap-2">
+                            <svg class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                            Dapatkan Rekomendasi Akurat!
+                        </h4>
+                        <p class="text-sm text-[#64748B] mt-1">Lengkapi profil skill Anda agar sistem dapat merekomendasikan lowongan yang paling cocok dengan keahlian Anda.</p>
+                    </div>
+                    <Link class="shrink-0 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-700 transition-colors shadow-md shadow-blue-600/20">
+                        Lengkapi Skill
+                    </Link>
+                </div>
+
+                <div v-else-if="filteredRecommendations.length > 0">
+                    <h2 class="text-xl font-bold text-[#0F172A] mb-4 flex items-center gap-2">
+                        <svg class="h-6 w-6 text-yellow-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                        Rekomendasi Teratas Untukmu
+                    </h2>
+                    
+                    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        <div v-for="internship in filteredRecommendations" :key="'rec-'+internship.id"
+                            class="group relative flex flex-col justify-between rounded-2xl border border-[#E2E8F0] bg-white p-0 overflow-hidden transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10 "
+                        >
+                            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#2563EB] to-[#60A5FA] opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
+                            
+                            <div class="absolute top-0 right-0 z-20 bg-gradient-to-br from-[#2563EB] to-[#60A5FA] px-3 py-1 text-[11px] font-bold text-white rounded-bl-xl shadow-sm">
+                                COCOK ({{ internship.match_count }} SKILL)
+                            </div>
+                            
+                            <div class="p-6 pb-0 pt-8">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div class="flex items-center gap-3">
+                                        <div v-if="internship.company_logo" class="h-12 w-12 rounded-xl border border-[#E2E8F0] overflow-hidden shadow-sm bg-white flex items-center justify-center">
+                                            <img :src="internship.company_logo" :alt="internship.company_name" class="h-full w-full object-contain" />
+                                        </div>
+                                        <div v-else class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#2563EB] to-[#60A5FA] font-black text-white text-lg uppercase shadow-md shadow-[#2563EB]/20">
+                                            {{ internship.company_name ? internship.company_name.charAt(0) : 'C' }}
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-semibold text-[#64748B] line-clamp-1">{{ internship.company_name }}</p>
+                                            <div class="flex items-center gap-1 mt-0.5">
+                                                <span :class="[getTypeColor(internship.work_type || 'Magang').bg, getTypeColor(internship.work_type || 'Magang').text]" class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                                                    <span :class="getTypeColor(internship.work_type || 'Magang').dot" class="h-1.5 w-1.5 rounded-full"></span>
+                                                    {{ internship.work_type || 'Magang' }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div v-if="daysLeft(internship.deadline_at) !== null" class="text-right shrink-0">
+                                        <span :class="daysLeft(internship.deadline_at) <= 7 ? 'text-[#E11D48] bg-[#FFF1F2]' : 'text-[#64748B] bg-[#F1F5F9]'" class="inline-block rounded-lg px-2 py-1 text-[10px] font-bold mt-4">
+                                            {{ daysLeft(internship.deadline_at) }} hari
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <h3 class="text-base font-bold text-[#0F172A] group-hover:text-[#2563EB] transition-colors line-clamp-2 leading-snug">
+                                    {{ internship.title }}
+                                </h3>
+
+                                <p class="mt-2 text-xs text-[#64748B] line-clamp-2 leading-relaxed">{{ internship.description }}</p>
+                            </div>
+
+                            <div class="px-6 pt-3 pb-4">
+                                <div class="flex flex-wrap gap-1.5">
+                                    <span class="inline-flex items-center gap-1 rounded-lg bg-[#F8FAFC] px-2.5 py-1 text-[11px] font-medium text-[#475569] border border-[#E2E8F0]">
+                                        <svg class="h-3 w-3 text-[#2563EB]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                        {{ internship.location || 'Lokasi belum ditentukan' }}
+                                    </span>
+                                    <span v-if="internship.duration" class="inline-flex items-center gap-1 rounded-lg bg-[#F8FAFC] px-2.5 py-1 text-[11px] font-medium text-[#475569] border border-[#E2E8F0]">
+                                        <svg class="h-3 w-3 text-[#2563EB]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                        {{ internship.duration }}
+                                    </span>
+                                    <span v-if="internship.salary" class="inline-flex items-center gap-1 rounded-lg bg-[#F8FAFC] px-2.5 py-1 text-[11px] font-medium text-[#475569] border border-[#E2E8F0]">
+                                    <svg class="h-3 w-3 text-[#10B981]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                    {{ internship.salary }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="px-6 pb-5 mt-auto">
+                        <div class="flex items-center gap-2">
+                            <Link 
+                                :href="$page.props.auth.user ? route('internships.show', internship.id) : route('login', { role: 'mahasiswa' })" 
+                                class="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#0F172A] py-2.5 text-center text-sm font-bold text-white transition-all hover:bg-[#2563EB] hover:shadow-lg hover:shadow-[#2563EB]/20"
+                            >
+                                Lihat Detail
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                            </Link>
+                        </div>
+                    </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
                 <div>
                     <h2 class="text-xl font-bold text-[#0F172A]">
