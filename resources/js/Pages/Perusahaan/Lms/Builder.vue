@@ -97,6 +97,10 @@ const getQuizForm = (chapterId, quiz) => {
 };
 const submitQuiz = (chapterId) => {
     const form = getQuizForm(chapterId);
+    if (form.passing_score === null || form.passing_score === '') {
+        return;
+    }
+
     form.post(route('perusahaan.lms.quizzes.store', chapterId), {
         preserveScroll: true,
     });

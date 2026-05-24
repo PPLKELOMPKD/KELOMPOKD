@@ -51,6 +51,39 @@ class InternshipController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        $recommendedInternships = [];
+        $hasSkills = false;
+
+        if (auth()->check() && auth()->user()->isMahasiswa()) {
+            $user = auth()->user();
+            
+            // Ambil ID lowongan yang sudah dilamar agar tidak direkomendasikan lagi
+            $applied_ids = $user->applications()->pluck('internship_id')->toArray();
+            
+            // Ambil nama skill dan jadikan huruf kecil
+            $userSkills = $user->skills()->pluck('name')->map(fn($skill) => strtolower($skill))->toArray();
+            $hasSkills = count($userSkills) > 0;
+
+            if ($hasSkills) {
+                $recommendedInternships = $internships->map(function ($internship) use ($userSkills) {
+                    $requirements = strtolower($internship->requirements ?? '');
+                    $matchCount = 0;
+                    
+                    foreach ($userSkills as $skill) {
+                        if (str_contains($requirements, $skill)) {
+                            $matchCount++;
+                        }
+                    }
+                    
+                    $internship->match_count = $matchCount;
+                    return $internship;
+                })->filter(function ($internship) use ($applied_ids) {
+                    // Filter: minimal 1 skill cocok DAN belum pernah dilamar
+                    return $internship->match_count > 0 && !in_array($internship->id, $applied_ids);
+                })->sortByDesc('match_count')->take(3)->values();
+            }
+        }
+
         // Extract unique values for filter dropdowns
         $companies = $internships->pluck('company_name')->unique()->filter()->values()->toArray();
         $locations = $internships->pluck('location')->unique()->filter()->values()->toArray();
@@ -84,6 +117,8 @@ class InternshipController extends Controller
                 'educationLevels' => $educationLevels,
                 'salaryRanges' => $salaryRanges,
             ],
+            'recommendedInternships' => $recommendedInternships,
+            'hasSkills' => $hasSkills
         ]);
     }
 }

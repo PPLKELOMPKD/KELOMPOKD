@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Conversation;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -53,10 +54,19 @@ class HandleInertiaRequests extends Middleware
                 }
                 return \App\Models\Setting::all()->pluck('value', 'key')->toArray();
             }),
+            'dm' => [
+                'unreadCount' => $user
+                    ? Conversation::query()
+                        ->forUser($user)
+                        ->with('participants')
+                        ->get()
+                        ->sum(fn (Conversation $conversation) => $conversation->unreadCountFor($user))
+                    : 0,
+            ],
             'flash' => [
-            'success' => fn () => $request->session()->get('success'),
-            'error' => fn () => $request->session()->get('error'),
-        ],
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
         ];
     }
 }
