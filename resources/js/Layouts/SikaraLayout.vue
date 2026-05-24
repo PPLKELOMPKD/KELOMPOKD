@@ -141,7 +141,7 @@ const navItems = computed(() => {
                     />
                     <span
                         class="text-xl font-black tracking-tight text-[#0F172A]"
-                        >SIKARA</span
+                        >{{ page.props.global_settings?.app_name || 'SIKARA' }}</span
                     >
                 </Link>
 

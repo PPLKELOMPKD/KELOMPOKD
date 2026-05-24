@@ -48,6 +48,8 @@ class StudentProfileController extends Controller
 
         $request->user()->mahasiswaProfile()->updateOrCreate([], $data);
 
+        \App\Services\ActivityLogger::log('Update Profil', "Memperbarui profil mahasiswa", 'profile');
+
         return redirect()->route('profile.show');
     }
 }

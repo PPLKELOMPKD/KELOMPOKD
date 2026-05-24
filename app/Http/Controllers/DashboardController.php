@@ -10,9 +10,21 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request): Response
+    public function __invoke(Request $request): \Symfony\Component\HttpFoundation\Response
     {
         $user = $request->user();
+
+        if ($user->isMahasiswa()) {
+            return redirect()->route('peserta');
+        }
+
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        if ($user->isPerusahaan() && $request->routeIs('dashboard')) {
+            return redirect()->route('perusahaan.dashboard');
+        }
 
         if ($user->isMahasiswa()) {
             $profile = $user->mahasiswaProfile;

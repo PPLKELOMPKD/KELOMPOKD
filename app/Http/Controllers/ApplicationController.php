@@ -31,6 +31,8 @@ class ApplicationController extends Controller
             'status' => 'submitted'
         ]);
 
+        \App\Services\ActivityLogger::log('Melamar Lowongan', "Melamar pada lowongan magang ID: {$data['internship_id']}", 'lamaran');
+
         Notification::query()->create([
             'user_id' => $request->user()->id,
             'title' => 'Lamaran berhasil dikirim',

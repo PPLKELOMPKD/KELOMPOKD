@@ -36,6 +36,11 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $settings = \Illuminate\Support\Facades\Cache::get('global_settings', []);
+        if (isset($settings['registration_enabled']) && $settings['registration_enabled'] === 'false') {
+            abort(403, 'Pendaftaran akun baru saat ini sedang ditutup oleh Administrator.');
+        }
+
         $request->validate([
             'role' => 'required|in:mahasiswa,perusahaan',
             'name' => 'required|string|max:255',
@@ -68,6 +73,14 @@ class RegisteredUserController extends Controller
         }
 
         event(new Registered($user));
+
+        \App\Services\ActivityLogger::log(
+            'Registrasi Akun',
+            "Pengguna baru {$user->name} mendaftar sebagai {$user->role}",
+            'auth',
+            $user->id,
+            $user->role,
+        );
 
         return redirect(route('login'))->with('status', 'Registrasi berhasil! Silakan masuk dengan akun Anda.');
     }

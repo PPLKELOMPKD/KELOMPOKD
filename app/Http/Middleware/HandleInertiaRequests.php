@@ -47,6 +47,13 @@ class HandleInertiaRequests extends Middleware
             'notifications' => [
                 'unreadCount' => $user ? $user->notificationsFeed()->whereNull('read_at')->count() : 0,
             ],
+            'global_settings' => \Illuminate\Support\Facades\Cache::rememberForever('global_settings', function () {
+                // If the table doesn't exist yet, just return empty array
+                if (!\Illuminate\Support\Facades\Schema::hasTable('settings')) {
+                    return [];
+                }
+                return \App\Models\Setting::all()->pluck('value', 'key')->toArray();
+            }),
             'dm' => [
                 'unreadCount' => $user
                     ? Conversation::query()

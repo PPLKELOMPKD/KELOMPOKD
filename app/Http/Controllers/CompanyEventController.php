@@ -71,7 +71,9 @@ class CompanyEventController extends Controller
         }
 
         $validated['company_id'] = auth()->id();
-        Event::create($validated);
+        $event = Event::create($validated);
+
+        \App\Services\ActivityLogger::log('Membuat Event', "Membuat event baru: {$event->title}", 'event');
 
         return redirect()->route('perusahaan.events.index')->with('success', 'Event Berhasil Ditambahkan');
     }
@@ -121,6 +123,8 @@ class CompanyEventController extends Controller
 
         $event->update($validated);
 
+        \App\Services\ActivityLogger::log('Memperbarui Event', "Memperbarui event: {$event->title}", 'event');
+
         return redirect()->route('perusahaan.events.index')->with('success', 'Event Berhasil Diperbarui');
     }
 
@@ -134,9 +138,11 @@ class CompanyEventController extends Controller
         // For now, let's just delete it, or as we did for internships:
         if ($event->registrations()->exists()) {
             $event->update(['status' => 'completed']); // or draft/cancelled, the schema has draft, published, completed
+            \App\Services\ActivityLogger::log('Menutup Event', "Menutup event: {$event->title} (memiliki peserta)", 'event');
             return redirect()->route('perusahaan.events.index')->with('error', 'Event tidak bisa dihapus karena sudah memiliki peserta. Status diubah menjadi Selesai.');
         }
 
+        \App\Services\ActivityLogger::log('Menghapus Event', "Menghapus event: {$event->title}", 'event');
         $event->delete();
 
         return redirect()->route('perusahaan.events.index')->with('success', 'Event Berhasil Dihapus');

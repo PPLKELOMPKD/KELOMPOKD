@@ -23,6 +23,7 @@
         "@inertiajs/vue3": "^3.0.3",
         "chart.js": "^4.5.1",
         "laravel-echo": "^2.3.4",
+        "lodash": "^4.18.1",
         "pusher-js": "^8.5.0",
         "vue": "^3.5.33",
         "vue-chartjs": "^5.3.3",

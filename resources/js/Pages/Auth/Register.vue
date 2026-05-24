@@ -1,10 +1,13 @@
 <script setup>
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import InputError from '@/Components/InputError.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import Modal from '@/Components/Modal.vue';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 const props = defineProps({ roles: Array });
+const page = usePage();
+const showDisabledModal = ref(false);
 
 const roleMeta = {
     mahasiswa: { label: 'Mahasiswa', description: 'Cari lowongan magang' },
@@ -32,6 +35,11 @@ const selectRole = (role) => {
 };
 
 const submit = () => {
+    if (page.props.global_settings?.registration_enabled === 'false') {
+        showDisabledModal.value = true;
+        return;
+    }
+
     form.transform((data) => ({
         ...data,
         phone: data.phone || null,
@@ -245,5 +253,31 @@ const submit = () => {
             Sudah punya akun?
             <Link :href="route('login')" class="font-semibold text-[#2563EB] transition-colors hover:text-[#1d4ed8] hover:underline">Masuk di sini</Link>
         </div>
+
+        <!-- Registration Disabled Modal -->
+        <Modal :show="showDisabledModal" @close="showDisabledModal = false" maxWidth="md">
+            <div class="relative overflow-hidden bg-white p-8 text-center">
+                <!-- Decorative Elements -->
+                <div class="absolute -right-24 -top-24 h-48 w-48 rounded-full bg-[#EF4444] opacity-5 blur-2xl"></div>
+                <div class="absolute -bottom-24 -left-24 h-48 w-48 rounded-full bg-[#F59E0B] opacity-5 blur-2xl"></div>
+                
+                <div class="relative z-10">
+                    <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[#FEF2F2]">
+                        <svg class="h-10 w-10 text-[#EF4444]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    
+                    <h2 class="mb-3 text-2xl font-bold text-[#0F172A]">Pendaftaran Ditutup</h2>
+                    <p class="mb-8 text-[15px] leading-relaxed text-[#64748B]">
+                        Mohon maaf, pendaftaran akun baru saat ini sedang dinonaktifkan oleh Administrator. Silakan coba lagi nanti.
+                    </p>
+                    
+                    <button @click="showDisabledModal = false" type="button" class="flex h-11 w-full items-center justify-center rounded-lg bg-[#F1F5F9] text-sm font-semibold text-[#0F172A] transition-colors hover:bg-[#E2E8F0]">
+                        Mengerti, Kembali
+                    </button>
+                </div>
+            </div>
+        </Modal>
     </GuestLayout>
 </template>
