@@ -264,6 +264,13 @@ class CompanyApplicantController extends Controller
             'type'    => $notifType,
         ]);
 
+        // Log the status change activity
+        \App\Services\ActivityLogger::log(
+            'Update Status Pelamar',
+            "Mengubah status pelamar {$application->user?->name} menjadi \"{$statusLabel}\" untuk posisi {$internshipTitle}",
+            'lamaran',
+        );
+
         $redirectRoute = $request->get('redirect', 'index');
 
         $flashMessage = "Status pelamar berhasil diubah menjadi \"{$statusLabel}\".";

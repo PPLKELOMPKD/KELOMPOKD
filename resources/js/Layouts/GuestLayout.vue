@@ -12,7 +12,7 @@ import { Link } from '@inertiajs/vue3';
             <Link :href="route('home')" class="flex items-center gap-3">
                 <img src="/images/Logo-SIKARA.png" alt="SIKARA" class="h-10 w-auto" />
                 <div>
-                    <div class="text-base font-bold tracking-wider text-[#0F172A]">SIKARA</div>
+                    <div class="text-base font-bold tracking-wider text-[#0F172A]">{{ $page.props.global_settings?.app_name || 'SIKARA' }}</div>
                     <div class="text-[10px] uppercase tracking-widest text-[#64748B]">Sistem Informasi Karir</div>
                 </div>
             </Link>
@@ -53,7 +53,7 @@ import { Link } from '@inertiajs/vue3';
             </div>
 
             <!-- Bottom -->
-            <div class="text-xs text-[#94A3B8]">© 2026 SIKARA — Sistem Informasi Karir Mahasiswa</div>
+            <div class="text-xs text-[#94A3B8]">{{ $page.props.global_settings?.footer_text || '© 2026 SIKARA — Sistem Informasi Karir Mahasiswa' }}</div>
         </div>
 
         <!-- ── Right Form Panel ── -->
@@ -61,7 +61,7 @@ import { Link } from '@inertiajs/vue3';
             <!-- Mobile logo -->
             <Link :href="route('home')" class="mb-8 flex items-center gap-2.5 lg:hidden">
                 <img src="/images/Logo-SIKARA.png" alt="SIKARA" class="h-8 w-auto" />
-                <span class="text-sm font-bold tracking-wider text-[#0F172A]">SIKARA</span>
+                <span class="text-sm font-bold tracking-wider text-[#0F172A]">{{ $page.props.global_settings?.app_name || 'SIKARA' }}</span>
             </Link>
 
             <div class="w-full max-w-[420px] rounded-2xl border border-[#E2E8F0] bg-white px-8 py-8 shadow-sm animate-slide-up">

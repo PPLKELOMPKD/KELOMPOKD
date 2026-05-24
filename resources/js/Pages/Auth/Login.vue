@@ -1,7 +1,12 @@
 <script setup>
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import InputError from '@/Components/InputError.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import Modal from '@/Components/Modal.vue';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { ref } from 'vue';
+
+const page = usePage();
+const showMaintenanceModal = ref(false);
 
 defineProps({
     roles: Array,
@@ -16,6 +21,11 @@ const form = useForm({
 });
 
 const submit = () => {
+    if (page.props.global_settings?.maintenance_mode === 'true' && form.role !== 'admin') {
+        showMaintenanceModal.value = true;
+        return;
+    }
+
     form.post(route('login'), {
         onFinish: () => form.reset('password'),
     });
@@ -169,5 +179,32 @@ const roleMeta = {
                 Daftar sekarang
             </Link>
         </div>
+
+        <!-- Maintenance Mode Modal -->
+        <Modal :show="showMaintenanceModal" @close="showMaintenanceModal = false" maxWidth="md">
+            <div class="relative overflow-hidden bg-white p-8 text-center">
+                <!-- Decorative Elements -->
+                <div class="absolute -right-24 -top-24 h-48 w-48 rounded-full bg-[#2563EB] opacity-5 blur-2xl"></div>
+                <div class="absolute -bottom-24 -left-24 h-48 w-48 rounded-full bg-[#10B981] opacity-5 blur-2xl"></div>
+                
+                <div class="relative z-10">
+                    <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[#EFF6FF]">
+                        <svg class="h-10 w-10 text-[#2563EB]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </div>
+                    
+                    <h2 class="mb-3 text-2xl font-bold text-[#0F172A]">Sistem Dalam Pemeliharaan</h2>
+                    <p class="mb-8 text-[15px] leading-relaxed text-[#64748B]">
+                        Portal SIKARA saat ini sedang dalam pemeliharaan rutin untuk meningkatkan kualitas layanan. Login untuk Peserta dan Perusahaan sementara dinonaktifkan.
+                    </p>
+                    
+                    <button @click="showMaintenanceModal = false" type="button" class="flex h-11 w-full items-center justify-center rounded-lg bg-[#F1F5F9] text-sm font-semibold text-[#0F172A] transition-colors hover:bg-[#E2E8F0]">
+                        Mengerti, Kembali
+                    </button>
+                </div>
+            </div>
+        </Modal>
     </GuestLayout>
 </template>

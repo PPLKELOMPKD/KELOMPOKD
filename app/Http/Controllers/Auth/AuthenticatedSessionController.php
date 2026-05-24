@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
+use App\Services\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,11 +34,28 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
+        $settings = \Illuminate\Support\Facades\Cache::get('global_settings', []);
+        
+        if (isset($settings['maintenance_mode']) && $settings['maintenance_mode'] === 'true') {
+            if ($request->role !== User::ROLE_ADMIN) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'email' => 'Sistem sedang dalam pemeliharaan. Hanya admin yang dapat login saat ini.',
+                ]);
+            }
+        }
+
         $request->authenticate();
 
         $request->session()->regenerate();
 
         $user = $request->user();
+
+        // Log the login activity
+        ActivityLogger::log(
+            'Login',
+            "Pengguna {$user->name} berhasil login ke sistem",
+            'auth',
+        );
 
         if ($user->isMahasiswa()) {
             return redirect()->intended(route('peserta', absolute: false));
@@ -55,6 +73,17 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $user = $request->user();
+
+        // Log the logout activity before destroying the session
+        if ($user) {
+            ActivityLogger::log(
+                'Logout',
+                "Pengguna {$user->name} keluar dari sistem",
+                'auth',
+            );
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

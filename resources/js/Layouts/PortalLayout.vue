@@ -40,7 +40,7 @@ const homeRoute = computed(() => {
                 <!-- Logo -->
                 <Link :href="homeRoute" class="flex items-center gap-3 transition-transform hover:scale-105">
                     <img src="/images/Logo-SIKARA.png" alt="SIKARA" class="h-8 w-auto" />
-                    <span class="text-xl font-black tracking-tight text-[#0F172A]">SIKARA</span>
+                    <span class="text-xl font-black tracking-tight text-[#0F172A]">{{ $page.props.global_settings?.app_name || 'SIKARA' }}</span>
                 </Link>
 
                 <!-- Navigation Slots -->
@@ -149,11 +149,11 @@ const homeRoute = computed(() => {
                     <div class="col-span-1 md:col-span-2">
                         <Link :href="homeRoute" class="flex items-center gap-3 mb-4">
                             <img src="/images/Logo-SIKARA.png" alt="SIKARA" class="h-7 w-auto" />
-                            <span class="text-lg font-black tracking-tight text-[#0F172A]">SIKARA</span>
+                            <span class="text-lg font-black tracking-tight text-[#0F172A]">{{ $page.props.global_settings?.app_name || 'SIKARA' }}</span>
                         </Link>
-                        <h3 class="font-bold text-[#0F172A] text-base mb-1">SIKARA Indonesia</h3>
+                        <h3 class="font-bold text-[#0F172A] text-base mb-1">{{ $page.props.global_settings?.app_name || 'SIKARA' }} Indonesia</h3>
                         <p class="text-sm font-medium text-[#64748B]">
-                            Email: <a href="mailto:cs@sikara.id" class="text-[#2563EB] hover:text-[#1D4ED8] hover:underline transition-colors">cs@sikara.id</a>
+                            Email: <a :href="'mailto:' + ($page.props.global_settings?.contact_email || 'cs@sikara.id')" class="text-[#2563EB] hover:text-[#1D4ED8] hover:underline transition-colors">{{ $page.props.global_settings?.contact_email || 'cs@sikara.id' }}</a>
                         </p>
                     </div>
 
@@ -179,7 +179,7 @@ const homeRoute = computed(() => {
                 </div>
 
                 <div class="mt-10 border-t border-[#E2E8F0] pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <p class="text-sm font-medium text-[#94A3B8]">© 2026 SIKARA. Hak Cipta Dilindungi.</p>
+                    <p class="text-sm font-medium text-[#94A3B8]">{{ $page.props.global_settings?.footer_text || '© 2026 SIKARA. Hak Cipta Dilindungi.' }}</p>
                 </div>
             </div>
         </footer>

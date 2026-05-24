@@ -56,7 +56,9 @@ class CompanyInternshipController extends Controller
 
         $validated['is_published'] = true;
         $validated['company_id'] = auth()->id();
-        Internship::create($validated);
+        $internship = Internship::create($validated);
+
+        \App\Services\ActivityLogger::log('Membuat Lowongan', "Membuat lowongan baru berjudul: {$internship->title}", 'lowongan');
 
         return redirect()->route('perusahaan.internships.index')->with('success', 'Lowongan Magang Berhasil Ditambahkan');
     }
@@ -100,6 +102,8 @@ class CompanyInternshipController extends Controller
 
         $internship->update($validated);
 
+        \App\Services\ActivityLogger::log('Memperbarui Lowongan', "Memperbarui lowongan berjudul: {$internship->title}", 'lowongan');
+
         return redirect()->route('perusahaan.internships.index')->with('success', 'Lowongan Magang Berhasil Diperbarui');
     }
 
@@ -107,9 +111,11 @@ class CompanyInternshipController extends Controller
     {
         if ($internship->applications()->exists()) {
             $internship->update(['is_published' => false]);
+            \App\Services\ActivityLogger::log('Menutup Lowongan', "Lowongan \"{$internship->title}\" ditutup (memiliki pelamar)", 'lowongan');
             return redirect()->route('perusahaan.internships.index')->with('error', 'Lowongan tidak bisa dihapus penuh karena sudah memiliki pelamar. Status lowongan diubah menjadi Ditutup.');
         }
 
+        \App\Services\ActivityLogger::log('Menghapus Lowongan', "Menghapus lowongan berjudul: {$internship->title}", 'lowongan');
         $internship->delete();
 
         return redirect()->route('perusahaan.internships.index')->with('success', 'Lowongan Magang Berhasil Dihapus');

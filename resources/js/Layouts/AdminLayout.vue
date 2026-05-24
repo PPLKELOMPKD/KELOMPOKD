@@ -21,8 +21,8 @@ const menuManajemen = [
 ];
 
 const menuSistem = [
-    { name: 'Log Aktivitas',     href: '#', icon: 'activity', active: false },
-    { name: 'Pengaturan Sistem', href: '#', icon: 'settings', active: false },
+    { name: 'Log Aktivitas',     href: route('admin.activity-logs.index'), icon: 'activity', active: route().current('admin.activity-logs.*') },
+    { name: 'Pengaturan Sistem', href: route('admin.settings.index'), icon: 'settings', active: route().current('admin.settings.*') },
 ];
 </script>
 
@@ -40,7 +40,7 @@ const menuSistem = [
                 <Link :href="route('admin.dashboard')" class="flex items-center gap-2.5 transition-transform hover:scale-105">
                     <img src="/images/Logo-SIKARA.png" alt="SIKARA" class="h-8 w-auto drop-shadow-sm" />
                     <div class="flex items-center">
-                        <span class="text-xl font-black tracking-tight text-[#0F172A]">SIKARA</span>
+                        <span class="text-xl font-black tracking-tight text-[#0F172A]">{{ $page.props.global_settings?.app_name || 'SIKARA' }}</span>
                         <span class="ml-1.5 rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-600 ring-1 ring-inset ring-blue-500/20">Admin</span>
                     </div>
                 </Link>
@@ -118,7 +118,6 @@ const menuSistem = [
                                     <svg v-if="item.icon==='settings'" class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                                 </span>
                                 <span class="truncate">{{ item.name }}</span>
-                                <span v-if="item.href==='#'" class="ml-auto shrink-0 rounded-full bg-[#F1F5F9] px-1.5 py-0.5 text-[9px] font-bold text-[#94A3B8]">SOON</span>
                             </Link>
                         </div>
                     </div>

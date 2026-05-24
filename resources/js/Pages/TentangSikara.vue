@@ -1,12 +1,22 @@
 <script setup>
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import PortalLayout from '@/Layouts/PortalLayout.vue';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 
 const isVisible = ref(false);
 
 onMounted(() => {
     isVisible.value = true;
+});
+
+const page = usePage();
+const user = computed(() => page.props.auth?.user ?? null);
+
+const joinRoute = computed(() => {
+    if (!user.value) return route('register');
+    if (user.value.role === 'perusahaan') return route('perusahaan.dashboard');
+    if (user.value.role === 'admin') return route('admin.dashboard');
+    return route('peserta');
 });
 </script>
 
@@ -43,8 +53,12 @@ onMounted(() => {
                         </p>
 
                         <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                            <Link :href="route('register')" class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#3B82F6] px-8 py-4 text-sm font-bold text-white shadow-lg shadow-blue-500/30 transition-all hover:shadow-blue-500/50 hover:-translate-y-1">
+                            <Link v-if="!user && $page.props.global_settings?.registration_enabled !== 'false'" :href="route('register')" class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#3B82F6] px-8 py-4 text-sm font-bold text-white shadow-lg shadow-blue-500/30 transition-all hover:shadow-blue-500/50 hover:-translate-y-1">
                                 Bergabung Sekarang
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                            </Link>
+                            <Link v-else :href="user ? joinRoute : route('login')" class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#3B82F6] px-8 py-4 text-sm font-bold text-white shadow-lg shadow-blue-500/30 transition-all hover:shadow-blue-500/50 hover:-translate-y-1">
+                                {{ user ? 'Ke Dashboard' : 'Masuk' }}
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                             </Link>
                             <a href="#sdg4" class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-8 py-4 text-sm font-bold text-white backdrop-blur-sm transition-all hover:bg-white/10 hover:-translate-y-1">
@@ -221,12 +235,19 @@ onMounted(() => {
                     Jadilah bagian dari revolusi pendidikan dan karir di Indonesia. Bergabunglah dengan puluhan ribu mahasiswa dan ratusan perusahaan di SIKARA hari ini.
                 </p>
                 <div class="flex flex-col sm:flex-row justify-center gap-5 w-full sm:w-auto">
-                    <Link :href="route('register')" class="rounded-2xl bg-white px-10 py-5 text-base font-bold text-[#2563EB] transition-all hover:bg-gray-50 hover:shadow-xl hover:shadow-white/20 hover:-translate-y-1 w-full sm:w-auto">
-                        Daftar sebagai Mahasiswa
-                    </Link>
-                    <Link :href="route('register')" class="rounded-2xl bg-[#1E293B] border border-white/20 px-10 py-5 text-base font-bold text-white transition-all hover:bg-[#0F172A] hover:shadow-xl hover:border-white/40 hover:-translate-y-1 w-full sm:w-auto">
-                        Daftar sebagai Perusahaan
-                    </Link>
+                    <template v-if="!user">
+                        <Link v-if="$page.props.global_settings?.registration_enabled !== 'false'" :href="route('register')" class="rounded-2xl bg-white px-10 py-5 text-base font-bold text-[#2563EB] transition-all hover:bg-gray-50 hover:shadow-xl hover:shadow-white/20 hover:-translate-y-1 w-full sm:w-auto">
+                            Daftar Sekarang
+                        </Link>
+                        <Link :href="route('login')" class="rounded-2xl bg-[#1E293B] border border-white/20 px-10 py-5 text-base font-bold text-white transition-all hover:bg-[#0F172A] hover:shadow-xl hover:border-white/40 hover:-translate-y-1 w-full sm:w-auto">
+                            Masuk ke Portal
+                        </Link>
+                    </template>
+                    <template v-else>
+                        <Link :href="joinRoute" class="rounded-2xl bg-white px-10 py-5 text-base font-bold text-[#2563EB] transition-all hover:bg-gray-50 hover:shadow-xl hover:shadow-white/20 hover:-translate-y-1 w-full sm:w-auto">
+                            Kembali ke Dashboard
+                        </Link>
+                    </template>
                 </div>
             </div>
         </section>
