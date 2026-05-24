@@ -18,12 +18,12 @@ use Inertia\Inertia;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
-})->name('home');
+})->name('home')->middleware('guest');
 
-Route::get('/peserta', PesertaController::class)->name('peserta');
+Route::get('/peserta', PesertaController::class)->name('peserta')->middleware('role.landing:mahasiswa');
 Route::get('/perusahaan', function () {
     return Inertia::render('Perusahaan');
-})->name('perusahaan');
+})->name('perusahaan')->middleware('role.landing:perusahaan');
 Route::get('/tentang', function () {
     return Inertia::render('TentangSikara');
 })->name('tentang');

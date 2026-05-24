@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
             'role' => \App\Http\Middleware\EnsureUserHasRole::class,
             'strict.admin' => \App\Http\Middleware\StrictAdminSession::class,
+            'role.landing' => \App\Http\Middleware\RoleLandingPage::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
