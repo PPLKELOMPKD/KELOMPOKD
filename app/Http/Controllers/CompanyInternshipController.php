@@ -54,13 +54,15 @@ class CompanyInternshipController extends Controller
             'quota.min' => 'Kuota harus berupa angka positif.'
         ]);
 
-        $validated['is_published'] = true;
-        $validated['company_id'] = auth()->id();
+        // Lowongan baru masuk ke antrian moderasi (pending), bukan langsung tayang
+        $validated['is_published']      = false;
+        $validated['moderation_status'] = 'pending';
+        $validated['company_id']        = auth()->id();
         $internship = Internship::create($validated);
 
-        \App\Services\ActivityLogger::log('Membuat Lowongan', "Membuat lowongan baru berjudul: {$internship->title}", 'lowongan');
+        \App\Services\ActivityLogger::log('Membuat Lowongan', "Membuat lowongan baru berjudul: {$internship->title} (menunggu moderasi)", 'lowongan');
 
-        return redirect()->route('perusahaan.internships.index')->with('success', 'Lowongan Magang Berhasil Ditambahkan');
+        return redirect()->route('perusahaan.internships.index')->with('success', 'Lowongan Berhasil Dikirim! Sedang menunggu persetujuan admin sebelum tayang.');
     }
 
     public function edit(Internship $internship)

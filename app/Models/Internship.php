@@ -29,12 +29,18 @@ class Internship extends Model
         'deadline_at',
         'quota',
         'is_published',
+        // Moderasi
+        'moderation_status',
+        'rejection_reason',
+        'moderated_by',
+        'moderated_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'deadline_at' => 'datetime',
+            'deadline_at'  => 'datetime',
+            'moderated_at' => 'datetime',
             'is_published' => 'boolean',
         ];
     }
@@ -47,5 +53,23 @@ class Internship extends Model
     public function applications(): HasMany
     {
         return $this->hasMany(Application::class);
+    }
+
+    /** Admin yang melakukan moderasi terakhir */
+    public function moderator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'moderated_by');
+    }
+
+    /** Scope: hanya lowongan yang sudah approved/tayang */
+    public function scopeApproved($query)
+    {
+        return $query->where('moderation_status', 'approved');
+    }
+
+    /** Scope: hanya lowongan pending */
+    public function scopePending($query)
+    {
+        return $query->where('moderation_status', 'pending');
     }
 }
