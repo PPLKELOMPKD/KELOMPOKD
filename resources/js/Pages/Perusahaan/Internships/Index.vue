@@ -1,5 +1,6 @@
 <script setup>
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 import SikaraLayout from '@/Layouts/SikaraLayout.vue';
 
 const props = defineProps({
@@ -22,6 +23,20 @@ const formatDate = (dateString) => {
         month: 'long',
         day: 'numeric'
     });
+};
+
+// ─── Rejection Reason Modal ────────────────────────────────────────
+const showRejectionModal = ref(false);
+const selectedRejectedInternship = ref(null);
+
+const openRejectionModal = (internship) => {
+    selectedRejectedInternship.value = internship;
+    showRejectionModal.value = true;
+};
+
+const closeRejectionModal = () => {
+    showRejectionModal.value = false;
+    selectedRejectedInternship.value = null;
 };
 </script>
 
@@ -72,11 +87,25 @@ const formatDate = (dateString) => {
                             <td class="whitespace-nowrap px-3 py-4 text-sm text-[#475467]">{{ formatDate(internship.deadline_at) }}</td>
                             <td class="whitespace-nowrap px-3 py-4 text-sm text-[#475467] text-center font-medium">{{ internship.quota }}</td>
                             <td class="whitespace-nowrap px-3 py-4 text-sm text-center">
-                                <span v-if="internship.is_published" class="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Aktif</span>
-                                <span v-else class="inline-flex items-center rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">Ditutup</span>
+                                <span v-if="internship.moderation_status === 'pending'" class="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">Menunggu Review</span>
+                                <span v-else-if="internship.moderation_status === 'approved' && internship.is_published" class="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Aktif</span>
+                                <span v-else-if="internship.moderation_status === 'rejected'" class="inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>
+                                    Ditolak
+                                </span>
+                                <span v-else class="inline-flex items-center rounded-full bg-gray-50 px-2.5 py-0.5 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">Ditutup</span>
                             </td>
                             <td class="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-medium">
                                 <div class="flex justify-end gap-3">
+                                    <!-- Tombol Info Alasan Penolakan -->
+                                    <button
+                                        v-if="internship.moderation_status === 'rejected' && internship.rejection_reason"
+                                        @click="openRejectionModal(internship)"
+                                        title="Lihat alasan penolakan dari admin"
+                                        class="rounded-lg text-amber-600 hover:text-amber-800 p-1 hover:bg-amber-50 transition-colors"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                    </button>
                                     <Link :href="route('perusahaan.internships.edit', internship.id)" class="rounded-lg text-[#2563EB] hover:text-blue-900 p-1 hover:bg-blue-50 transition-colors">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
                                     </Link>
@@ -100,5 +129,85 @@ const formatDate = (dateString) => {
                 </table>
             </div>
         </div>
+
+        <!-- ═══ Modal Alasan Penolakan ═══════════════════════════════════ -->
+        <Teleport to="body">
+            <Transition
+                enter-active-class="transition duration-200 ease-out"
+                enter-from-class="opacity-0"
+                enter-to-class="opacity-100"
+                leave-active-class="transition duration-150 ease-in"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
+            >
+                <div
+                    v-if="showRejectionModal"
+                    class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    @click.self="closeRejectionModal"
+                >
+                    <!-- Backdrop -->
+                    <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
+
+                    <!-- Modal Card -->
+                    <Transition
+                        enter-active-class="transition duration-200 ease-out"
+                        enter-from-class="opacity-0 scale-95 translate-y-2"
+                        enter-to-class="opacity-100 scale-100 translate-y-0"
+                    >
+                        <div v-if="showRejectionModal" class="relative z-10 w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden">
+                            <!-- Header -->
+                            <div class="flex items-center justify-between border-b border-slate-100 px-6 py-5">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100">
+                                        <svg class="h-5 w-5 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm font-black text-slate-900">Alasan Penolakan / Takedown</h3>
+                                        <p class="text-[11px] text-slate-500 mt-0.5 truncate max-w-[260px]">{{ selectedRejectedInternship?.title }}</p>
+                                    </div>
+                                </div>
+                                <button @click="closeRejectionModal" class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
+                                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                                </button>
+                            </div>
+
+                            <!-- Body -->
+                            <div class="px-6 py-5">
+                                <!-- Info Box -->
+                                <div class="mb-4 flex items-start gap-3 rounded-xl p-3.5 bg-red-50 border border-red-200">
+                                    <svg class="h-4 w-4 mt-0.5 shrink-0 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                    <p class="text-xs text-slate-700 leading-relaxed">
+                                        Lowongan Anda telah <strong>ditolak atau dicabut</strong> oleh admin. Berikut adalah alasan yang diberikan. Silakan perbaiki lowongan dan ajukan kembali.
+                                    </p>
+                                </div>
+
+                                <!-- Rejection Reason -->
+                                <div class="rounded-xl bg-slate-50 border border-slate-200 px-4 py-4">
+                                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Catatan dari Admin</p>
+                                    <p class="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap">{{ selectedRejectedInternship?.rejection_reason }}</p>
+                                </div>
+
+                                <!-- Moderation Date -->
+                                <p v-if="selectedRejectedInternship?.moderated_at" class="mt-3 text-[11px] text-slate-400 text-right">
+                                    Dimoderasi pada: {{ formatDate(selectedRejectedInternship.moderated_at) }}
+                                </p>
+                            </div>
+
+                            <!-- Footer -->
+                            <div class="flex items-center justify-end gap-3 border-t border-slate-100 px-6 py-4 bg-slate-50">
+                                <button
+                                    @click="closeRejectionModal"
+                                    class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-100 transition"
+                                >
+                                    Tutup
+                                </button>
+                            </div>
+                        </div>
+                    </Transition>
+                </div>
+            </Transition>
+        </Teleport>
     </SikaraLayout>
 </template>

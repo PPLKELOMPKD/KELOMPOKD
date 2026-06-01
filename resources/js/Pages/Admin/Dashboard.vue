@@ -162,7 +162,7 @@ const lineOptions = { ...barOptions };
                     </div>
                 </Link>
 
-                <Link href="#" class="group relative overflow-hidden rounded-2xl bg-white p-4 border border-slate-200 shadow-sm transition-all hover:shadow-md hover:border-purple-300 flex items-center gap-4 hover:-translate-y-0.5">
+                <Link :href="route('admin.internships.index')" class="group relative overflow-hidden rounded-2xl bg-white p-4 border border-slate-200 shadow-sm transition-all hover:shadow-md hover:border-purple-300 flex items-center gap-4 hover:-translate-y-0.5">
                     <div v-if="pendingActions.lowongan > 0" class="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white animate-pulse">{{ pendingActions.lowongan }}</div>
                     <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-purple-50 text-purple-600 transition-transform group-hover:scale-110">
                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="7" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>

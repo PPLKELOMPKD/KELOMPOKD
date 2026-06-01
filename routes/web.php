@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\InternshipModerationController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\ApplicationTrackingController;
 use App\Http\Controllers\CvController;
@@ -152,6 +153,14 @@ Route::middleware('auth')->group(function () {
     // ── Admin ─────────────────────────────────────────────────────────
     Route::middleware(['auth', 'role:admin', 'strict.admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+        // ── Moderasi Lowongan ─────────────────────────────────────────
+        Route::get('/internships', [InternshipModerationController::class, 'index'])->name('internships.index');
+        Route::get('/internships/{internship}', [InternshipModerationController::class, 'show'])->name('internships.show');
+        Route::patch('/internships/{internship}/approve', [InternshipModerationController::class, 'approve'])->name('internships.approve');
+        Route::patch('/internships/{internship}/reject', [InternshipModerationController::class, 'reject'])->name('internships.reject');
+        Route::patch('/internships/{internship}/takedown', [InternshipModerationController::class, 'takedown'])->name('internships.takedown');
+
         // Fitur lain seperti manajemen user, verifikasi, dll akan ditambahkan di sini
         Route::get('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'index'])->name('settings.index');
         Route::post('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'update'])->name('settings.update');

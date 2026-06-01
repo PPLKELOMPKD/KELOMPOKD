@@ -93,7 +93,7 @@ class AdminDashboardController extends Controller
 
         // ── Pending Actions for Quick Action Badges ───────────────────
         $pendingPerusahaan = User::where('role', 'perusahaan')->where('status', 'inactive')->count();
-        $pendingLowongan   = Internship::where('is_published', false)->count();
+        $pendingLowongan   = Internship::where('moderation_status', 'pending')->count();
         $draftCourses      = LmsCourse::where('status', 'draft')->count();
 
         $pendingActions = [
