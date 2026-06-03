@@ -48,13 +48,15 @@ class ApplicationController extends Controller
         ]);
 
         // Notifikasi untuk Mitra Perusahaan
-        Notification::query()->create([
-            'user_id' => $internship->company_id,
-            'title' => 'Lamaran Baru Masuk',
-            'message' => "{$user->name} telah melamar untuk posisi {$internship->title}.",
-            'type' => 'application',
-            'link' => route('perusahaan.applicants.show', $application->id),
-        ]);
+        if ($internship->company_id) {
+            Notification::query()->create([
+                'user_id' => $internship->company_id,
+                'title' => 'Lamaran Baru Masuk',
+                'message' => "{$user->name} telah melamar untuk posisi {$internship->title}.",
+                'type' => 'application',
+                'link' => route('perusahaan.applicants.show', $application->id),
+            ]);
+        }
 
         return back()->with('success', 'Lamaran berhasil dikirim!');
     }

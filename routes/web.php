@@ -107,9 +107,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('/events', \App\Http\Controllers\CompanyEventController::class)->except('show');
 
         // Laporan
-        Route::get('/reports', function () {
-            return \Inertia\Inertia::render('Company/Reports/Index');
-        })->name('reports.index');
+        Route::get('/reports', [\App\Http\Controllers\CompanyReportController::class, 'index'])->name('reports.index');
 
         // LMS — Kelola Kursus (CRUD)
         Route::resource('/lms', \App\Http\Controllers\CompanyLmsCourseController::class)->parameters(['lms' => 'course'])->names('lms');
