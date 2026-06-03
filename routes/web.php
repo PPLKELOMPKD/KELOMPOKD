@@ -7,6 +7,7 @@ use App\Http\Controllers\ApplicationTrackingController;
 use App\Http\Controllers\CvController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DirectMessageController;
+use App\Http\Controllers\EventRegistrationController;
 use App\Http\Controllers\InternshipController;
 use App\Http\Controllers\LmsController;
 use App\Http\Controllers\NotificationController;
@@ -42,9 +43,108 @@ Route::get('/perusahaan-profile/{id}', [\App\Http\Controllers\CompanyController:
 Route::get('/lms', [LmsController::class, 'index'])->name('lms');
 Route::get('/lms/module/{course}', [LmsController::class, 'show'])->name('lms.module.show');
 Route::get('/event', function () {
-    $events = \App\Models\Event::with(['company', 'company.perusahaanProfile'])->where('status', 'published')->latest()->get();
-    return Inertia::render('Features/Event', ['events' => $events]);
+    $user = auth()->user();
+    $isAuthenticated = (bool) $user;
+    $isMahasiswa = $user && $user->role === 'mahasiswa';
+
+    $events = \App\Models\Event::with(['company', 'company.perusahaanProfile'])
+        ->where('status', 'published')
+        ->latest()
+        ->get()
+        ->map(function ($event) use ($user, $isMahasiswa) {
+            $activeCount = $event->registrations()
+                ->whereIn('status', ['registered', 'attended'])
+                ->count();
+
+            $userRegistration = null;
+            if ($isMahasiswa && $user) {
+                $userRegistration = $event->registrations()
+                    ->where('user_id', $user->id)
+                    ->first();
+            }
+
+            return [
+                'id'               => $event->id,
+                'title'            => $event->title,
+                'category'         => $event->category,
+                'description'      => $event->description,
+                'date'             => $event->date,
+                'start_time'       => $event->start_time,
+                'end_time'         => $event->end_time,
+                'location'         => $event->location,
+                'type'             => $event->type,
+                'status'           => $event->status,
+                'max_participants'  => $event->max_participants,
+                'active_count'     => $activeCount,
+                'is_full'          => $event->max_participants !== null && $activeCount >= $event->max_participants,
+                'user_registration' => $userRegistration ? [
+                    'id'     => $userRegistration->id,
+                    'status' => $userRegistration->status,
+                ] : null,
+                'company'          => $event->company ? [
+                    'id'   => $event->company->id,
+                    'name' => $event->company->name,
+                ] : null,
+            ];
+        });
+
+    return Inertia::render('Features/Event', [
+        'events'          => $events,
+        'isAuthenticated'  => $isAuthenticated,
+        'isMahasiswa'     => $isMahasiswa,
+    ]);
 })->name('event');
+
+Route::get('/event/{event}', function (\App\Models\Event $event) {
+    $user = auth()->user();
+    $isAuthenticated = (bool) $user;
+    $isMahasiswa = $user && $user->role === 'mahasiswa';
+
+    if ($event->status !== 'published') {
+        abort(404);
+    }
+
+    $activeCount = $event->registrations()
+        ->whereIn('status', ['registered', 'attended'])
+        ->count();
+
+    $userRegistration = null;
+    if ($isMahasiswa && $user) {
+        $userRegistration = $event->registrations()
+            ->where('user_id', $user->id)
+            ->first();
+    }
+
+    $eventData = [
+        'id'               => $event->id,
+        'title'            => $event->title,
+        'category'         => $event->category,
+        'description'      => $event->description,
+        'date'             => $event->date,
+        'start_time'       => $event->start_time,
+        'end_time'         => $event->end_time,
+        'location'         => $event->location,
+        'type'             => $event->type,
+        'status'           => $event->status,
+        'max_participants'  => $event->max_participants,
+        'active_count'     => $activeCount,
+        'is_full'          => $event->max_participants !== null && $activeCount >= $event->max_participants,
+        'user_registration' => $userRegistration ? [
+            'id'     => $userRegistration->id,
+            'status' => $userRegistration->status,
+        ] : null,
+        'company'          => $event->company ? [
+            'id'   => $event->company->id,
+            'name' => $event->company->name,
+        ] : null,
+    ];
+
+    return Inertia::render('Features/EventDetail', [
+        'event'           => $eventData,
+        'isAuthenticated'  => $isAuthenticated,
+        'isMahasiswa'     => $isMahasiswa,
+    ]);
+})->name('event.detail');
 Route::get('/generate-cv', function () {
     return Inertia::render('Features/GenerateCv');
 })->name('generate-cv');
@@ -84,6 +184,11 @@ Route::middleware('auth')->group(function () {
         // Route ini ditambahkan/diperbaiki di remote
         Route::delete('/lms/courses/{course}/assignments/{assignment}/submissions/{submission}', [\App\Http\Controllers\LmsAssignmentSubmissionController::class, 'destroy'])->name('lms.assignments.revoke');
         Route::get('/lms/{course}/certificate', [\App\Http\Controllers\LmsCertificateController::class, 'download'])->name('lms.certificate.download');
+
+        // ── Event Registration (Mahasiswa) ────────────────────────────
+        Route::post('/events/{event}/register', [EventRegistrationController::class, 'store'])->name('events.register');
+        Route::delete('/events/{event}/register', [EventRegistrationController::class, 'destroy'])->name('events.register.cancel');
+        Route::get('/my-events', [EventRegistrationController::class, 'myEvents'])->name('my-events');
     });
 
     // ── Perusahaan ────────────────────────────────────────────────────
