@@ -11,6 +11,14 @@ defineProps({
         type: String,
         default: "",
     },
+    showHeader: {
+        type: Boolean,
+        default: true,
+    },
+    contentClass: {
+        type: String,
+        default: "mx-auto max-w-7xl px-4 py-6 md:px-8 md:py-8",
+    },
 });
 
 const page = usePage();
@@ -34,6 +42,18 @@ const homeRoute = computed(() => {
     if (user.value?.role === 'perusahaan') return route('perusahaan.dashboard');
     if (user.value?.role === 'admin') return route('dashboard');
     return route('peserta');
+});
+
+const profileRoute = computed(() => {
+    if (user.value?.role === 'perusahaan') return route('perusahaan.profile.show');
+    if (user.value?.role === 'admin') return route('dashboard');
+    return route('profile.show');
+});
+
+const profileLabel = computed(() => {
+    if (user.value?.role === 'perusahaan') return 'Profil Perusahaan';
+    if (user.value?.role === 'admin') return 'Dashboard Admin';
+    return 'Profil Saya';
 });
 
 const navItems = computed(() => {
@@ -222,7 +242,7 @@ const navItems = computed(() => {
                             </div>
 
                             <Link
-                                :href="route('profile.show')"
+                                :href="profileRoute"
                                 class="flex items-center gap-3 px-4 py-2.5 text-sm text-[#344054] transition-colors hover:bg-[#F8FAFC]"
                             >
                                 <svg
@@ -235,7 +255,7 @@ const navItems = computed(() => {
                                     <circle cx="12" cy="8" r="4" />
                                     <path d="M4 20a8 8 0 0 1 16 0" />
                                 </svg>
-                                Profil Saya
+                                {{ profileLabel }}
                             </Link>
 
                             <!-- Menu Mahasiswa -->
@@ -378,8 +398,9 @@ const navItems = computed(() => {
             </div>
         </header>
 
-        <main class="mx-auto max-w-7xl px-4 py-6 md:px-8 md:py-8">
+        <main :class="contentClass">
             <header
+                v-if="showHeader"
                 class="mb-6 flex flex-col gap-4 rounded-[20px] border border-slate-200 bg-white px-6 py-5 shadow-[0_16px_40px_rgba(15,23,42,0.04)] sm:flex-row sm:items-center sm:justify-between"
             >
                 <div>

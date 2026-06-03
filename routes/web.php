@@ -86,6 +86,8 @@ Route::middleware('auth')->group(function () {
     // ── Perusahaan ────────────────────────────────────────────────────
     Route::middleware(['auth', 'role:perusahaan'])->prefix('perusahaan')->name('perusahaan.')->group(function () {
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
+        Route::get('/profile', [\App\Http\Controllers\CompanyController::class, 'ownerProfile'])->name('profile.show');
+        Route::post('/profile', [\App\Http\Controllers\CompanyController::class, 'updateOwnerProfile'])->name('profile.update');
 
         // Lowongan
         Route::get('/internships', [\App\Http\Controllers\CompanyInternshipController::class, 'index'])->name('internships.index');
