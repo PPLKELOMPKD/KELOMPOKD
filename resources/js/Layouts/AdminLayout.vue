@@ -17,7 +17,7 @@ const menuManajemen = [
     { name: 'Moderasi Lowongan',     href: route('admin.internships.index'), icon: 'briefcase', active: route().current('admin.internships.*') },
     { name: 'Manajemen Event',       href: '#', icon: 'calendar',  active: false },
     { name: 'Pantau LMS',            href: '#', icon: 'book',      active: false },
-    { name: 'Data Lamaran',          href: '#', icon: 'inbox',     active: false },
+    { name: 'Data Lamaran',          href: route('admin.applications.index'), icon: 'inbox', active: route().current('admin.applications.*') },
 ];
 
 const menuSistem = [
