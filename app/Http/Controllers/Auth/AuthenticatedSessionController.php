@@ -57,6 +57,10 @@ class AuthenticatedSessionController extends Controller
             'auth',
         );
 
+        if (! $user->hasVerifiedEmail()) {
+            return redirect()->intended(route('verification.notice', absolute: false));
+        }
+
         if ($user->isMahasiswa()) {
             return redirect()->intended(route('peserta', absolute: false));
         } elseif ($user->isPerusahaan()) {

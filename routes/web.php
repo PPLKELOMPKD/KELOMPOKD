@@ -194,7 +194,7 @@ Route::get('/generate-cv', function () {
     return Inertia::render('Features/GenerateCv');
 })->name('generate-cv');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
     Route::prefix('dm')->name('dm.')->group(function () {

@@ -267,14 +267,13 @@ class CompanyApplicantController extends Controller
             'type'    => $notifType,
         ]);
 
-<<<<<<< Updated upstream
         // Log the status change activity
         \App\Services\ActivityLogger::log(
             'Update Status Pelamar',
             "Mengubah status pelamar {$application->user?->name} menjadi \"{$statusLabel}\" untuk posisi {$internshipTitle}",
             'lamaran',
         );
-=======
+
         try {
             $mailService->sendApplicationStatusUpdated($application, $oldStatus, $newStatus);
         } catch (Throwable $exception) {
@@ -285,7 +284,6 @@ class CompanyApplicantController extends Controller
                 'message' => $exception->getMessage(),
             ]);
         }
->>>>>>> Stashed changes
 
         $redirectRoute = $request->get('redirect', 'index');
 

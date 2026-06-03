@@ -42,8 +42,7 @@ class AuthAndDashboardTest extends TestCase
 
         $this->actingAs($student)
             ->get('/dashboard')
-            ->assertSuccessful()
-            ->assertSee('Dashboard Mahasiswa');
+            ->assertRedirect(route('peserta'));
 
         auth()->logout();
 
@@ -55,6 +54,10 @@ class AuthAndDashboardTest extends TestCase
 
         $this->actingAs($company)
             ->get('/dashboard')
+            ->assertRedirect(route('perusahaan.dashboard'));
+
+        $this->actingAs($company)
+            ->get(route('perusahaan.dashboard'))
             ->assertSuccessful()
             ->assertSee('Dashboard Perusahaan');
 
@@ -68,8 +71,14 @@ class AuthAndDashboardTest extends TestCase
 
         $this->actingAs($admin)
             ->get('/dashboard')
+            ->assertRedirect(route('admin.dashboard'));
+
+        $this->actingAs($admin)
+            ->get(route('admin.dashboard'))
             ->assertSuccessful()
-            ->assertSee('Dashboard Admin');
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Admin/Dashboard')
+            );
     }
 
     public function test_non_student_users_cannot_access_student_internship_pages(): void
@@ -83,7 +92,7 @@ class AuthAndDashboardTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_student_dashboard_shows_profile_progress_latest_internships_and_notifications(): void
+    public function test_student_dashboard_route_redirects_to_student_landing_page(): void
     {
         $student = User::factory()->create([
             'role' => 'mahasiswa',
@@ -122,13 +131,7 @@ class AuthAndDashboardTest extends TestCase
 
         $this->actingAs($student)
             ->get('/dashboard')
-            ->assertSuccessful()
-            ->assertInertia(fn (Assert $page) => $page
-                ->component('Dashboard')
-                ->where('profileSummary.department', 'Teknik Informatika')
-                ->where('latestInternships.0.title', 'Frontend Engineer Intern')
-                ->where('latestNotifications.0.title', 'Lamaran sedang ditinjau')
-            );
+            ->assertRedirect(route('peserta'));
     }
 
     public function test_shared_auth_user_includes_profile_photo_url_for_navbar(): void
