@@ -36,6 +36,8 @@ class Internship extends Model
         'moderated_at',
     ];
 
+    protected $appends = ['is_expired'];
+
     protected function casts(): array
     {
         return [
@@ -43,6 +45,24 @@ class Internship extends Model
             'moderated_at' => 'datetime',
             'is_published' => 'boolean',
         ];
+    }
+
+    /** Accessor: apakah lowongan sudah melewati deadline */
+    public function getIsExpiredAttribute(): bool
+    {
+        return $this->deadline_at ? $this->deadline_at->isPast() : false;
+    }
+
+    /** Scope: lowongan yang masih aktif (belum expired) */
+    public function scopeActive($query)
+    {
+        return $query->where('deadline_at', '>=', now());
+    }
+
+    /** Scope: lowongan yang sudah expired */
+    public function scopeExpired($query)
+    {
+        return $query->where('deadline_at', '<', now());
     }
 
     public function company(): BelongsTo
