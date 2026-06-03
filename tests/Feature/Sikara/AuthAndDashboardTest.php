@@ -38,7 +38,7 @@ class AuthAndDashboardTest extends TestCase
             'email' => $student->email,
             'password' => 'password',
             'role' => 'mahasiswa',
-        ])->assertRedirect(route('dashboard'));
+        ])->assertRedirect(route('peserta'));
 
         $this->actingAs($student)
             ->get('/dashboard')
@@ -51,12 +51,12 @@ class AuthAndDashboardTest extends TestCase
             'email' => $company->email,
             'password' => 'password',
             'role' => 'perusahaan',
-        ])->assertRedirect(route('dashboard'));
+        ])->assertRedirect(route('perusahaan.dashboard'));
 
         $this->actingAs($company)
             ->get('/dashboard')
             ->assertSuccessful()
-            ->assertSee('Dashboard Mitra');
+            ->assertSee('Dashboard Perusahaan');
 
         auth()->logout();
 
@@ -64,7 +64,7 @@ class AuthAndDashboardTest extends TestCase
             'email' => $admin->email,
             'password' => 'password',
             'role' => 'admin',
-        ])->assertRedirect(route('dashboard'));
+        ])->assertRedirect(route('admin.dashboard'));
 
         $this->actingAs($admin)
             ->get('/dashboard')

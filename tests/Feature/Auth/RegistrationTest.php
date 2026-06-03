@@ -2,7 +2,10 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\User;
+use App\Notifications\VerifyEmailNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class RegistrationTest extends TestCase
@@ -28,12 +31,31 @@ class RegistrationTest extends TestCase
             'terms' => true,
         ]);
 
-        $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $this->assertGuest();
+        $response->assertRedirect(route('login', absolute: false));
         $this->assertDatabaseHas('users', [
             'email' => 'test@example.com',
             'role' => 'perusahaan',
         ]);
+    }
+
+    public function test_registration_sends_branded_email_verification_notification(): void
+    {
+        Notification::fake();
+
+        $this->post('/register', [
+            'name' => 'Company User',
+            'email' => 'company@example.com',
+            'phone' => '08123456789',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'role' => 'perusahaan',
+            'terms' => true,
+        ]);
+
+        $user = User::where('email', 'company@example.com')->firstOrFail();
+
+        Notification::assertSentTo($user, VerifyEmailNotification::class);
     }
 
     public function test_mahasiswa_can_register_with_profile_details_from_registration_form(): void
@@ -51,8 +73,8 @@ class RegistrationTest extends TestCase
             'terms' => true,
         ]);
 
-        $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $this->assertGuest();
+        $response->assertRedirect(route('login', absolute: false));
         $this->assertDatabaseHas('users', [
             'email' => 'naufal@example.com',
             'role' => 'mahasiswa',

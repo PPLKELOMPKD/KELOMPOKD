@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Application;
 use App\Models\Notification;
+use App\Services\AutomatedMailService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Throwable;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -203,7 +206,7 @@ class CompanyApplicantController extends Controller
     /**
      * Update the status of an application (accept, reject, interview, etc.).
      */
-    public function updateStatus(Request $request, Application $application): RedirectResponse
+    public function updateStatus(Request $request, Application $application, AutomatedMailService $mailService): RedirectResponse
     {
         $user = $request->user();
         $internshipIds = $user->internships()->pluck('id');
@@ -264,12 +267,25 @@ class CompanyApplicantController extends Controller
             'type'    => $notifType,
         ]);
 
+<<<<<<< Updated upstream
         // Log the status change activity
         \App\Services\ActivityLogger::log(
             'Update Status Pelamar',
             "Mengubah status pelamar {$application->user?->name} menjadi \"{$statusLabel}\" untuk posisi {$internshipTitle}",
             'lamaran',
         );
+=======
+        try {
+            $mailService->sendApplicationStatusUpdated($application, $oldStatus, $newStatus);
+        } catch (Throwable $exception) {
+            Log::error('Application status email flow failed.', [
+                'application_id' => $application->id,
+                'old_status' => $oldStatus,
+                'new_status' => $newStatus,
+                'message' => $exception->getMessage(),
+            ]);
+        }
+>>>>>>> Stashed changes
 
         $redirectRoute = $request->get('redirect', 'index');
 
