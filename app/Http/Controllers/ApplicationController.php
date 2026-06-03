@@ -35,11 +35,7 @@ class ApplicationController extends Controller
         }
 
         $application = $user->applications()->create([
-<<<<<<< Updated upstream
-            'users_id' => $user->id,
-=======
             'user_id' => $user->id,
->>>>>>> Stashed changes
             'internship_id' => $data['internship_id'],
             'status' => 'submitted'
         ]);
@@ -54,7 +50,6 @@ class ApplicationController extends Controller
             'type' => 'application',
         ]);
 
-<<<<<<< Updated upstream
         // Notifikasi untuk Mitra Perusahaan
         if ($internship->company_id) {
             Notification::query()->create([
@@ -66,8 +61,6 @@ class ApplicationController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Lamaran berhasil dikirim!');
-=======
         try {
             $mailService->sendApplicationSubmittedToCompany($application);
         } catch (Throwable $exception) {
@@ -78,6 +71,5 @@ class ApplicationController extends Controller
         }
 
         return redirect()->route('internships.index')->with('success', 'Lamaran berhasil dikirim!');
->>>>>>> Stashed changes
     }
 }
