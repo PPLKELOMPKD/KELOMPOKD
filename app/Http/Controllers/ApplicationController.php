@@ -31,7 +31,7 @@ class ApplicationController extends Controller
             return back()->with('error', 'Anda sudah melamar posisi ini.');
         }
 
-        $user->applications()->create([
+        $application = $user->applications()->create([
             'users_id' => $user->id,
             'internship_id' => $data['internship_id'],
             'status' => 'submitted'
@@ -39,11 +39,21 @@ class ApplicationController extends Controller
 
         \App\Services\ActivityLogger::log('Melamar Lowongan', "Melamar pada lowongan magang ID: {$data['internship_id']}", 'lamaran');
 
+        // Notifikasi untuk Mahasiswa
         Notification::query()->create([
             'user_id' => $request->user()->id,
             'title' => 'Lamaran berhasil dikirim',
             'message' => 'Lamaran Anda telah tersimpan dengan status submitted.',
             'type' => 'application',
+        ]);
+
+        // Notifikasi untuk Mitra Perusahaan
+        Notification::query()->create([
+            'user_id' => $internship->company_id,
+            'title' => 'Lamaran Baru Masuk',
+            'message' => "{$user->name} telah melamar untuk posisi {$internship->title}.",
+            'type' => 'application',
+            'link' => route('perusahaan.applicants.show', $application->id),
         ]);
 
         return back()->with('success', 'Lamaran berhasil dikirim!');

@@ -61,6 +61,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/conversations/{conversation}/read', [DirectMessageController::class, 'read'])->name('conversations.read');
     });
 
+    // ── Global Notifications (Mahasiswa & Perusahaan) ─────────────────
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
+
     // ── Mahasiswa ─────────────────────────────────────────────────────
     Route::middleware(['auth', 'role:mahasiswa'])->group(function () {
         Route::get('/profile', [StudentProfileController::class, 'show'])->name('profile.show');
@@ -70,8 +74,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/internships/{internship}', [InternshipController::class, 'show'])->name('internships.show');
         Route::post('/internship-apply', [ApplicationController::class, 'store'])->name('internships.apply');
         Route::get('/applications', [ApplicationTrackingController::class, 'index'])->name('applications.index');
-        Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-        Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
         Route::get('/cv/download', [CvController::class, 'download'])->name('cv.download');
 
         Route::post('/lms/{course}/enroll', [\App\Http\Controllers\LmsEnrollmentController::class, 'store'])->name('lms.enrollments.store');

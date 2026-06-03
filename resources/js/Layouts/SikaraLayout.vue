@@ -328,6 +328,25 @@ const navItems = computed(() => {
                                 </Link>
                                 <Link
                                     v-if="user?.role === 'perusahaan'"
+                                    :href="route('notifications.index')"
+                                    class="flex items-center gap-3 px-4 py-2.5 text-sm text-[#344054] transition-colors hover:bg-[#F8FAFC]"
+                                >
+                                    <svg
+                                        class="h-4 w-4 text-[#94A3B8]"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                    >
+                                        <path
+                                            d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"
+                                        />
+                                        <path d="M10 21h4" />
+                                    </svg>
+                                    Notifikasi
+                                </Link>
+                                <Link
+                                    v-if="user?.role === 'perusahaan'"
                                     :href="route('perusahaan.reports.index')"
                                     class="flex items-center gap-3 px-4 py-2.5 text-sm text-[#344054] transition-colors hover:bg-[#F8FAFC]"
                                 >
