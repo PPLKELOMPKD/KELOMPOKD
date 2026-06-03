@@ -241,7 +241,7 @@ const formatTime = (dateStr) => {
                 >
                     Pengguna LMS
                 </button>
-                <!-- <button
+                <button
                     @click="changeTab('enrollment')"
                     class="flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all duration-200 whitespace-nowrap"
                     :class="activeTab === 'enrollment'
@@ -258,7 +258,7 @@ const formatTime = (dateStr) => {
                         : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50 border border-transparent'"
                 >
                     Aktivitas LMS
-                </button> -->
+                </button>
             </div>
 
             <!-- Dynamic Search and Filters depending on the Tab -->

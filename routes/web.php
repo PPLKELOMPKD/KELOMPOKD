@@ -273,6 +273,9 @@ Route::middleware('auth')->group(function () {
         Route::patch('/lms/users/{user}/suspend', [AdminLmsController::class, 'suspendUser'])->name('lms.users.suspend');
         Route::patch('/lms/users/{user}/activate', [AdminLmsController::class, 'activateUser'])->name('lms.users.activate');
         Route::delete('/lms/users/{user}', [AdminLmsController::class, 'deleteUser'])->name('lms.users.destroy');
+        Route::get('/lms/enrollments/{enrollment}/detail', [AdminLmsController::class, 'enrollmentDetail'])->name('lms.enrollments.detail');
+        Route::post('/lms/enrollments/{enrollment}/reset', [AdminLmsController::class, 'resetEnrollment'])->name('lms.enrollments.reset');
+        Route::delete('/lms/enrollments/{enrollment}', [AdminLmsController::class, 'deleteEnrollment'])->name('lms.enrollments.destroy');
 
         // Fitur lain seperti manajemen user, verifikasi, dll akan ditambahkan di sini
         Route::get('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'index'])->name('settings.index');
