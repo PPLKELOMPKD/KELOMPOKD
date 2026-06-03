@@ -177,6 +177,25 @@ class DashboardController extends Controller
                     'status'       => ucfirst($event->status),
                 ]);
 
+            // ── Notifications (terbaru 3-5) ──────────────────────────────────
+            $companyNotifications = \App\Models\Notification::where('user_id', $user->id)
+                ->latest()
+                ->limit(4)
+                ->get()
+                ->map(fn ($notif) => [
+                    'id'      => $notif->id,
+                    'title'   => $notif->title,
+                    'message' => $notif->message,
+                    'type'    => $notif->type,
+                    'read_at' => $notif->read_at,
+                    'time'    => $notif->created_at->diffForHumans(),
+                    'link'    => $notif->link,
+                ]);
+
+            $unreadCount = \App\Models\Notification::where('user_id', $user->id)
+                ->whereNull('read_at')
+                ->count();
+
             return Inertia::render('Dashboard', [
                 'title'    => 'Dashboard Perusahaan',
                 'subtitle' => 'Ringkasan performa rekrutmen dan manajemen event Anda.',
@@ -192,7 +211,8 @@ class DashboardController extends Controller
                 'pipeline'         => $pipeline,
                 'recentApplicants' => $recentApplicants,
                 'upcomingEvents'   => $upcomingEvents,
-                'notifications'    => [],
+                'notifications'    => $companyNotifications,
+                'unreadCount'      => $unreadCount,
                 'profileSummary'   => [
                     'name'   => $user->name,
                     'email'  => $user->email,

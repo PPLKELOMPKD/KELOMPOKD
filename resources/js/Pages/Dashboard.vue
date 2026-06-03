@@ -12,6 +12,7 @@ const props = defineProps({
     recentApplicants: Array,
     upcomingEvents: Array,
     notifications: Array,
+    unreadCount: Number,
     stubMessage: String,
     profileSummary: Object,
     latestInternships: Array,
@@ -423,20 +424,28 @@ const modalConfig = computed(() => {
                      <div class="rounded-2xl border border-[#eaecf0] bg-white p-6 shadow-[0_1px_3px_rgba(16,24,40,0.1),0_1px_2px_rgba(16,24,40,0.06)]">
                          <div class="flex items-center justify-between">
                              <h3 class="text-xl font-semibold text-[#101828]">Notifikasi Sistem</h3>
-                             <span class="rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-600">2 Baru</span>
+                             <span v-if="unreadCount > 0" class="rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-600">{{ unreadCount }} Baru</span>
                          </div>
                          <div class="mt-6 space-y-5">
-                             <div v-for="notif in notifications" :key="notif.id" class="flex gap-4">
-                                 <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f9fafb] border border-[#f2f4f7] text-[#667085]">
-                                     <svg v-if="notif.type === 'user'" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-                                     <svg v-if="notif.type === 'calendar'" class="h-4 w-4 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                                     <svg v-if="notif.type === 'check'" class="h-4 w-4 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                                 </div>
-                                 <div>
-                                     <p class="text-sm font-medium text-[#344054]" v-html="notif.message.replace(/(Frontend Engineer|Budi Santoso)/, '<strong class=\'text-[#101828]\'>$1</strong>')"></p>
-                                     <p class="mt-1 text-xs font-medium text-[#98a2b3]">{{ notif.time }}</p>
-                                 </div>
+                             <div v-if="!notifications || notifications.length === 0" class="text-center py-6 text-sm text-[#667085]">
+                                 Belum ada notifikasi saat ini.
                              </div>
+                             <Link v-for="notif in notifications" :key="notif.id" :href="notif.link || route('notifications.index')" class="flex gap-4 p-2 rounded-xl transition hover:bg-gray-50" :class="!notif.read_at ? 'bg-blue-50/30' : ''">
+                                 <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f9fafb] border border-[#f2f4f7] text-[#667085]">
+                                     <svg v-if="notif.type === 'application'" class="h-4 w-4 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2z"/></svg>
+                                     <svg v-else-if="notif.type === 'user'" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                                     <svg v-else-if="notif.type === 'calendar'" class="h-4 w-4 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                     <svg v-else class="h-4 w-4 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                 </div>
+                                 <div class="flex-1">
+                                     <p class="text-sm font-medium" :class="!notif.read_at ? 'text-[#101828] font-semibold' : 'text-[#344054]'">{{ notif.title }}</p>
+                                     <p class="mt-1 text-xs text-[#667085] leading-relaxed">{{ notif.message }}</p>
+                                     <p class="mt-1.5 text-[11px] font-medium text-[#98a2b3] uppercase tracking-wider">{{ notif.time }}</p>
+                                 </div>
+                             </Link>
+                             <Link :href="route('notifications.index')" class="mt-2 block text-center text-sm font-semibold text-[#2563EB] hover:underline">
+                                Lihat Semua Notifikasi
+                             </Link>
                          </div>
                      </div>
                  </div>
