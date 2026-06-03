@@ -5,6 +5,7 @@ import PortalLayout from '@/Layouts/PortalLayout.vue';
 const props = defineProps({
     internship: { type: Object, required: true },
     hasApplied: { type: Boolean, default: false },
+    isExpired: { type: Boolean, default: false },
     relatedInternships: { type: Array, default: () => [] },
 });
 
@@ -12,6 +13,7 @@ const page = usePage();
 const form = useForm({ internship_id: props.internship.id });
 
 const apply = () => {
+    if (props.isExpired) return;
     if (!page.props.auth.user) {
         router.get(route('login', { role: 'mahasiswa' }));
         return;
@@ -117,6 +119,14 @@ const getTypeColor = (type) => typeColors[type] || typeColors['Magang'];
                 <span class="font-medium">{{ $page.props.flash.error }}</span>
             </div>
 
+            <!-- Expired Warning Banner -->
+            <div v-if="props.isExpired" class="mb-6 p-4 bg-[#FEF2F2] text-[#B91C1C] rounded-xl border border-[#FECACA] shadow-sm flex items-center">
+                <svg class="h-5 w-5 mr-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                </svg>
+                <span class="font-medium">Batas waktu pendaftaran lowongan ini telah berakhir. Anda tidak dapat melamar.</span>
+            </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Left Column: Details -->
                 <div class="lg:col-span-2 space-y-6">
@@ -186,7 +196,13 @@ const getTypeColor = (type) => typeColors[type] || typeColors['Magang'];
                                 <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-[#94A3B8] mb-1">Tenggat Waktu</p>
                                 <p class="text-base font-bold text-[#0F172A]">{{ formatDate(internship.deadline_at) }}</p>
                             </div>
-                            <div v-if="daysLeft(internship.deadline_at) !== null">
+                            <div v-if="props.isExpired">
+                                <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold border bg-[#FEF2F2] text-[#E11D48] border-[#FECACA]">
+                                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                                    Ditutup
+                                </span>
+                            </div>
+                            <div v-else-if="daysLeft(internship.deadline_at) !== null">
                                 <span :class="daysLeft(internship.deadline_at) <= 7 ? 'bg-[#FEF2F2] text-[#E11D48] border-[#FECACA]' : 'bg-[#EFF6FF] text-[#2563EB] border-[#BFDBFE]'" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold border">
                                     <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                     {{ daysLeft(internship.deadline_at) }} hari
@@ -202,19 +218,20 @@ const getTypeColor = (type) => typeColors[type] || typeColors['Magang'];
 
                         <!-- Apply Button -->
                         <button
-                            :disabled="props.hasApplied || form.processing"
+                            :disabled="props.hasApplied || props.isExpired || form.processing"
                             :class="[
                                 'flex w-full h-14 items-center justify-center rounded-xl px-6 text-base font-bold text-white transition-all',
-                                props.hasApplied
+                                (props.hasApplied || props.isExpired)
                                     ? 'bg-[#94A3B8] cursor-not-allowed shadow-none'
                                     : 'bg-gradient-to-r from-[#2563EB] to-[#3B82F6] hover:from-[#1D4ED8] hover:to-[#2563EB] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#2563EB]/30 active:translate-y-0',
                             ]"
                             @click="apply"
                         >
-                            <svg v-if="!form.processing && !props.hasApplied" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                            <svg v-if="props.hasApplied" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            <svg v-if="!form.processing && !props.hasApplied && !props.isExpired" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                            <svg v-if="props.isExpired" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                            <svg v-else-if="props.hasApplied" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             <span v-if="form.processing">Memproses...</span>
-                            <span v-else>{{ props.hasApplied ? "Sudah Melamar" : "Lamar Sekarang" }}</span>
+                            <span v-else>{{ props.isExpired ? "Pendaftaran Ditutup" : (props.hasApplied ? "Sudah Melamar" : "Lamar Sekarang") }}</span>
                         </button>
 
                         <p v-if="!$page.props.auth.user" class="mt-4 text-xs text-[#64748B] text-center leading-relaxed">

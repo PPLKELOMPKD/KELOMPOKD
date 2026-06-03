@@ -41,6 +41,7 @@ class InternshipController extends Controller
         return Inertia::render('Internships/Show', [
             'internship' => $internship,
             'hasApplied' => $hasApplied,
+            'isExpired' => $internship->deadline_at ? $internship->deadline_at->isPast() : false,
             'relatedInternships' => $relatedInternships,
         ]);
     }

@@ -55,7 +55,10 @@ const apply = (id) => {
                             <span class="rounded-full bg-[#f2f4f7] px-3 py-1">{{
                                 internship.location
                             }}</span>
-                            <span class="rounded-full bg-[#f2f4f7] px-3 py-1"
+                            <span v-if="internship.is_expired" class="rounded-full bg-[#FFF1F2] px-3 py-1 text-[#E11D48] font-bold"
+                                >Ditutup</span
+                            >
+                            <span v-else class="rounded-full bg-[#f2f4f7] px-3 py-1"
                                 >Deadline
                                 {{
                                     new Date(
@@ -80,13 +83,13 @@ const apply = (id) => {
                             :disabled="
                                 props.applieds_id.some(
                                     (id) => id == internship.id,
-                                ) || form.processing
+                                ) || internship.is_expired || form.processing
                             "
                             :class="[
                                 'flex h-11 items-center justify-center rounded-xl px-4 text-sm font-medium text-white transition-colors',
                                 props.applieds_id.some(
                                     (id) => id == internship.id,
-                                )
+                                ) || internship.is_expired
                                     ? 'bg-gray-400 cursor-not-allowed'
                                     : 'bg-black hover:bg-gray-800',
                             ]"
@@ -100,11 +103,13 @@ const apply = (id) => {
                                 >Memproses...</span
                             >
                             <span v-else>{{
-                                props.applieds_id.some(
-                                    (id) => id == internship.id,
-                                )
-                                    ? "Sudah Dilamar"
-                                    : "Lamar Sekarang"
+                                internship.is_expired
+                                    ? "Ditutup"
+                                    : props.applieds_id.some(
+                                            (id) => id == internship.id,
+                                        )
+                                        ? "Sudah Dilamar"
+                                        : "Lamar Sekarang"
                             }}</span>
                         </button>
 

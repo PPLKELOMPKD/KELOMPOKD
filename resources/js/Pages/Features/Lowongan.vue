@@ -281,7 +281,12 @@ const daysLeft = (d) => {
                                             </div>
                                         </div>
                                     </div>
-                                    <div v-if="daysLeft(internship.deadline_at) !== null" class="text-right shrink-0">
+                                    <div v-if="internship.is_expired" class="text-right shrink-0">
+                                        <span class="inline-block rounded-lg px-2 py-1 text-[10px] font-bold text-[#E11D48] bg-[#FFF1F2] mt-4">
+                                            Ditutup
+                                        </span>
+                                    </div>
+                                    <div v-else-if="daysLeft(internship.deadline_at) !== null" class="text-right shrink-0">
                                         <span :class="daysLeft(internship.deadline_at) <= 7 ? 'text-[#E11D48] bg-[#FFF1F2]' : 'text-[#64748B] bg-[#F1F5F9]'" class="inline-block rounded-lg px-2 py-1 text-[10px] font-bold mt-4">
                                             {{ daysLeft(internship.deadline_at) }} hari
                                         </span>
@@ -379,7 +384,12 @@ const daysLeft = (d) => {
                                     </div>
                                 </div>
                                 <!-- Deadline Badge -->
-                                <div v-if="daysLeft(internship.deadline_at) !== null" class="text-right shrink-0">
+                                <div v-if="internship.is_expired" class="text-right shrink-0">
+                                    <span class="inline-block rounded-lg px-2 py-1 text-[10px] font-bold text-[#E11D48] bg-[#FFF1F2]">
+                                        Ditutup
+                                    </span>
+                                </div>
+                                <div v-else-if="daysLeft(internship.deadline_at) !== null" class="text-right shrink-0">
                                     <span :class="daysLeft(internship.deadline_at) <= 7 ? 'text-[#E11D48] bg-[#FFF1F2]' : 'text-[#64748B] bg-[#F1F5F9]'" class="inline-block rounded-lg px-2 py-1 text-[10px] font-bold">
                                         {{ daysLeft(internship.deadline_at) }} hari lagi
                                     </span>

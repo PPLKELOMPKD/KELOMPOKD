@@ -15,6 +15,12 @@ class ApplicationController extends Controller
             'internship_id' => ['required', 'exists:internships,id'],
         ]);
 
+        // Validasi deadline lowongan — tolak jika sudah kedaluwarsa
+        $internship = \App\Models\Internship::findOrFail($data['internship_id']);
+        if ($internship->deadline_at && $internship->deadline_at->isPast()) {
+            return back()->with('error', 'Batas waktu pendaftaran lowongan ini telah berakhir. Anda tidak dapat melamar lagi.');
+        }
+
         $user = $request->user();
 
         $hasApplied = Application::where('user_id', $user->id)
