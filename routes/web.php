@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\ApplicationDataController;
 use App\Http\Controllers\Admin\InternshipModerationController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\ApplicationTrackingController;
@@ -318,6 +319,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'index'])->name('settings.index');
         Route::post('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'update'])->name('settings.update');
         Route::get('/activity-logs', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('activity-logs.index');
+
+        // ── Data Lamaran ──────────────────────────────────────────────
+        Route::get('/applications/export', [ApplicationDataController::class, 'export'])->name('applications.export');
+        Route::get('/applications', [ApplicationDataController::class, 'index'])->name('applications.index');
     });
 
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
