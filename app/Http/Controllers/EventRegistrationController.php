@@ -120,9 +120,6 @@ class EventRegistrationController extends Controller
         return back()->with('success', 'Pendaftaran berhasil dibatalkan.');
     }
 
-    /**
-     * TC-08: Halaman "Event Saya" – daftar event yang diikuti mahasiswa.
-     */
     public function myEvents(Request $request)
     {
         $user = $request->user();
@@ -131,7 +128,7 @@ class EventRegistrationController extends Controller
             ->where('user_id', $user->id)
             ->latest()
             ->get()
-            ->map(function ($reg) {
+            ->map(function ($reg) use ($user) {
                 $event = $reg->event;
                 $activeCount = 0;
                 if ($event) {
@@ -139,6 +136,25 @@ class EventRegistrationController extends Controller
                         ->whereIn('status', ['registered', 'attended'])
                         ->count();
                 }
+
+                // Rating data
+                $avgRating   = null;
+                $ratingCount = 0;
+                $userRating  = null;
+                $isCompleted = false;
+
+                if ($event) {
+                    $avgRating   = round($event->ratings()->avg('rating'), 2) ?: null;
+                    $ratingCount = $event->ratings()->count();
+                    $isCompleted = $event->status === 'completed' ||
+                        Carbon::parse($event->date)->startOfDay()->lt(Carbon::today());
+
+                    $ur = $event->ratings()->where('user_id', $user->id)->first();
+                    if ($ur) {
+                        $userRating = ['rating' => $ur->rating, 'comment' => $ur->comment];
+                    }
+                }
+
                 return [
                     'id'                   => $reg->id,
                     'status'               => $reg->status,
@@ -156,6 +172,10 @@ class EventRegistrationController extends Controller
                         'status'           => $event->status,
                         'max_participants'  => $event->max_participants,
                         'active_count'     => $activeCount,
+                        'is_completed'     => $isCompleted,
+                        'avg_rating'       => $avgRating,
+                        'rating_count'     => $ratingCount,
+                        'user_rating'      => $userRating,
                         'company'          => $event->company ? [
                             'id'   => $event->company->id,
                             'name' => $event->company->name,

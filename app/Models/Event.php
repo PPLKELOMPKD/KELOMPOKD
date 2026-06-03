@@ -42,8 +42,22 @@ class Event extends Model
         return $this->hasMany(EventRegistration::class);
     }
 
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(EventRating::class);
+    }
+
     public function isActive(): bool
     {
         return $this->status === 'published' && $this->date->isFuture();
+    }
+
+    /**
+     * Apakah event sudah selesai?
+     * Selesai = status 'completed' ATAU tanggal sudah terlewati.
+     */
+    public function isCompleted(): bool
+    {
+        return $this->status === 'completed' || $this->date->isPast();
     }
 }
