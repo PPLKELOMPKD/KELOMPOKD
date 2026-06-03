@@ -8,6 +8,7 @@ use App\Http\Controllers\CvController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DirectMessageController;
 use App\Http\Controllers\EventRegistrationController;
+use App\Http\Controllers\EventRatingController;
 use App\Http\Controllers\InternshipController;
 use App\Http\Controllers\LmsController;
 use App\Http\Controllers\NotificationController;
@@ -63,6 +64,18 @@ Route::get('/event', function () {
                     ->first();
             }
 
+            $ratingsData = $event->ratings();
+            $avgRating   = round($ratingsData->avg('rating'), 2);
+            $ratingCount = $ratingsData->count();
+
+            $userRating = null;
+            if ($isMahasiswa && $user) {
+                $ur = $event->ratings()->where('user_id', $user->id)->first();
+                if ($ur) {
+                    $userRating = ['rating' => $ur->rating, 'comment' => $ur->comment];
+                }
+            }
+
             return [
                 'id'               => $event->id,
                 'title'            => $event->title,
@@ -81,6 +94,9 @@ Route::get('/event', function () {
                     'id'     => $userRegistration->id,
                     'status' => $userRegistration->status,
                 ] : null,
+                'avg_rating'   => $avgRating ?: null,
+                'rating_count' => $ratingCount,
+                'user_rating'  => $userRating,
                 'company'          => $event->company ? [
                     'id'   => $event->company->id,
                     'name' => $event->company->name,
@@ -115,6 +131,29 @@ Route::get('/event/{event}', function (\App\Models\Event $event) {
             ->first();
     }
 
+    $avgRating   = round($event->ratings()->avg('rating'), 2);
+    $ratingCount = $event->ratings()->count();
+    $allRatings  = $event->ratings()->with('user')->latest()->get()->map(function ($r) {
+        return [
+            'id'         => $r->id,
+            'rating'     => $r->rating,
+            'comment'    => $r->comment,
+            'created_at' => $r->created_at,
+            'user_name'  => $r->user ? $r->user->name : 'Mahasiswa',
+        ];
+    });
+
+    $userRating = null;
+    if ($isMahasiswa && $user) {
+        $ur = $event->ratings()->where('user_id', $user->id)->first();
+        if ($ur) {
+            $userRating = ['rating' => $ur->rating, 'comment' => $ur->comment];
+        }
+    }
+
+    $isEventCompleted = $event->status === 'completed' ||
+        \Carbon\Carbon::parse($event->date)->startOfDay()->lt(\Carbon\Carbon::today());
+
     $eventData = [
         'id'               => $event->id,
         'title'            => $event->title,
@@ -133,6 +172,11 @@ Route::get('/event/{event}', function (\App\Models\Event $event) {
             'id'     => $userRegistration->id,
             'status' => $userRegistration->status,
         ] : null,
+        'avg_rating'        => $avgRating ?: null,
+        'rating_count'      => $ratingCount,
+        'ratings'           => $allRatings,
+        'user_rating'       => $userRating,
+        'is_completed'      => $isEventCompleted,
         'company'          => $event->company ? [
             'id'   => $event->company->id,
             'name' => $event->company->name,
@@ -189,6 +233,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/events/{event}/register', [EventRegistrationController::class, 'store'])->name('events.register');
         Route::delete('/events/{event}/register', [EventRegistrationController::class, 'destroy'])->name('events.register.cancel');
         Route::get('/my-events', [EventRegistrationController::class, 'myEvents'])->name('my-events');
+
+        // ── Event Rating (Mahasiswa) ──────────────────────────────────
+        Route::post('/events/{event}/ratings', [EventRatingController::class, 'store'])->name('events.ratings.store');
+        Route::put('/events/{event}/ratings', [EventRatingController::class, 'update'])->name('events.ratings.update');
     });
 
     // ── Perusahaan ────────────────────────────────────────────────────
