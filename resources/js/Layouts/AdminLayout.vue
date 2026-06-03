@@ -16,7 +16,7 @@ const menuManajemen = [
     { name: 'Verifikasi Perusahaan', href: '#', icon: 'building',  active: false },
     { name: 'Moderasi Lowongan',     href: route('admin.internships.index'), icon: 'briefcase', active: route().current('admin.internships.*') },
     { name: 'Manajemen Event',       href: '#', icon: 'calendar',  active: false },
-    { name: 'Pantau LMS',            href: '#', icon: 'book',      active: false },
+    { name: 'Pantau LMS',            href: route('admin.lms.index'), icon: 'book',      active: route().current('admin.lms.*') },
     { name: 'Data Lamaran',          href: '#', icon: 'inbox',     active: false },
 ];
 
