@@ -48,7 +48,24 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $user = $request->user();
+        $user = tap($request->user(), function ($user) {
+            $user->update(['last_login_at' => now()]);
+        });
+
+        // Cek status akun
+        if (in_array($user->status, ['inactive', 'banned'])) {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            $message = $user->status === 'banned' 
+                ? 'Akun Anda telah diblokir karena pelanggaran. Silakan hubungi administrator.'
+                : 'Akun Anda saat ini dinonaktifkan. Silakan hubungi administrator.';
+
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'email' => $message,
+            ]);
+        }
 
         // Log the login activity
         ActivityLogger::log(

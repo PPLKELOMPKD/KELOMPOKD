@@ -141,7 +141,7 @@ const lineOptions = { ...barOptions };
                 <h2 class="text-sm font-bold text-slate-900">Tindakan Cepat</h2>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Link href="#" class="group relative overflow-hidden rounded-2xl bg-white p-4 border border-slate-200 shadow-sm transition-all hover:shadow-md hover:border-blue-300 flex items-center gap-4 hover:-translate-y-0.5">
+                <Link :href="route('admin.users.index')" class="group relative overflow-hidden rounded-2xl bg-white p-4 border border-slate-200 shadow-sm transition-all hover:shadow-md hover:border-blue-300 flex items-center gap-4 hover:-translate-y-0.5">
                     <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-transform group-hover:scale-110">
                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     </div>

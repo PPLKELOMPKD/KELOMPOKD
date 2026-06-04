@@ -122,7 +122,12 @@ class DashboardController extends Controller
             ];
 
             // ── Recent applicants (5 latest) ─────────────────────────────────
-            $recentApplicants = (clone $applicationsQuery)
+            $recentAppsQuery = clone $applicationsQuery;
+            if (request()->filled('status') && request('status') !== 'all') {
+                $recentAppsQuery->where('status', strtolower(request('status')));
+            }
+
+            $recentApplicants = $recentAppsQuery
                 ->with(['user.mahasiswaProfile', 'internship'])
                 ->latest()
                 ->limit(5)
@@ -218,6 +223,9 @@ class DashboardController extends Controller
                     'email'  => $user->email,
                     'status' => 'Terverifikasi (Mitra Resmi)',
                     'bio'    => 'Portal manajemen rekrutmen B2B SIKARA.',
+                ],
+                'filters' => [
+                    'status' => request('status', 'all')
                 ],
                 'stubMessage' => null,
             ]);
