@@ -18,6 +18,7 @@ const props = defineProps({
     latestInternships: Array,
     latestNotifications: Array,
     filters: Object,
+    recruitmentTrend: Object,
 });
 
 const showFilterMenu       = ref(false);
@@ -246,8 +247,9 @@ const modalConfig = computed(() => {
         <div v-else-if="isCompanyDashboard" class="space-y-6">
             <!-- Stats -->
             <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                <div v-for="stat in stats" :key="stat.label" class="flex flex-col justify-between rounded-2xl border border-[#eaecf0] bg-white p-6 shadow-[0_1px_3px_rgba(16,24,40,0.1),0_1px_2px_rgba(16,24,40,0.06)]">
-                    <div class="flex items-center justify-between">
+                <div v-for="stat in stats" :key="stat.label" class="group relative overflow-hidden flex flex-col justify-between rounded-2xl border border-[#eaecf0]/60 bg-white/80 backdrop-blur-md p-6 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 hover:-translate-y-1 transition-all duration-300">
+                    <div class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-gradient-to-br from-transparent to-current opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-300" :class="getColorClass(stat.color, 'text')"></div>
+                    <div class="flex items-center justify-between relative z-10">
                         <p class="text-xs font-semibold uppercase tracking-wider text-[#667085]">{{ stat.label }}</p>
                         <div class="flex h-10 w-10 items-center justify-center rounded-xl" :class="[getColorClass(stat.color, 'bg'), getColorClass(stat.color, 'text')]">
                             <svg v-if="stat.icon === 'briefcase'" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1"/><path d="M4 7h16v12H4z"/><path d="M4 12h16"/></svg>
@@ -270,7 +272,7 @@ const modalConfig = computed(() => {
 
             <div class="grid gap-6 lg:grid-cols-3">
                 <!-- Pipeline -->
-                <div class="rounded-2xl border border-[#eaecf0] bg-white p-6 shadow-[0_1px_3px_rgba(16,24,40,0.1),0_1px_2px_rgba(16,24,40,0.06)] lg:col-span-2">
+                <div class="rounded-2xl border border-[#eaecf0]/60 bg-white/80 backdrop-blur-md p-6 shadow-sm hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300 lg:col-span-2">
                     <div class="flex items-center justify-between">
                         <h3 class="text-xl font-semibold text-[#101828]">Pipeline Rekrutmen</h3>
                         <Link :href="route('perusahaan.applicants.index')" title="Lihat Kelola Pelamar" class="text-[#667085] hover:text-[#2563EB] transition-colors">
@@ -294,22 +296,29 @@ const modalConfig = computed(() => {
                 </div>
 
                 <!-- Trend -->
-                <div class="rounded-2xl border border-[#eaecf0] bg-white p-6 shadow-[0_1px_3px_rgba(16,24,40,0.1),0_1px_2px_rgba(16,24,40,0.06)]">
+                <div class="rounded-2xl border border-[#eaecf0]/60 bg-white/80 backdrop-blur-md p-6 shadow-sm hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300">
                     <h3 class="text-xl font-semibold text-[#101828]">Tren Rekrutmen</h3>
                     <!-- A simple bar chart representation using flex divs -->
                     <div class="mt-8 flex h-32 items-end justify-between gap-3">
-                         <div v-for="(h, i) in [30, 45, 35, 60, 50, 85]" :key="i" class="w-full rounded-t bg-[#DBEAFE] relative group transition-all" :style="`height: ${h}%`">
-                             <div v-if="i===5" class="absolute inset-0 rounded-t bg-[#2563EB]"></div>
+                         <div v-for="(h, i) in (recruitmentTrend?.data || [0,0,0,0,0,0])" :key="i" class="w-full rounded-t bg-[#DBEAFE] relative group transition-all duration-300 hover:bg-blue-300 cursor-pointer" :style="`height: ${h > 0 ? h : 5}%`">
+                             <!-- active state for current month -->
+                             <div v-if="i === ((recruitmentTrend?.data?.length || 6) - 1)" class="absolute inset-0 rounded-t bg-gradient-to-t from-blue-600 to-blue-400"></div>
+                             
+                             <!-- Tooltip -->
+                             <div class="absolute -top-10 left-1/2 -translate-x-1/2 rounded bg-gray-900 px-2 py-1 text-xs font-medium text-white opacity-0 transition-opacity group-hover:opacity-100 whitespace-nowrap pointer-events-none z-10">
+                                 {{ recruitmentTrend?.raw_data?.[i] || 0 }} Pelamar
+                                 <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                             </div>
                          </div>
                     </div>
                     <div class="mt-3 flex justify-between text-xs font-medium text-[#667085]">
-                         <span>Mei</span><span>Jun</span><span>Jul</span><span>Ags</span><span>Sep</span><span>Okt</span>
+                         <span v-for="(label, i) in (recruitmentTrend?.labels || ['-','-','-','-','-','-'])" :key="i">{{ label }}</span>
                     </div>
                 </div>
             </div>
 
             <!-- Table Daftar Pelamar -->
-            <div class="rounded-2xl border border-[#eaecf0] bg-white shadow-[0_1px_3px_rgba(16,24,40,0.1),0_1px_2px_rgba(16,24,40,0.06)] overflow-hidden">
+            <div class="rounded-2xl border border-[#eaecf0]/60 bg-white/80 backdrop-blur-md shadow-sm hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300 overflow-hidden">
                 <div class="flex items-center justify-between p-6">
                     <div>
                         <h3 class="text-xl font-semibold text-[#101828]">Daftar Pelamar Terbaru</h3>
@@ -392,7 +401,7 @@ const modalConfig = computed(() => {
             
             <div class="grid gap-6 lg:grid-cols-2">
                  <!-- Event Mendatang -->
-                 <div class="rounded-2xl border border-[#eaecf0] bg-white p-6 shadow-[0_1px_3px_rgba(16,24,40,0.1),0_1px_2px_rgba(16,24,40,0.06)]">
+                 <div class="rounded-2xl border border-[#eaecf0]/60 bg-white/80 backdrop-blur-md p-6 shadow-sm hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300">
                     <div class="flex items-center justify-between">
                          <h3 class="text-xl font-semibold text-[#101828]">Event Mendatang</h3>
                          <Link :href="route('perusahaan.events.index')" class="text-sm font-semibold text-[#2563EB] hover:text-[#1d4ed8] hover:underline transition-all">Kelola Event</Link>
@@ -568,7 +577,7 @@ const modalConfig = computed(() => {
                      </div>
                      
                      <!-- Notifikasi -->
-                     <div class="rounded-2xl border border-[#eaecf0] bg-white p-6 shadow-[0_1px_3px_rgba(16,24,40,0.1),0_1px_2px_rgba(16,24,40,0.06)]">
+                     <div class="rounded-2xl border border-[#eaecf0]/60 bg-white/80 backdrop-blur-md p-6 shadow-sm hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300">
                          <div class="flex items-center justify-between">
                              <h3 class="text-xl font-semibold text-[#101828]">Notifikasi Sistem</h3>
                              <span v-if="unreadCount > 0" class="rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-600">{{ unreadCount }} Baru</span>

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\ApplicationDataController;
+use App\Http\Controllers\Admin\CompanyVerificationController;
 use App\Http\Controllers\Admin\InternshipModerationController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\ApplicationController;
@@ -324,6 +325,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
         Route::get('/users/{user}', [UserManagementController::class, 'show'])->name('users.show');
         Route::patch('/users/{user}/status', [UserManagementController::class, 'updateStatus'])->name('users.updateStatus');
+
+        // ── Verifikasi Perusahaan ──────────────────────────────────────
+        Route::get('/verifications', [CompanyVerificationController::class, 'index'])->name('verifications.index');
+        Route::get('/verifications/{user}', [CompanyVerificationController::class, 'show'])->name('verifications.show');
+        Route::patch('/verifications/{user}/status', [CompanyVerificationController::class, 'updateStatus'])->name('verifications.updateStatus');
         Route::get('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'index'])->name('settings.index');
         Route::post('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'update'])->name('settings.update');
         Route::get('/activity-logs', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('activity-logs.index');
