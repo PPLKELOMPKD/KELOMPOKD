@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\ApplicationDataController;
 use App\Http\Controllers\Admin\InternshipModerationController;
+use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\ApplicationTrackingController;
 use App\Http\Controllers\CvController;
@@ -264,6 +265,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Laporan
         Route::get('/reports', [\App\Http\Controllers\CompanyReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/download', [\App\Http\Controllers\CompanyReportController::class, 'downloadRecruitment'])->name('reports.download');
+        Route::get('/reports/events/download', [\App\Http\Controllers\CompanyReportController::class, 'downloadEvents'])->name('reports.events.download');
 
         // LMS — Kelola Kursus (CRUD)
         Route::resource('/lms', \App\Http\Controllers\CompanyLmsCourseController::class)->parameters(['lms' => 'course'])->names('lms');
@@ -317,7 +320,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('/internships/{internship}/reject', [InternshipModerationController::class, 'reject'])->name('internships.reject');
         Route::patch('/internships/{internship}/takedown', [InternshipModerationController::class, 'takedown'])->name('internships.takedown');
 
-        // Fitur lain seperti manajemen user, verifikasi, dll akan ditambahkan di sini
+        // ── Manajemen Pengguna ─────────────────────────────────────────
+        Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
+        Route::get('/users/{user}', [UserManagementController::class, 'show'])->name('users.show');
+        Route::patch('/users/{user}/status', [UserManagementController::class, 'updateStatus'])->name('users.updateStatus');
         Route::get('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'index'])->name('settings.index');
         Route::post('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'update'])->name('settings.update');
         Route::get('/activity-logs', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('activity-logs.index');

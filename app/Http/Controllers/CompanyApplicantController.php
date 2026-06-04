@@ -295,6 +295,12 @@ class CompanyApplicantController extends Controller
                 ->with('success', $flashMessage);
         }
 
+        if ($redirectRoute === 'dashboard') {
+            return redirect()
+                ->route('perusahaan.dashboard')
+                ->with('success', $flashMessage);
+        }
+
         return redirect()
             ->route('perusahaan.applicants.index')
             ->with('success', $flashMessage);
