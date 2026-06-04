@@ -39,48 +39,46 @@ const statusCfg  = {
             <!-- Kolom Kiri: Profil Card -->
             <div class="lg:col-span-1 space-y-6">
                 <!-- User Basic Info -->
-                <div class="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden group">
+                <div class="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden group relative">
                     <!-- Cover/Header area -->
-                    <div class="h-32 relative" :class="user.role === 'mahasiswa' ? 'bg-gradient-to-r from-blue-600 to-blue-400' : 'bg-gradient-to-r from-emerald-600 to-emerald-400'">
+                    <div class="h-32 relative w-full" :class="user.role === 'mahasiswa' ? 'bg-gradient-to-r from-blue-600 to-indigo-500' : 'bg-gradient-to-r from-emerald-600 to-teal-500'">
                         <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     </div>
                     
-                    <div class="px-8 pb-8 pt-0 relative">
-                        <!-- Avatar -->
-                        <div class="absolute -top-14 left-8 h-24 w-24 rounded-2xl bg-white p-1.5 shadow-md ring-1 ring-slate-900/5">
-                            <img v-if="profile?.logo_path || profile?.photo_path" :src="'/storage/' + (profile.logo_path || profile.photo_path)" :alt="user.name" class="h-full w-full rounded-xl object-cover" />
-                            <div v-else class="h-full w-full rounded-xl flex items-center justify-center text-3xl font-bold text-white shadow-inner" :class="user.role === 'mahasiswa' ? 'bg-gradient-to-br from-blue-500 to-blue-600' : 'bg-gradient-to-br from-emerald-500 to-emerald-600'">
-                                {{ user.name.charAt(0).toUpperCase() }}
+                    <div class="px-8 pb-8 relative z-10">
+                        <div class="flex flex-col sm:flex-row gap-6 items-center sm:items-start">
+                            <!-- Avatar -->
+                            <div class="h-24 w-24 shrink-0 rounded-2xl bg-white p-1.5 shadow-lg ring-1 ring-slate-900/5 -mt-12 relative z-20">
+                                <img v-if="profile?.logo_path || profile?.photo_path" :src="'/storage/' + (profile.logo_path || profile.photo_path)" :alt="user.name" class="h-full w-full rounded-xl object-cover" />
+                                <div v-else class="h-full w-full rounded-xl flex items-center justify-center text-4xl font-black text-white shadow-inner" :class="user.role === 'mahasiswa' ? 'bg-gradient-to-br from-blue-500 to-indigo-600' : 'bg-gradient-to-br from-emerald-500 to-teal-600'">
+                                    {{ user.name.charAt(0).toUpperCase() }}
+                                </div>
+                            </div>
+
+                            <div class="flex-1 text-center sm:text-left pt-2 mb-1">
+                                <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">{{ user.name }}</h2>
+                                <p class="text-sm font-medium text-slate-500">{{ user.email }}</p>
+                                
+                                <div class="mt-3 flex flex-wrap justify-center sm:justify-start gap-2">
+                                    <span class="inline-flex rounded-full px-3 py-1 text-xs font-bold" :class="roleStyle[user.role]">
+                                        {{ roleLabel[user.role] }}
+                                    </span>
+                                    <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold" :class="statusCfg[user.status]?.cls">
+                                        <span class="h-1.5 w-1.5 rounded-full" :class="statusCfg[user.status]?.dot"></span>
+                                        {{ statusCfg[user.status]?.label }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="mt-14">
-                            <div class="flex items-start justify-between">
-                                <div>
-                                    <h2 class="text-xl font-bold text-slate-900 leading-tight">{{ user.name }}</h2>
-                                    <p class="text-sm text-slate-500">{{ user.email }}</p>
-                                </div>
+                        <div class="mt-8 pt-6 border-t border-slate-100 grid grid-cols-2 gap-4 text-sm">
+                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex flex-col items-center sm:items-start">
+                                <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-1">Terdaftar</span>
+                                <span class="font-bold text-slate-800">{{ user.created_at }}</span>
                             </div>
-                            
-                            <div class="mt-4 flex flex-wrap gap-2">
-                                <span class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-bold" :class="roleStyle[user.role]">
-                                    {{ roleLabel[user.role] }}
-                                </span>
-                                <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold" :class="statusCfg[user.status]?.cls">
-                                    <span class="h-1.5 w-1.5 rounded-full" :class="statusCfg[user.status]?.dot"></span>
-                                    {{ statusCfg[user.status]?.label }}
-                                </span>
-                            </div>
-
-                            <div class="mt-6 space-y-3 pt-6 border-t border-slate-100 text-sm">
-                                <div class="flex justify-between">
-                                    <span class="text-slate-500">Terdaftar</span>
-                                    <span class="font-semibold text-slate-800">{{ user.created_at }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-slate-500">Login Terakhir</span>
-                                    <span class="font-semibold text-slate-800">{{ user.last_login_at }}</span>
-                                </div>
+                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex flex-col items-center sm:items-start">
+                                <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-1">Login Terakhir</span>
+                                <span class="font-bold text-slate-800">{{ user.last_login_at }}</span>
                             </div>
                         </div>
                     </div>
@@ -172,39 +170,39 @@ const statusCfg  = {
                 <!-- Overview Stats -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <template v-if="user.role === 'mahasiswa'">
-                        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm text-center group hover:shadow-md transition-shadow hover:border-slate-300">
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Lamaran</p>
-                            <p class="text-4xl font-black text-slate-900 group-hover:scale-105 transition-transform">{{ stats?.total_applications ?? 0 }}</p>
+                        <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm group hover:shadow-md transition-all hover:-translate-y-1 hover:border-slate-300">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Lamaran</p>
+                            <p class="text-3xl font-black text-slate-900">{{ stats?.total_applications ?? 0 }}</p>
                         </div>
-                        <div class="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-6 shadow-sm text-center group hover:shadow-md transition-shadow hover:border-emerald-200 hover:bg-emerald-50">
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-500 mb-2">Lolos</p>
-                            <p class="text-4xl font-black text-emerald-700 group-hover:scale-105 transition-transform">{{ stats?.lolos ?? 0 }}</p>
+                        <div class="relative overflow-hidden rounded-2xl border border-emerald-100 bg-emerald-50/50 p-6 shadow-sm group hover:shadow-md transition-all hover:-translate-y-1 hover:border-emerald-200 hover:bg-emerald-50">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-500 mb-1">Lolos</p>
+                            <p class="text-3xl font-black text-emerald-700">{{ stats?.lolos ?? 0 }}</p>
                         </div>
-                        <div class="rounded-2xl border border-purple-100 bg-purple-50/50 p-6 shadow-sm text-center group hover:shadow-md transition-shadow hover:border-purple-200 hover:bg-purple-50">
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-purple-500 mb-2">Wawancara</p>
-                            <p class="text-4xl font-black text-purple-700 group-hover:scale-105 transition-transform">{{ stats?.wawancara ?? 0 }}</p>
+                        <div class="relative overflow-hidden rounded-2xl border border-purple-100 bg-purple-50/50 p-6 shadow-sm group hover:shadow-md transition-all hover:-translate-y-1 hover:border-purple-200 hover:bg-purple-50">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-purple-500 mb-1">Wawancara</p>
+                            <p class="text-3xl font-black text-purple-700">{{ stats?.wawancara ?? 0 }}</p>
                         </div>
-                        <div class="rounded-2xl border border-blue-100 bg-blue-50/50 p-6 shadow-sm text-center group hover:shadow-md transition-shadow hover:border-blue-200 hover:bg-blue-50">
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-blue-500 mb-2">Menunggu</p>
-                            <p class="text-4xl font-black text-blue-700 group-hover:scale-105 transition-transform">{{ stats?.menunggu_ulasan ?? 0 }}</p>
+                        <div class="relative overflow-hidden rounded-2xl border border-blue-100 bg-blue-50/50 p-6 shadow-sm group hover:shadow-md transition-all hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-blue-500 mb-1">Menunggu</p>
+                            <p class="text-3xl font-black text-blue-700">{{ stats?.menunggu_ulasan ?? 0 }}</p>
                         </div>
                     </template>
                     <template v-else-if="user.role === 'perusahaan'">
-                        <div class="rounded-2xl border border-purple-100 bg-purple-50/50 p-6 shadow-sm text-center group hover:shadow-md transition-shadow hover:border-purple-200 hover:bg-purple-50">
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-purple-500 mb-2">Total Lowongan</p>
-                            <p class="text-4xl font-black text-purple-700 group-hover:scale-105 transition-transform">{{ stats?.total_internships ?? 0 }}</p>
+                        <div class="relative overflow-hidden rounded-2xl border border-purple-100 bg-purple-50/50 p-6 shadow-sm group hover:shadow-md transition-all hover:-translate-y-1 hover:border-purple-200 hover:bg-purple-50">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-purple-500 mb-1">Lowongan</p>
+                            <p class="text-3xl font-black text-purple-700">{{ stats?.total_internships ?? 0 }}</p>
                         </div>
-                        <div class="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-6 shadow-sm text-center group hover:shadow-md transition-shadow hover:border-emerald-200 hover:bg-emerald-50">
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-500 mb-2">Lowongan Aktif</p>
-                            <p class="text-4xl font-black text-emerald-700 group-hover:scale-105 transition-transform">{{ stats?.active_internships ?? 0 }}</p>
+                        <div class="relative overflow-hidden rounded-2xl border border-emerald-100 bg-emerald-50/50 p-6 shadow-sm group hover:shadow-md transition-all hover:-translate-y-1 hover:border-emerald-200 hover:bg-emerald-50">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-500 mb-1">Aktif</p>
+                            <p class="text-3xl font-black text-emerald-700">{{ stats?.active_internships ?? 0 }}</p>
                         </div>
-                        <div class="rounded-2xl border border-blue-100 bg-blue-50/50 p-6 shadow-sm text-center group hover:shadow-md transition-shadow hover:border-blue-200 hover:bg-blue-50">
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-blue-500 mb-2">Pelamar Masuk</p>
-                            <p class="text-4xl font-black text-blue-700 group-hover:scale-105 transition-transform">{{ stats?.total_applications ?? 0 }}</p>
+                        <div class="relative overflow-hidden rounded-2xl border border-blue-100 bg-blue-50/50 p-6 shadow-sm group hover:shadow-md transition-all hover:-translate-y-1 hover:border-blue-200 hover:bg-blue-50">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-blue-500 mb-1">Pelamar</p>
+                            <p class="text-3xl font-black text-blue-700">{{ stats?.total_applications ?? 0 }}</p>
                         </div>
-                        <div class="rounded-2xl border border-orange-100 bg-orange-50/50 p-6 shadow-sm text-center group hover:shadow-md transition-shadow hover:border-orange-200 hover:bg-orange-50">
-                            <p class="text-[11px] font-bold uppercase tracking-wider text-orange-500 mb-2">Event</p>
-                            <p class="text-4xl font-black text-orange-700 group-hover:scale-105 transition-transform">{{ stats?.total_events ?? 0 }}</p>
+                        <div class="relative overflow-hidden rounded-2xl border border-orange-100 bg-orange-50/50 p-6 shadow-sm group hover:shadow-md transition-all hover:-translate-y-1 hover:border-orange-200 hover:bg-orange-50">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-orange-500 mb-1">Event</p>
+                            <p class="text-3xl font-black text-orange-700">{{ stats?.total_events ?? 0 }}</p>
                         </div>
                     </template>
                 </div>

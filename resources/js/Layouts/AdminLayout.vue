@@ -51,7 +51,7 @@ const menuUtama = [
 
 const menuManajemen = [
     { name: 'Manajemen Pengguna',    href: route('admin.users.index'), icon: 'users',     active: route().current('admin.users.*') },
-    { name: 'Verifikasi Perusahaan', href: '#', icon: 'building',  active: false },
+    { name: 'Verifikasi Perusahaan', href: route('admin.verifications.index'), icon: 'building',  active: route().current('admin.verifications.*') },
     { name: 'Moderasi Lowongan',     href: route('admin.internships.index'), icon: 'briefcase', active: route().current('admin.internships.*') },
     { name: 'Manajemen Event',       href: '#', icon: 'calendar',  active: false },
     { name: 'Pantau LMS',            href: '#', icon: 'book',      active: false },
