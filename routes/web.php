@@ -1,14 +1,18 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\ApplicationDataController;
+use App\Http\Controllers\Admin\CompanyVerificationController;
 use App\Http\Controllers\Admin\AdminLmsController;
 use App\Http\Controllers\Admin\InternshipModerationController;
+use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\ApplicationTrackingController;
 use App\Http\Controllers\CvController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DirectMessageController;
 use App\Http\Controllers\EventRegistrationController;
+use App\Http\Controllers\EventRatingController;
 use App\Http\Controllers\InternshipController;
 use App\Http\Controllers\LmsController;
 use App\Http\Controllers\NotificationController;
@@ -64,6 +68,18 @@ Route::get('/event', function () {
                     ->first();
             }
 
+            $ratingsData = $event->ratings();
+            $avgRating   = round($ratingsData->avg('rating'), 2);
+            $ratingCount = $ratingsData->count();
+
+            $userRating = null;
+            if ($isMahasiswa && $user) {
+                $ur = $event->ratings()->where('user_id', $user->id)->first();
+                if ($ur) {
+                    $userRating = ['rating' => $ur->rating, 'comment' => $ur->comment];
+                }
+            }
+
             return [
                 'id'               => $event->id,
                 'title'            => $event->title,
@@ -82,6 +98,9 @@ Route::get('/event', function () {
                     'id'     => $userRegistration->id,
                     'status' => $userRegistration->status,
                 ] : null,
+                'avg_rating'   => $avgRating ?: null,
+                'rating_count' => $ratingCount,
+                'user_rating'  => $userRating,
                 'company'          => $event->company ? [
                     'id'   => $event->company->id,
                     'name' => $event->company->name,
@@ -116,6 +135,29 @@ Route::get('/event/{event}', function (\App\Models\Event $event) {
             ->first();
     }
 
+    $avgRating   = round($event->ratings()->avg('rating'), 2);
+    $ratingCount = $event->ratings()->count();
+    $allRatings  = $event->ratings()->with('user')->latest()->get()->map(function ($r) {
+        return [
+            'id'         => $r->id,
+            'rating'     => $r->rating,
+            'comment'    => $r->comment,
+            'created_at' => $r->created_at,
+            'user_name'  => $r->user ? $r->user->name : 'Mahasiswa',
+        ];
+    });
+
+    $userRating = null;
+    if ($isMahasiswa && $user) {
+        $ur = $event->ratings()->where('user_id', $user->id)->first();
+        if ($ur) {
+            $userRating = ['rating' => $ur->rating, 'comment' => $ur->comment];
+        }
+    }
+
+    $isEventCompleted = $event->status === 'completed' ||
+        \Carbon\Carbon::parse($event->date)->startOfDay()->lt(\Carbon\Carbon::today());
+
     $eventData = [
         'id'               => $event->id,
         'title'            => $event->title,
@@ -134,6 +176,11 @@ Route::get('/event/{event}', function (\App\Models\Event $event) {
             'id'     => $userRegistration->id,
             'status' => $userRegistration->status,
         ] : null,
+        'avg_rating'        => $avgRating ?: null,
+        'rating_count'      => $ratingCount,
+        'ratings'           => $allRatings,
+        'user_rating'       => $userRating,
+        'is_completed'      => $isEventCompleted,
         'company'          => $event->company ? [
             'id'   => $event->company->id,
             'name' => $event->company->name,
@@ -150,7 +197,7 @@ Route::get('/generate-cv', function () {
     return Inertia::render('Features/GenerateCv');
 })->name('generate-cv');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
     Route::prefix('dm')->name('dm.')->group(function () {
@@ -190,11 +237,17 @@ Route::middleware('auth')->group(function () {
         Route::post('/events/{event}/register', [EventRegistrationController::class, 'store'])->name('events.register');
         Route::delete('/events/{event}/register', [EventRegistrationController::class, 'destroy'])->name('events.register.cancel');
         Route::get('/my-events', [EventRegistrationController::class, 'myEvents'])->name('my-events');
+
+        // ── Event Rating (Mahasiswa) ──────────────────────────────────
+        Route::post('/events/{event}/ratings', [EventRatingController::class, 'store'])->name('events.ratings.store');
+        Route::put('/events/{event}/ratings', [EventRatingController::class, 'update'])->name('events.ratings.update');
     });
 
     // ── Perusahaan ────────────────────────────────────────────────────
     Route::middleware(['auth', 'role:perusahaan'])->prefix('perusahaan')->name('perusahaan.')->group(function () {
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
+        Route::get('/profile', [\App\Http\Controllers\CompanyController::class, 'ownerProfile'])->name('profile.show');
+        Route::post('/profile', [\App\Http\Controllers\CompanyController::class, 'updateOwnerProfile'])->name('profile.update');
 
         // Lowongan
         Route::get('/internships', [\App\Http\Controllers\CompanyInternshipController::class, 'index'])->name('internships.index');
@@ -214,6 +267,8 @@ Route::middleware('auth')->group(function () {
 
         // Laporan
         Route::get('/reports', [\App\Http\Controllers\CompanyReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/download', [\App\Http\Controllers\CompanyReportController::class, 'downloadRecruitment'])->name('reports.download');
+        Route::get('/reports/events/download', [\App\Http\Controllers\CompanyReportController::class, 'downloadEvents'])->name('reports.events.download');
 
         // LMS — Kelola Kursus (CRUD)
         Route::resource('/lms', \App\Http\Controllers\CompanyLmsCourseController::class)->parameters(['lms' => 'course'])->names('lms');
@@ -262,6 +317,7 @@ Route::middleware('auth')->group(function () {
 
         // ── Moderasi Lowongan ─────────────────────────────────────────
         Route::get('/internships', [InternshipModerationController::class, 'index'])->name('internships.index');
+        Route::get('/internships/calendar', [InternshipModerationController::class, 'calendar'])->name('internships.calendar');
         Route::get('/internships/{internship}', [InternshipModerationController::class, 'show'])->name('internships.show');
         Route::patch('/internships/{internship}/approve', [InternshipModerationController::class, 'approve'])->name('internships.approve');
         Route::patch('/internships/{internship}/reject', [InternshipModerationController::class, 'reject'])->name('internships.reject');
@@ -277,10 +333,22 @@ Route::middleware('auth')->group(function () {
         Route::post('/lms/enrollments/{enrollment}/reset', [AdminLmsController::class, 'resetEnrollment'])->name('lms.enrollments.reset');
         Route::delete('/lms/enrollments/{enrollment}', [AdminLmsController::class, 'deleteEnrollment'])->name('lms.enrollments.destroy');
 
-        // Fitur lain seperti manajemen user, verifikasi, dll akan ditambahkan di sini
+        // ── Manajemen Pengguna ─────────────────────────────────────────
+        Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
+        Route::get('/users/{user}', [UserManagementController::class, 'show'])->name('users.show');
+        Route::patch('/users/{user}/status', [UserManagementController::class, 'updateStatus'])->name('users.updateStatus');
+
+        // ── Verifikasi Perusahaan ──────────────────────────────────────
+        Route::get('/verifications', [CompanyVerificationController::class, 'index'])->name('verifications.index');
+        Route::get('/verifications/{user}', [CompanyVerificationController::class, 'show'])->name('verifications.show');
+        Route::patch('/verifications/{user}/status', [CompanyVerificationController::class, 'updateStatus'])->name('verifications.updateStatus');
         Route::get('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'index'])->name('settings.index');
         Route::post('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'update'])->name('settings.update');
         Route::get('/activity-logs', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('activity-logs.index');
+
+        // ── Data Lamaran ──────────────────────────────────────────────
+        Route::get('/applications/export', [ApplicationDataController::class, 'export'])->name('applications.export');
+        Route::get('/applications', [ApplicationDataController::class, 'index'])->name('applications.index');
     });
 
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

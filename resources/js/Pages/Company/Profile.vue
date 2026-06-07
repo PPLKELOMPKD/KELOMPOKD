@@ -1,21 +1,113 @@
 <script setup>
-import { ref } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import PortalLayout from '@/Layouts/PortalLayout.vue';
+import SikaraLayout from '@/Layouts/SikaraLayout.vue';
 
-defineProps({
-    company: Object
+const props = defineProps({
+    company: Object,
+    isOwner: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const openVisi = ref(false);
 const openMisi = ref(false);
+const showEditModal = ref(false);
+const activeEditSection = ref('identity');
+
+const editSections = {
+    identity: {
+        title: 'Edit Identitas Perusahaan',
+        description: 'Perbarui nama, industri, lokasi, website, logo, dan cover profil.',
+    },
+    about: {
+        title: 'Edit Tentang Perusahaan',
+        description: 'Perbarui deskripsi, visi, dan misi perusahaan.',
+    },
+    companyInfo: {
+        title: 'Edit Informasi Perusahaan',
+        description: 'Perbarui tahun berdiri, jumlah karyawan, dan spesialisasi.',
+    },
+    contact: {
+        title: 'Edit Kontak & Lokasi',
+        description: 'Perbarui alamat kantor perusahaan.',
+    },
+};
+
+const activeEditConfig = computed(() => editSections[activeEditSection.value] ?? editSections.identity);
+const layoutComponent = computed(() => props.isOwner ? SikaraLayout : PortalLayout);
+const layoutProps = computed(() => props.isOwner
+    ? {
+        title: 'Profil Perusahaan',
+        subtitle: '',
+        showHeader: false,
+        contentClass: 'p-0',
+    }
+    : {
+        activeRole: 'peserta',
+        loginRole: 'mahasiswa',
+    });
+
+const specializationsToText = (specializations) => {
+    if (!specializations) return '';
+    return Array.isArray(specializations) ? specializations.join(', ') : String(specializations);
+};
+
+const form = useForm({
+    name: props.company.name || '',
+    industry: props.company.profile?.industry || '',
+    location: props.company.profile?.location || '',
+    website: props.company.profile?.website || '',
+    description: props.company.profile?.description || '',
+    vision: props.company.profile?.vision || '',
+    mission: props.company.profile?.mission || '',
+    founded_year: props.company.profile?.founded_year || '',
+    employee_count: props.company.profile?.employee_count || '',
+    specializations: specializationsToText(props.company.profile?.specializations),
+    office_address: props.company.profile?.office_address || '',
+    logo: null,
+    cover: null,
+});
+
+const openEditModal = (section = 'identity') => {
+    activeEditSection.value = section;
+    window.scrollTo({
+        top: Math.max((document.documentElement.scrollHeight - window.innerHeight) / 2, 0),
+        behavior: 'auto',
+    });
+    showEditModal.value = true;
+};
+
+const closeEditModal = () => {
+    showEditModal.value = false;
+    form.clearErrors();
+    form.logo = null;
+    form.cover = null;
+};
+
+const submitProfile = () => {
+    form.post(route('perusahaan.profile.update'), {
+        forceFormData: true,
+        preserveScroll: true,
+        onSuccess: closeEditModal,
+    });
+};
+
+watch(showEditModal, (isOpen) => {
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+});
+
+onBeforeUnmount(() => {
+    document.body.style.overflow = '';
+});
 </script>
 
 <template>
     <Head :title="company.name + ' — SIKARA'" />
 
-    <PortalLayout activeRole="peserta" loginRole="mahasiswa">
-        
+    <component :is="layoutComponent" v-bind="layoutProps">
         <!-- Hero Section -->
         <section class="relative w-full h-[450px] overflow-hidden">
             <img class="w-full h-full object-cover" :src="company.profile?.cover_path || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop'" :alt="company.name" />
@@ -23,12 +115,22 @@ const openMisi = ref(false);
             
             <div class="absolute top-6 left-0 w-full z-20">
                 <div class="max-w-7xl mx-auto px-6">
-                    <Link :href="route('perusahaan-list')" class="inline-flex bg-white/10 backdrop-blur-md text-white px-4 py-2 rounded-xl items-center gap-2 hover:bg-white/20 transition-all font-semibold border border-white/20">
+                    <Link :href="isOwner ? route('perusahaan.dashboard') : route('perusahaan-list')" class="inline-flex bg-white/10 backdrop-blur-md text-white px-4 py-2 rounded-xl items-center gap-2 hover:bg-white/20 transition-all font-semibold border border-white/20">
                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
-                        Kembali ke Daftar Perusahaan
+                        {{ isOwner ? 'Kembali ke Dashboard' : 'Kembali ke Daftar Perusahaan' }}
                     </Link>
                 </div>
             </div>
+            <button
+                v-if="isOwner"
+                @click="openEditModal('identity')"
+                type="button"
+                class="absolute right-6 top-6 z-30 flex h-12 w-12 items-center justify-center rounded-full border border-white/30 bg-white/15 text-white shadow-lg backdrop-blur-md transition-all hover:bg-white hover:text-[#004ac6]"
+                aria-label="Edit profil perusahaan"
+                title="Edit profil perusahaan"
+            >
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            </button>
 
             <div class="absolute bottom-0 left-0 w-full pb-10">
                 <div class="max-w-7xl mx-auto px-6">
@@ -73,7 +175,12 @@ const openMisi = ref(false);
                     
                     <!-- Tentang Perusahaan -->
                     <section class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
-                        <h2 class="text-2xl font-bold text-[#0b1c30] mb-6 border-l-4 border-[#004ac6] pl-4">Tentang Perusahaan</h2>
+                        <div class="mb-6 flex items-center justify-between gap-4 border-l-4 border-[#004ac6] pl-4">
+                            <h2 class="text-2xl font-bold text-[#0b1c30]">Tentang Perusahaan</h2>
+                            <button v-if="isOwner" @click="openEditModal('about')" type="button" class="flex h-10 w-10 items-center justify-center rounded-full bg-[#eff4ff] text-[#004ac6] transition-colors hover:bg-[#d3e4fe]" aria-label="Edit tentang perusahaan" title="Edit tentang perusahaan">
+                                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                            </button>
+                        </div>
                         <div class="space-y-4 text-[#434655] text-lg leading-relaxed">
                             <p>{{ company.profile?.description || 'Belum ada deskripsi perusahaan.' }}</p>
 
@@ -161,7 +268,12 @@ const openMisi = ref(false);
                 <aside class="lg:col-span-4 space-y-8">
                     <!-- Informasi Perusahaan Card -->
                     <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
-                        <h3 class="text-lg font-bold text-[#0b1c30] mb-6">Informasi Perusahaan</h3>
+                        <div class="mb-6 flex items-center justify-between gap-4">
+                            <h3 class="text-lg font-bold text-[#0b1c30]">Informasi Perusahaan</h3>
+                            <button v-if="isOwner" @click="openEditModal('companyInfo')" type="button" class="flex h-9 w-9 items-center justify-center rounded-full bg-[#eff4ff] text-[#004ac6] transition-colors hover:bg-[#d3e4fe]" aria-label="Edit informasi perusahaan" title="Edit informasi perusahaan">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                            </button>
+                        </div>
                         <div class="space-y-6">
                             <div class="flex gap-4">
                                 <svg class="h-6 w-6 text-[#004ac6] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -194,7 +306,12 @@ const openMisi = ref(false);
 
                     <!-- Kontak & Lokasi Card -->
                     <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
-                        <h3 class="text-lg font-bold text-[#0b1c30] mb-6">Kontak &amp; Lokasi</h3>
+                        <div class="mb-6 flex items-center justify-between gap-4">
+                            <h3 class="text-lg font-bold text-[#0b1c30]">Kontak &amp; Lokasi</h3>
+                            <button v-if="isOwner" @click="openEditModal('contact')" type="button" class="flex h-9 w-9 items-center justify-center rounded-full bg-[#eff4ff] text-[#004ac6] transition-colors hover:bg-[#d3e4fe]" aria-label="Edit kontak dan lokasi" title="Edit kontak dan lokasi">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                            </button>
+                        </div>
                         <div class="space-y-6">
                             <div class="flex gap-4">
                                 <svg class="h-6 w-6 text-[#004ac6] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -229,7 +346,110 @@ const openMisi = ref(false);
                 </aside>
             </div>
         </main>
-    </PortalLayout>
+
+        <div v-if="isOwner && showEditModal" class="fixed inset-0 z-[80] flex items-center justify-center overflow-hidden bg-[#0b1c30]/70 px-4 py-8 backdrop-blur-sm">
+            <div class="max-h-[calc(100vh-4rem)] w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl">
+                <div class="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+                    <div>
+                        <h2 class="text-xl font-bold text-[#0b1c30]">{{ activeEditConfig.title }}</h2>
+                        <p class="text-sm text-slate-500">{{ activeEditConfig.description }}</p>
+                    </div>
+                    <button @click="closeEditModal" type="button" class="flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900" aria-label="Tutup form">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    </button>
+                </div>
+
+                <form @submit.prevent="submitProfile" class="max-h-[calc(100vh-11rem)] space-y-6 overflow-y-auto px-6 py-6">
+                    <div v-if="activeEditSection === 'identity'" class="grid gap-5 md:grid-cols-2">
+                        <div>
+                            <label class="mb-2 block text-sm font-bold text-[#0b1c30]">Nama Perusahaan</label>
+                            <input v-model="form.name" type="text" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-[#004ac6] focus:ring-[#004ac6]" />
+                            <p v-if="form.errors.name" class="mt-1 text-sm text-red-600">{{ form.errors.name }}</p>
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-bold text-[#0b1c30]">Bidang Industri</label>
+                            <input v-model="form.industry" type="text" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-[#004ac6] focus:ring-[#004ac6]" />
+                            <p v-if="form.errors.industry" class="mt-1 text-sm text-red-600">{{ form.errors.industry }}</p>
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-bold text-[#0b1c30]">Lokasi</label>
+                            <input v-model="form.location" type="text" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-[#004ac6] focus:ring-[#004ac6]" />
+                            <p v-if="form.errors.location" class="mt-1 text-sm text-red-600">{{ form.errors.location }}</p>
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-bold text-[#0b1c30]">Website</label>
+                            <input v-model="form.website" type="url" placeholder="https://contoh.com" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-[#004ac6] focus:ring-[#004ac6]" />
+                            <p v-if="form.errors.website" class="mt-1 text-sm text-red-600">{{ form.errors.website }}</p>
+                        </div>
+                    </div>
+
+                    <div v-if="activeEditSection === 'about'">
+                        <label class="mb-2 block text-sm font-bold text-[#0b1c30]">Deskripsi Perusahaan</label>
+                        <textarea v-model="form.description" rows="4" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-[#004ac6] focus:ring-[#004ac6]"></textarea>
+                        <p v-if="form.errors.description" class="mt-1 text-sm text-red-600">{{ form.errors.description }}</p>
+                    </div>
+
+                    <div v-if="activeEditSection === 'about'" class="grid gap-5 md:grid-cols-2">
+                        <div>
+                            <label class="mb-2 block text-sm font-bold text-[#0b1c30]">Visi</label>
+                            <textarea v-model="form.vision" rows="3" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-[#004ac6] focus:ring-[#004ac6]"></textarea>
+                            <p v-if="form.errors.vision" class="mt-1 text-sm text-red-600">{{ form.errors.vision }}</p>
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-bold text-[#0b1c30]">Misi</label>
+                            <textarea v-model="form.mission" rows="3" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-[#004ac6] focus:ring-[#004ac6]"></textarea>
+                            <p v-if="form.errors.mission" class="mt-1 text-sm text-red-600">{{ form.errors.mission }}</p>
+                        </div>
+                    </div>
+
+                    <div v-if="activeEditSection === 'companyInfo'" class="grid gap-5 md:grid-cols-2">
+                        <div>
+                            <label class="mb-2 block text-sm font-bold text-[#0b1c30]">Tahun Berdiri</label>
+                            <input v-model="form.founded_year" type="number" min="1800" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-[#004ac6] focus:ring-[#004ac6]" />
+                            <p v-if="form.errors.founded_year" class="mt-1 text-sm text-red-600">{{ form.errors.founded_year }}</p>
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-bold text-[#0b1c30]">Jumlah Karyawan</label>
+                            <input v-model="form.employee_count" type="text" placeholder="50-100" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-[#004ac6] focus:ring-[#004ac6]" />
+                            <p v-if="form.errors.employee_count" class="mt-1 text-sm text-red-600">{{ form.errors.employee_count }}</p>
+                        </div>
+                    </div>
+
+                    <div v-if="activeEditSection === 'contact'">
+                        <label class="mb-2 block text-sm font-bold text-[#0b1c30]">Alamat Kantor</label>
+                        <textarea v-model="form.office_address" rows="3" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-[#004ac6] focus:ring-[#004ac6]"></textarea>
+                        <p v-if="form.errors.office_address" class="mt-1 text-sm text-red-600">{{ form.errors.office_address }}</p>
+                    </div>
+
+                    <div v-if="activeEditSection === 'companyInfo'">
+                        <label class="mb-2 block text-sm font-bold text-[#0b1c30]">Spesialisasi</label>
+                        <input v-model="form.specializations" type="text" placeholder="Software, Data, UI/UX" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-[#004ac6] focus:ring-[#004ac6]" />
+                        <p v-if="form.errors.specializations" class="mt-1 text-sm text-red-600">{{ form.errors.specializations }}</p>
+                    </div>
+
+                    <div v-if="activeEditSection === 'identity'" class="grid gap-5 md:grid-cols-2">
+                        <div>
+                            <label class="mb-2 block text-sm font-bold text-[#0b1c30]">Logo Perusahaan</label>
+                            <input @input="form.logo = $event.target.files[0]" type="file" accept="image/png,image/jpeg" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm file:mr-4 file:rounded-lg file:border-0 file:bg-[#eff4ff] file:px-4 file:py-2 file:font-bold file:text-[#004ac6]" />
+                            <p v-if="form.errors.logo" class="mt-1 text-sm text-red-600">{{ form.errors.logo }}</p>
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-bold text-[#0b1c30]">Cover Profil</label>
+                            <input @input="form.cover = $event.target.files[0]" type="file" accept="image/png,image/jpeg" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm file:mr-4 file:rounded-lg file:border-0 file:bg-[#eff4ff] file:px-4 file:py-2 file:font-bold file:text-[#004ac6]" />
+                            <p v-if="form.errors.cover" class="mt-1 text-sm text-red-600">{{ form.errors.cover }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
+                        <button @click="closeEditModal" type="button" class="rounded-xl border border-slate-300 px-5 py-3 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50">Batal</button>
+                        <button type="submit" :disabled="form.processing" class="rounded-xl bg-[#004ac6] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-[#003ea8] disabled:cursor-not-allowed disabled:opacity-60">
+                            {{ form.processing ? 'Menyimpan...' : 'Simpan Profil' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </component>
 </template>
 
 <style>

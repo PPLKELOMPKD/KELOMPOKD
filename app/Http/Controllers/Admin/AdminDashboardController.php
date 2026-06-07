@@ -102,10 +102,14 @@ class AdminDashboardController extends Controller
             'lms'        => $draftCourses,
         ];
 
-        // ── System Health (Mockup for representation) ─────────────────
+        // ── System Health (real disk usage) ───────────────────────────
+        $diskTotal   = @disk_total_space(base_path()) ?: 1;
+        $diskFree    = @disk_free_space(base_path()) ?: 0;
+        $diskUsed    = $diskTotal - $diskFree;
+        $diskPercent = (int) round(($diskUsed / $diskTotal) * 100);
         $systemHealth = [
-            'storage' => 68, // 68% used
-            'status'  => 'Optimal',
+            'storage' => $diskPercent,
+            'status'  => $diskPercent >= 90 ? 'Kritis' : ($diskPercent >= 75 ? 'Perlu Perhatian' : 'Optimal'),
         ];
 
         // ── Chart data: Monthly user registrations (last 6 months) ────

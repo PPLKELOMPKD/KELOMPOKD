@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 
 defineProps({ title: String });
@@ -7,17 +7,56 @@ defineProps({ title: String });
 const isSidebarOpen = ref(true);
 const logout = () => router.post(route('logout'));
 
+// --- Resizable Sidebar Logic ---
+const sidebarWidth = ref(256); // default 256px
+const minWidth = 220;
+const maxWidth = 400;
+const isResizing = ref(false);
+
+onMounted(() => {
+    const savedWidth = localStorage.getItem('adminSidebarWidth');
+    if (savedWidth) {
+        sidebarWidth.value = parseInt(savedWidth);
+    }
+});
+
+const startResize = (e) => {
+    isResizing.value = true;
+    document.addEventListener('mousemove', doResize);
+    document.addEventListener('mouseup', stopResize);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+};
+
+const doResize = (e) => {
+    if (!isResizing.value) return;
+    let newWidth = e.clientX;
+    if (newWidth < minWidth) newWidth = minWidth;
+    if (newWidth > maxWidth) newWidth = maxWidth;
+    sidebarWidth.value = newWidth;
+};
+
+const stopResize = () => {
+    isResizing.value = false;
+    document.removeEventListener('mousemove', doResize);
+    document.removeEventListener('mouseup', stopResize);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    localStorage.setItem('adminSidebarWidth', sidebarWidth.value);
+};
+
 const menuUtama = [
     { name: 'Dashboard', href: route('admin.dashboard'), icon: 'dashboard', active: route().current('admin.dashboard') },
 ];
 
 const menuManajemen = [
-    { name: 'Manajemen Pengguna',    href: '#', icon: 'users',     active: false },
-    { name: 'Verifikasi Perusahaan', href: '#', icon: 'building',  active: false },
-    { name: 'Moderasi Lowongan',     href: route('admin.internships.index'), icon: 'briefcase', active: route().current('admin.internships.*') },
+    { name: 'Manajemen Pengguna',    href: route('admin.users.index'), icon: 'users',     active: route().current('admin.users.*') },
+    { name: 'Verifikasi Perusahaan', href: route('admin.verifications.index'), icon: 'building',  active: route().current('admin.verifications.*') },
+    { name: 'Moderasi Lowongan',     href: route('admin.internships.index'), icon: 'briefcase', active: route().current('admin.internships.index') || route().current('admin.internships.show') },
+    { name: 'Kalender Lowongan',     href: route('admin.internships.calendar'), icon: 'calendar', active: route().current('admin.internships.calendar') },
     { name: 'Manajemen Event',       href: '#', icon: 'calendar',  active: false },
+    { name: 'Data Lamaran',          href: route('admin.applications.index'), icon: 'inbox', active: route().current('admin.applications.*') },
     { name: 'Pantau LMS',            href: route('admin.lms.index'), icon: 'book',      active: route().current('admin.lms.*') },
-    { name: 'Data Lamaran',          href: '#', icon: 'inbox',     active: false },
 ];
 
 const menuSistem = [
@@ -32,9 +71,19 @@ const menuSistem = [
 
         <!-- Sidebar -->
         <aside
-            class="fixed left-0 top-0 z-40 h-screen w-64 border-r border-[#E2E8F0] bg-white transition-transform duration-300 flex flex-col"
-            :class="{ '-translate-x-full': !isSidebarOpen }"
+            class="fixed left-0 top-0 z-40 h-screen border-r border-[#E2E8F0] bg-white flex flex-col"
+            :class="[
+                !isSidebarOpen ? '-translate-x-full' : '',
+                !isResizing ? 'transition-transform duration-300' : ''
+            ]"
+            :style="{ width: sidebarWidth + 'px' }"
         >
+            <!-- Resizer Handle -->
+            <div 
+                @mousedown.prevent="startResize" 
+                class="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-blue-400/50 active:bg-blue-500 z-50 transition-colors"
+                title="Tarik untuk mengubah ukuran sidebar"
+            ></div>
             <!-- Brand -->
             <div class="flex h-20 shrink-0 items-center border-b border-[#F1F5F9] px-6">
                 <Link :href="route('admin.dashboard')" class="flex items-center gap-2.5 transition-transform hover:scale-105">
@@ -141,7 +190,11 @@ const menuSistem = [
         </aside>
 
         <!-- Main Content -->
-        <main class="transition-all duration-300 min-h-screen flex flex-col" :class="{ 'pl-64': isSidebarOpen, 'pl-0': !isSidebarOpen }">
+        <main 
+            class="min-h-screen flex flex-col" 
+            :class="[!isResizing ? 'transition-all duration-300' : '']"
+            :style="{ paddingLeft: isSidebarOpen ? sidebarWidth + 'px' : '0px' }"
+        >
             <!-- Header -->
             <header class="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-[#E2E8F0] bg-white/80 px-8 backdrop-blur-md">
                 <div class="flex items-center gap-4">
