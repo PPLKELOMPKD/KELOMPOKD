@@ -144,4 +144,29 @@ class InternshipModerationController extends Controller
 
         return back()->with('success', "Lowongan \"{$internship->title}\" berhasil dicabut dari penayangan.");
     }
+
+    /**
+     * Tampilkan kalender aktivitas lowongan.
+     */
+    public function calendar(Request $request): Response
+    {
+        $internships = Internship::select([
+            'id',
+            'title',
+            'company_id',
+            'company_name',
+            'company_logo',
+            'location',
+            'work_type',
+            'moderation_status',
+            'is_published',
+            'created_at',
+            'moderated_at',
+            'deadline_at'
+        ])->latest()->get();
+
+        return Inertia::render('Admin/Internships/Calendar', [
+            'internships' => $internships
+        ]);
+    }
 }

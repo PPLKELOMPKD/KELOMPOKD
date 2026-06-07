@@ -316,6 +316,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // ── Moderasi Lowongan ─────────────────────────────────────────
         Route::get('/internships', [InternshipModerationController::class, 'index'])->name('internships.index');
+        Route::get('/internships/calendar', [InternshipModerationController::class, 'calendar'])->name('internships.calendar');
         Route::get('/internships/{internship}', [InternshipModerationController::class, 'show'])->name('internships.show');
         Route::patch('/internships/{internship}/approve', [InternshipModerationController::class, 'approve'])->name('internships.approve');
         Route::patch('/internships/{internship}/reject', [InternshipModerationController::class, 'reject'])->name('internships.reject');
