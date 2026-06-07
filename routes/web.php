@@ -368,6 +368,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'update'])->name('settings.update');
         Route::get('/activity-logs', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('activity-logs.index');
 
+        // ── Monitoring Aktivitas LMS ──
+        Route::get('/lms-activity', [\App\Http\Controllers\Admin\AdminLmsActivityController::class, 'index'])->name('lms-activity.index');
+        Route::get('/lms-activity/export', [\App\Http\Controllers\Admin\AdminLmsActivityController::class, 'export'])->name('lms-activity.export');
+
         // ── Data Lamaran ──────────────────────────────────────────────
         Route::get('/applications/export', [ApplicationDataController::class, 'export'])->name('applications.export');
         Route::get('/applications', [ApplicationDataController::class, 'index'])->name('applications.index');
