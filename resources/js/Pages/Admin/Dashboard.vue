@@ -154,7 +154,7 @@ const lineOptions = { ...barOptions };
                     </div>
                 </Link>
                 
-                <Link href="#" class="group relative overflow-hidden rounded-2xl bg-white p-4 border border-slate-200 shadow-sm transition-all hover:shadow-md hover:border-emerald-300 flex items-center gap-4 hover:-translate-y-0.5">
+                <Link :href="route('admin.verifications.index')" class="group relative overflow-hidden rounded-2xl bg-white p-4 border border-slate-200 shadow-sm transition-all hover:shadow-md hover:border-emerald-300 flex items-center gap-4 hover:-translate-y-0.5">
                     <div v-if="pendingActions.perusahaan > 0" class="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white animate-pulse">{{ pendingActions.perusahaan }}</div>
                     <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 transition-transform group-hover:scale-110">
                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
@@ -176,14 +176,14 @@ const lineOptions = { ...barOptions };
                     </div>
                 </Link>
 
-                <Link href="#" class="group relative overflow-hidden rounded-2xl bg-white p-4 border border-slate-200 shadow-sm transition-all hover:shadow-md hover:border-teal-300 flex items-center gap-4 hover:-translate-y-0.5">
-                    <div v-if="pendingActions.lms > 0" class="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white animate-pulse">{{ pendingActions.lms }}</div>
-                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-600 transition-transform group-hover:scale-110">
-                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                <Link :href="route('admin.events.index')" class="group relative overflow-hidden rounded-2xl bg-white p-4 border border-slate-200 shadow-sm transition-all hover:shadow-md hover:border-orange-300 flex items-center gap-4 hover:-translate-y-0.5">
+                    <div v-if="pendingActions.events > 0" class="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white animate-pulse">{{ pendingActions.events }}</div>
+                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-orange-50 text-orange-600 transition-transform group-hover:scale-110">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
                     </div>
                     <div>
-                        <h4 class="text-sm font-bold text-slate-800 group-hover:text-teal-600 transition-colors">Pantau Modul LMS</h4>
-                        <p class="text-[10px] text-slate-500 mt-0.5">Monitoring aktivitas belajar</p>
+                        <h4 class="text-sm font-bold text-slate-800 group-hover:text-orange-600 transition-colors">Manajemen Event</h4>
+                        <p class="text-[10px] text-slate-500 mt-0.5">Setujui atau tolak event</p>
                     </div>
                 </Link>
             </div>

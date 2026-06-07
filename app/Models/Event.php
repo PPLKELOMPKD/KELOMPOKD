@@ -11,6 +11,10 @@ class Event extends Model
 {
     use HasFactory;
 
+    public const MODERATION_PENDING  = 'pending';
+    public const MODERATION_APPROVED = 'approved';
+    public const MODERATION_REJECTED = 'rejected';
+
     protected $fillable = [
         'company_id',
         'title',
@@ -23,6 +27,10 @@ class Event extends Model
         'type',
         'status',
         'max_participants',
+        'moderation_status',
+        'rejection_reason',
+        'moderated_by',
+        'moderated_at',
     ];
 
     protected function casts(): array

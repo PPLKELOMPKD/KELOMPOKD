@@ -28,8 +28,8 @@ class EventRegistrationController extends Controller
             return back()->with('error', 'Hanya mahasiswa yang dapat mendaftar ke event.');
         }
 
-        // TC-07: Event harus berstatus published
-        if ($event->status !== 'published') {
+        // TC-07: Event harus berstatus published DAN sudah disetujui admin
+        if ($event->status !== 'published' || $event->moderation_status !== 'approved') {
             return back()->with('error', 'Event tidak tersedia untuk pendaftaran.');
         }
 

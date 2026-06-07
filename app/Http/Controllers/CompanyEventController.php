@@ -13,7 +13,7 @@ class CompanyEventController extends Controller
     {
         $events = Event::where('company_id', auth()->id())
             ->latest()
-            ->get();
+            ->get(['id', 'title', 'category', 'date', 'start_time', 'end_time', 'location', 'type', 'status', 'max_participants', 'moderation_status', 'rejection_reason', 'created_at']);
         return Inertia::render('Company/Events/Index', [
             'events' => $events
         ]);
@@ -35,7 +35,6 @@ class CompanyEventController extends Controller
             'end_time'         => 'required|date_format:H:i|after:start_time',
             'location'         => 'required|string|max:255',
             'type'             => 'required|in:online,offline',
-            'status'           => 'required|in:draft,published,completed',
             'max_participants' => 'required|integer|min:1',
         ], [
             'title.required'            => 'Judul wajib diisi.',
@@ -47,7 +46,6 @@ class CompanyEventController extends Controller
             'end_time.after'            => 'Waktu selesai harus setelah waktu mulai.',
             'location.required'         => 'Lokasi wajib diisi.',
             'type.required'             => 'Tipe acara wajib diisi.',
-            'status.required'           => 'Status wajib diisi.',
             'max_participants.required' => 'Maksimal peserta wajib diisi.',
             'max_participants.min'      => 'Maksimal peserta harus lebih dari 0.',
         ]);
@@ -70,12 +68,15 @@ class CompanyEventController extends Controller
             }
         }
 
-        $validated['company_id'] = auth()->id();
+        $validated['company_id']        = auth()->id();
+        $validated['status']            = 'draft';    // akan diubah published setelah admin approve
+        $validated['moderation_status'] = 'pending';  // menunggu persetujuan admin
+
         $event = Event::create($validated);
 
-        \App\Services\ActivityLogger::log('Membuat Event', "Membuat event baru: {$event->title}", 'event');
+        \App\Services\ActivityLogger::log('Membuat Event', "Membuat event baru: {$event->title} (menunggu persetujuan admin)", 'event');
 
-        return redirect()->route('perusahaan.events.index')->with('success', 'Event Berhasil Ditambahkan');
+        return redirect()->route('perusahaan.events.index')->with('success', 'Event berhasil diajukan dan sedang menunggu persetujuan Admin.');
     }
 
     public function edit(Event $event)
@@ -97,35 +98,46 @@ class CompanyEventController extends Controller
         }
 
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'category' => 'required|in:webinar,workshop,seminar',
-            'description' => 'required|string',
-            'date' => 'required|date',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-            'location' => 'required|string|max:255',
-            'type' => 'required|in:online,offline',
-            'status' => 'required|in:draft,published,completed',
+            'title'            => 'required|string|max:255',
+            'category'         => 'required|in:webinar,workshop,seminar',
+            'description'      => 'required|string',
+            'date'             => 'required|date',
+            'start_time'       => 'required|date_format:H:i',
+            'end_time'         => 'required|date_format:H:i|after:start_time',
+            'location'         => 'required|string|max:255',
+            'type'             => 'required|in:online,offline',
             'max_participants' => 'required|integer|min:1',
         ], [
-            'title.required' => 'Judul wajib diisi.',
-            'description.required' => 'Deskripsi wajib diisi.',
-            'date.required' => 'Tanggal acara wajib diisi.',
-            'start_time.required' => 'Waktu mulai wajib diisi.',
-            'end_time.required' => 'Waktu selesai wajib diisi.',
-            'end_time.after' => 'Waktu selesai harus setelah waktu mulai.',
-            'location.required' => 'Lokasi wajib diisi.',
-            'type.required' => 'Tipe acara wajib diisi.',
-            'status.required' => 'Status wajib diisi.',
+            'title.required'            => 'Judul wajib diisi.',
+            'description.required'      => 'Deskripsi wajib diisi.',
+            'date.required'             => 'Tanggal acara wajib diisi.',
+            'start_time.required'       => 'Waktu mulai wajib diisi.',
+            'end_time.required'         => 'Waktu selesai wajib diisi.',
+            'end_time.after'            => 'Waktu selesai harus setelah waktu mulai.',
+            'location.required'         => 'Lokasi wajib diisi.',
+            'type.required'             => 'Tipe acara wajib diisi.',
             'max_participants.required' => 'Maksimal peserta wajib diisi.',
-            'max_participants.min' => 'Maksimal peserta harus lebih dari 0.',
+            'max_participants.min'      => 'Maksimal peserta harus lebih dari 0.',
         ]);
+
+        // Jika event sudah disetujui dan ada perubahan konten, kembalikan ke pending
+        if ($event->moderation_status === 'approved') {
+            $validated['moderation_status'] = 'pending';
+            $validated['status']            = 'draft';
+            $validated['moderated_by']      = null;
+            $validated['moderated_at']      = null;
+            $validated['rejection_reason']  = null;
+        }
 
         $event->update($validated);
 
         \App\Services\ActivityLogger::log('Memperbarui Event', "Memperbarui event: {$event->title}", 'event');
 
-        return redirect()->route('perusahaan.events.index')->with('success', 'Event Berhasil Diperbarui');
+        $msg = isset($validated['moderation_status'])
+            ? 'Event diperbarui dan dikembalikan ke status menunggu persetujuan Admin.'
+            : 'Event Berhasil Diperbarui';
+
+        return redirect()->route('perusahaan.events.index')->with('success', $msg);
     }
 
     public function destroy(Event $event)

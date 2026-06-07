@@ -37,6 +37,7 @@ class AdminDashboardController extends Controller
         // ── Event stats ───────────────────────────────────────────────
         $totalEvents  = Event::count();
         $activeEvents = Event::where('status', 'published')
+            ->where('moderation_status', 'approved')
             ->where('date', '>=', now()->toDateString())
             ->count();
 
@@ -94,11 +95,13 @@ class AdminDashboardController extends Controller
         // ── Pending Actions for Quick Action Badges ───────────────────
         $pendingPerusahaan = User::where('role', 'perusahaan')->where('status', 'inactive')->count();
         $pendingLowongan   = Internship::where('moderation_status', 'pending')->count();
+        $pendingEvents     = Event::where('moderation_status', 'pending')->count();
         $draftCourses      = LmsCourse::where('status', 'draft')->count();
 
         $pendingActions = [
             'perusahaan' => $pendingPerusahaan,
             'lowongan'   => $pendingLowongan,
+            'events'     => $pendingEvents,
             'lms'        => $draftCourses,
         ];
 
