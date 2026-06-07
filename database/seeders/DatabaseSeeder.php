@@ -143,5 +143,7 @@ class DatabaseSeeder extends Seeder
             'is_published' => true,
         ]);
 
+        $this->call(LmsMonitorSeeder::class);
+        $this->call(LmsActivityLogSeeder::class);
     }
 }

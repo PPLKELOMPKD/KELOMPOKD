@@ -37,6 +37,20 @@ class LmsQuizAttemptController extends Controller
             'submitted_at' => now(),
         ]);
 
+        if ($result['passed']) {
+            \App\Services\ActivityLogger::log(
+                'Lulus Kuis',
+                "Mahasiswa {$request->user()->name} lulus kuis '{$quiz->title}' dengan skor {$result['score']} pada course '{$course->title}'",
+                'quiz'
+            );
+        } else {
+            \App\Services\ActivityLogger::log(
+                'Mengerjakan Kuis',
+                "Mahasiswa {$request->user()->name} mengerjakan kuis '{$quiz->title}' dengan skor {$result['score']} pada course '{$course->title}'",
+                'quiz'
+            );
+        }
+
         $progressService->refreshChapterCompletion($enrollment, $quiz->chapter);
 
         return redirect()->back()->with('flash', [

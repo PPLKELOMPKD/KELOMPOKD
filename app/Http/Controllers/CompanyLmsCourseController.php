@@ -51,7 +51,7 @@ class CompanyLmsCourseController extends Controller
 
         $slug = Str::slug($validated['title']) . '-' . uniqid();
 
-        LmsCourse::create([
+        $course = LmsCourse::create([
             'title' => $validated['title'],
             'provider' => $validated['provider'] ?? null,
             'description' => $validated['description'] ?? null,
@@ -68,6 +68,12 @@ class CompanyLmsCourseController extends Controller
             'slug' => $slug,
             'status' => LmsCourse::STATUS_DRAFT,
         ]);
+
+        \App\Services\ActivityLogger::log(
+            'Membuat Course',
+            "Perusahaan {$request->user()->name} membuat course '{$course->title}'",
+            'course'
+        );
 
         return redirect()->route('perusahaan.lms.index');
     }
@@ -141,6 +147,12 @@ class CompanyLmsCourseController extends Controller
 
         $course->update(['status' => LmsCourse::STATUS_PUBLISHED]);
 
+        \App\Services\ActivityLogger::log(
+            'Publish Course',
+            "Perusahaan {$request->user()->name} mempublikasikan course '{$course->title}'",
+            'course'
+        );
+
         return back()->with('success', 'Modul berhasil dipublikasikan!');
     }
 
@@ -149,6 +161,12 @@ class CompanyLmsCourseController extends Controller
         abort_if($course->company_id !== $request->user()->id, 403);
 
         $course->update(['status' => LmsCourse::STATUS_DRAFT]);
+
+        \App\Services\ActivityLogger::log(
+            'Unpublish Course',
+            "Perusahaan {$request->user()->name} membatalkan publikasi (unpublish) course '{$course->title}'",
+            'course'
+        );
 
         return back();
     }

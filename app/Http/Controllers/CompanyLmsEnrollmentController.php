@@ -47,7 +47,22 @@ class CompanyLmsEnrollmentController extends Controller
         abort_if($course->company_id !== $request->user()->id, 403);
         abort_if($enrollment->course_id !== $course->id, 404);
 
-        $enrollment->update(['is_graduated' => !$enrollment->is_graduated]);
+        $isGraduated = !$enrollment->is_graduated;
+        $enrollment->update(['is_graduated' => $isGraduated]);
+
+        if ($isGraduated) {
+            \App\Services\ActivityLogger::log(
+                'Meluluskan Mahasiswa',
+                "Perusahaan {$request->user()->name} meluluskan mahasiswa '{$enrollment->student->name}' pada course '{$course->title}'",
+                'enrollment'
+            );
+        } else {
+            \App\Services\ActivityLogger::log(
+                'Membatalkan Kelulusan',
+                "Perusahaan {$request->user()->name} membatalkan kelulusan mahasiswa '{$enrollment->student->name}' pada course '{$course->title}'",
+                'enrollment'
+            );
+        }
 
         return back()->with('success', $enrollment->is_graduated ? 'Peserta berhasil diluluskan.' : 'Status kelulusan peserta dibatalkan.');
     }
@@ -63,6 +78,12 @@ class CompanyLmsEnrollmentController extends Controller
         $enrollment->lessonCompletions()->delete();
         $enrollment->chapterCompletions()->delete();
         $enrollment->update(['is_graduated' => false]);
+
+        \App\Services\ActivityLogger::log(
+            'Reset Enrollment',
+            "Perusahaan {$request->user()->name} mereset progress belajar '{$enrollment->student->name}' pada course '{$course->title}'",
+            'moderasi'
+        );
 
         return back()->with('success', 'Progress peserta berhasil direset. Peserta dapat mengulang pelatihan.');
     }
