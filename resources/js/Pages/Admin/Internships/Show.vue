@@ -9,9 +9,10 @@ const props = defineProps({
 
 // ─── Status Config ──────────────────────────────────────────────────
 const statusConfig = {
-    pending:  { label: 'Menunggu Review', bg: 'bg-amber-100',   text: 'text-amber-700',   dot: 'bg-amber-500',   borderBar: 'border-amber-400', gradient: 'from-amber-50 to-orange-50' },
+    pending:  { label: 'Menunggu Review',    bg: 'bg-amber-100',   text: 'text-amber-700',   dot: 'bg-amber-500',   borderBar: 'border-amber-400',   gradient: 'from-amber-50 to-orange-50' },
     approved: { label: 'Disetujui & Tayang', bg: 'bg-emerald-100', text: 'text-emerald-700', dot: 'bg-emerald-500', borderBar: 'border-emerald-400', gradient: 'from-emerald-50 to-teal-50' },
-    rejected: { label: 'Ditolak',         bg: 'bg-red-100',     text: 'text-red-700',     dot: 'bg-red-500',     borderBar: 'border-red-400',    gradient: 'from-red-50 to-rose-50' },
+    rejected: { label: 'Ditolak',            bg: 'bg-red-100',     text: 'text-red-700',     dot: 'bg-red-500',     borderBar: 'border-red-400',     gradient: 'from-red-50 to-rose-50' },
+    closed:   { label: 'Ditutup (Takedown)', bg: 'bg-slate-100',   text: 'text-slate-600',   dot: 'bg-slate-400',   borderBar: 'border-slate-400',   gradient: 'from-slate-50 to-gray-50' },
 };
 
 const currentStatus = () => statusConfig[props.internship.moderation_status] ?? statusConfig.pending;
@@ -97,15 +98,17 @@ const submitModal = () => {
                     </div>
                 </div>
 
-                <!-- Rejection Reason Card (jika ditolak) -->
-                <div v-if="internship.moderation_status === 'rejected' && internship.rejection_reason"
-                    class="rounded-2xl border border-red-200 bg-red-50 p-5 animate-fade-in-up"
+                <!-- Rejection/Takedown Reason Card -->
+                <div v-if="(internship.moderation_status === 'rejected' || internship.moderation_status === 'closed') && internship.rejection_reason"
+                    :class="internship.moderation_status === 'closed' ? 'rounded-2xl border border-slate-200 bg-slate-50 p-5 animate-fade-in-up' : 'rounded-2xl border border-red-200 bg-red-50 p-5 animate-fade-in-up'"
                 >
                     <div class="flex items-start gap-3">
-                        <svg class="h-5 w-5 text-red-500 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+                        <svg class="h-5 w-5 shrink-0 mt-0.5" :class="internship.moderation_status === 'closed' ? 'text-slate-500' : 'text-red-500'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
                         <div>
-                            <p class="text-sm font-black text-red-700 mb-1">Alasan Penolakan / Pencabutan</p>
-                            <p class="text-sm text-red-800 leading-relaxed">{{ internship.rejection_reason }}</p>
+                            <p class="text-sm font-black mb-1" :class="internship.moderation_status === 'closed' ? 'text-slate-700' : 'text-red-700'">
+                                {{ internship.moderation_status === 'closed' ? 'Alasan Pencabutan (Takedown)' : 'Alasan Penolakan' }}
+                            </p>
+                            <p class="text-sm leading-relaxed" :class="internship.moderation_status === 'closed' ? 'text-slate-800' : 'text-red-800'">{{ internship.rejection_reason }}</p>
                         </div>
                     </div>
                 </div>
@@ -363,10 +366,18 @@ const submitModal = () => {
                             </template>
 
                             <!-- Jika REJECTED -->
-                            <template v-else>
+                            <template v-else-if="internship.moderation_status === 'rejected'">
                                 <div class="flex items-start gap-2 rounded-xl bg-red-50 p-3">
                                     <svg class="h-4 w-4 text-red-500 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></svg>
-                                    <p class="text-xs text-red-700 font-medium">Lowongan ini sudah ditolak. Perusahaan perlu membuat lowongan baru.</p>
+                                    <p class="text-xs text-red-700 font-medium">Lowongan ini sudah ditolak. Perusahaan bisa mengedit dan mengajukan ulang.</p>
+                                </div>
+                            </template>
+
+                            <!-- Jika CLOSED (takedown) -->
+                            <template v-else-if="internship.moderation_status === 'closed'">
+                                <div class="flex items-start gap-2 rounded-xl bg-slate-100 p-3">
+                                    <svg class="h-4 w-4 text-slate-500 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+                                    <p class="text-xs text-slate-700 font-medium">Lowongan ini telah dicabut (takedown). Perusahaan tidak bisa mengedit — hanya bisa melihat alasan pencabutan.</p>
                                 </div>
                             </template>
 
@@ -435,7 +446,7 @@ const submitModal = () => {
                                     <svg class="h-4 w-4 mt-0.5 shrink-0" :class="modalMode === 'takedown' ? 'text-orange-500' : 'text-red-500'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
                                     <p class="text-xs text-slate-700 leading-relaxed">
                                         <span v-if="modalMode === 'takedown'">
-                                            Lowongan akan <strong>dicabut dari penayangan</strong> dan tidak lagi bisa dilihat mahasiswa. Status berubah menjadi <strong>Ditolak</strong>.
+                                            Lowongan akan <strong>dicabut dari penayangan</strong> dan tidak lagi bisa dilihat mahasiswa. Status berubah menjadi <strong>Ditutup</strong> — perusahaan tidak bisa mengedit.
                                         </span>
                                         <span v-else>
                                             Lowongan akan <strong>ditolak</strong>. Perusahaan perlu membuat lowongan baru untuk mengajukan kembali.
