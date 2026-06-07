@@ -246,72 +246,92 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // ── Perusahaan ────────────────────────────────────────────────────
-    Route::middleware(['auth', 'role:perusahaan'])->prefix('perusahaan')->name('perusahaan.')->group(function () {
+    Route::middleware(['auth', 'verified', 'role:perusahaan'])->prefix('perusahaan')->name('perusahaan.')->group(function () {
+        // Dashboard: bisa diakses oleh semua perusahaan (termasuk yang pending verifikasi admin)
+        // Halaman ini akan menampilkan status verifikasi
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
+
+        // Halaman pending verifikasi admin (untuk perusahaan yg belum diverifikasi)
+        Route::get('/pending-verification', function () {
+            $user = auth()->user();
+            if ($user->status === 'active') {
+                return redirect()->route('perusahaan.dashboard');
+            }
+            return \Inertia\Inertia::render('Perusahaan/PendingVerification', [
+                'status' => $user->status,
+                'name'   => $user->name,
+                'email'  => $user->email,
+            ]);
+        })->name('pending-verification');
+
         Route::get('/profile', [\App\Http\Controllers\CompanyController::class, 'ownerProfile'])->name('profile.show');
         Route::post('/profile', [\App\Http\Controllers\CompanyController::class, 'updateOwnerProfile'])->name('profile.update');
 
-        // Lowongan
-        Route::get('/internships', [\App\Http\Controllers\CompanyInternshipController::class, 'index'])->name('internships.index');
-        Route::get('/internships/create', [\App\Http\Controllers\CompanyInternshipController::class, 'create'])->name('internships.create');
-        Route::post('/internships', [\App\Http\Controllers\CompanyInternshipController::class, 'store'])->name('internships.store');
-        Route::get('/internships/{internship}/edit', [\App\Http\Controllers\CompanyInternshipController::class, 'edit'])->name('internships.edit');
-        Route::put('/internships/{internship}', [\App\Http\Controllers\CompanyInternshipController::class, 'update'])->name('internships.update');
-        Route::delete('/internships/{internship}', [\App\Http\Controllers\CompanyInternshipController::class, 'destroy'])->name('internships.destroy');
+        // ── Routes berikut memerlukan verifikasi admin (status = active) ──────
+        Route::middleware('company.verified')->group(function () {
+            // Lowongan
+            Route::get('/internships', [\App\Http\Controllers\CompanyInternshipController::class, 'index'])->name('internships.index');
+            Route::get('/internships/create', [\App\Http\Controllers\CompanyInternshipController::class, 'create'])->name('internships.create');
+            Route::post('/internships', [\App\Http\Controllers\CompanyInternshipController::class, 'store'])->name('internships.store');
+            Route::get('/internships/{internship}/edit', [\App\Http\Controllers\CompanyInternshipController::class, 'edit'])->name('internships.edit');
+            Route::put('/internships/{internship}', [\App\Http\Controllers\CompanyInternshipController::class, 'update'])->name('internships.update');
+            Route::delete('/internships/{internship}', [\App\Http\Controllers\CompanyInternshipController::class, 'destroy'])->name('internships.destroy');
 
-        // Kelola Pelamar
-        Route::get('/applicants', [\App\Http\Controllers\CompanyApplicantController::class, 'index'])->name('applicants.index');
-        Route::get('/applicants/{application}', [\App\Http\Controllers\CompanyApplicantController::class, 'show'])->name('applicants.show');
-        Route::patch('/applicants/{application}/status', [\App\Http\Controllers\CompanyApplicantController::class, 'updateStatus'])->name('applicants.updateStatus');
+            // Kelola Pelamar
+            Route::get('/applicants', [\App\Http\Controllers\CompanyApplicantController::class, 'index'])->name('applicants.index');
+            Route::get('/applicants/{application}', [\App\Http\Controllers\CompanyApplicantController::class, 'show'])->name('applicants.show');
+            Route::patch('/applicants/{application}/status', [\App\Http\Controllers\CompanyApplicantController::class, 'updateStatus'])->name('applicants.updateStatus');
 
-        // Event
-        Route::resource('/events', \App\Http\Controllers\CompanyEventController::class)->except('show');
+            // Event
+            Route::resource('/events', \App\Http\Controllers\CompanyEventController::class)->except('show');
 
-        // Laporan
-        Route::get('/reports', [\App\Http\Controllers\CompanyReportController::class, 'index'])->name('reports.index');
-        Route::get('/reports/download', [\App\Http\Controllers\CompanyReportController::class, 'downloadRecruitment'])->name('reports.download');
-        Route::get('/reports/events/download', [\App\Http\Controllers\CompanyReportController::class, 'downloadEvents'])->name('reports.events.download');
+            // Laporan
+            Route::get('/reports', [\App\Http\Controllers\CompanyReportController::class, 'index'])->name('reports.index');
+            Route::get('/reports/download', [\App\Http\Controllers\CompanyReportController::class, 'downloadRecruitment'])->name('reports.download');
+            Route::get('/reports/events/download', [\App\Http\Controllers\CompanyReportController::class, 'downloadEvents'])->name('reports.events.download');
 
-        // LMS — Kelola Kursus (CRUD)
-        Route::resource('/lms', \App\Http\Controllers\CompanyLmsCourseController::class)->parameters(['lms' => 'course'])->names('lms');
-        Route::post('/lms/{course}/publish', [\App\Http\Controllers\CompanyLmsCourseController::class, 'publish'])->name('lms.publish');
-        Route::post('/lms/{course}/unpublish', [\App\Http\Controllers\CompanyLmsCourseController::class, 'unpublish'])->name('lms.unpublish');
+            // LMS — Kelola Kursus (CRUD)
+            Route::resource('/lms', \App\Http\Controllers\CompanyLmsCourseController::class)->parameters(['lms' => 'course'])->names('lms');
+            Route::post('/lms/{course}/publish', [\App\Http\Controllers\CompanyLmsCourseController::class, 'publish'])->name('lms.publish');
+            Route::post('/lms/{course}/unpublish', [\App\Http\Controllers\CompanyLmsCourseController::class, 'unpublish'])->name('lms.unpublish');
 
-        // LMS — Enrollments & Grading
-        Route::get('/lms/{course}/enrollments', [\App\Http\Controllers\CompanyLmsEnrollmentController::class, 'index'])->name('lms.enrollments.index');
-        Route::patch('/lms/{course}/enrollments/{enrollment}/graduate', [\App\Http\Controllers\CompanyLmsEnrollmentController::class, 'toggleGraduation'])->name('lms.enrollments.graduate');
-        Route::post('/lms/{course}/enrollments/{enrollment}/reset', [\App\Http\Controllers\CompanyLmsEnrollmentController::class, 'resetProgress'])->name('lms.enrollments.reset');
-        Route::delete('/lms/{course}/enrollments/{enrollment}', [\App\Http\Controllers\CompanyLmsEnrollmentController::class, 'destroy'])->name('lms.enrollments.destroy');
+            // LMS — Enrollments & Grading
+            Route::get('/lms/{course}/enrollments', [\App\Http\Controllers\CompanyLmsEnrollmentController::class, 'index'])->name('lms.enrollments.index');
+            Route::patch('/lms/{course}/enrollments/{enrollment}/graduate', [\App\Http\Controllers\CompanyLmsEnrollmentController::class, 'toggleGraduation'])->name('lms.enrollments.graduate');
+            Route::post('/lms/{course}/enrollments/{enrollment}/reset', [\App\Http\Controllers\CompanyLmsEnrollmentController::class, 'resetProgress'])->name('lms.enrollments.reset');
+            Route::delete('/lms/{course}/enrollments/{enrollment}', [\App\Http\Controllers\CompanyLmsEnrollmentController::class, 'destroy'])->name('lms.enrollments.destroy');
 
-        // LMS — Builder (Konten Bab, Materi, Quiz, Tugas)
-        Route::get('/lms/{course}/builder', [\App\Http\Controllers\CompanyLmsContentController::class, 'builder'])->name('lms.builder');
-        Route::post('/lms/{course}/chapters', [\App\Http\Controllers\CompanyLmsContentController::class, 'storeChapter'])->name('lms.chapters.store');
-        Route::put('/lms/chapters/{chapter}', [\App\Http\Controllers\CompanyLmsContentController::class, 'updateChapter'])->name('lms.chapters.update');
-        Route::delete('/lms/chapters/{chapter}', [\App\Http\Controllers\CompanyLmsContentController::class, 'destroyChapter'])->name('lms.chapters.destroy');
+            // LMS — Builder (Konten Bab, Materi, Quiz, Tugas)
+            Route::get('/lms/{course}/builder', [\App\Http\Controllers\CompanyLmsContentController::class, 'builder'])->name('lms.builder');
+            Route::post('/lms/{course}/chapters', [\App\Http\Controllers\CompanyLmsContentController::class, 'storeChapter'])->name('lms.chapters.store');
+            Route::put('/lms/chapters/{chapter}', [\App\Http\Controllers\CompanyLmsContentController::class, 'updateChapter'])->name('lms.chapters.update');
+            Route::delete('/lms/chapters/{chapter}', [\App\Http\Controllers\CompanyLmsContentController::class, 'destroyChapter'])->name('lms.chapters.destroy');
 
-        Route::post('/lms/chapters/{chapter}/lessons', [\App\Http\Controllers\CompanyLmsContentController::class, 'storeLesson'])->name('lms.lessons.store');
-        Route::put('/lms/lessons/{lesson}', [\App\Http\Controllers\CompanyLmsContentController::class, 'updateLesson'])->name('lms.lessons.update');
-        Route::delete('/lms/lessons/{lesson}', [\App\Http\Controllers\CompanyLmsContentController::class, 'destroyLesson'])->name('lms.lessons.destroy');
+            Route::post('/lms/chapters/{chapter}/lessons', [\App\Http\Controllers\CompanyLmsContentController::class, 'storeLesson'])->name('lms.lessons.store');
+            Route::put('/lms/lessons/{lesson}', [\App\Http\Controllers\CompanyLmsContentController::class, 'updateLesson'])->name('lms.lessons.update');
+            Route::delete('/lms/lessons/{lesson}', [\App\Http\Controllers\CompanyLmsContentController::class, 'destroyLesson'])->name('lms.lessons.destroy');
 
-        Route::post('/lms/chapters/{chapter}/assignments', [\App\Http\Controllers\CompanyLmsContentController::class, 'storeAssignment'])->name('lms.assignments.store');
-        Route::patch('/lms/assignments/{assignment}', [\App\Http\Controllers\CompanyLmsContentController::class, 'updateAssignment'])->name('lms.assignments.update');
-        Route::delete('/lms/assignments/{assignment}', [\App\Http\Controllers\CompanyLmsContentController::class, 'destroyAssignment'])->name('lms.assignments.destroy');
+            Route::post('/lms/chapters/{chapter}/assignments', [\App\Http\Controllers\CompanyLmsContentController::class, 'storeAssignment'])->name('lms.assignments.store');
+            Route::patch('/lms/assignments/{assignment}', [\App\Http\Controllers\CompanyLmsContentController::class, 'updateAssignment'])->name('lms.assignments.update');
+            Route::delete('/lms/assignments/{assignment}', [\App\Http\Controllers\CompanyLmsContentController::class, 'destroyAssignment'])->name('lms.assignments.destroy');
 
-        Route::post('/lms/chapters/{chapter}/quiz', [\App\Http\Controllers\CompanyLmsContentController::class, 'storeQuiz'])->name('lms.quizzes.store');
-        Route::put('/lms/quizzes/{quiz}', [\App\Http\Controllers\CompanyLmsContentController::class, 'updateQuiz'])->name('lms.quizzes.update');
-        Route::delete('/lms/quizzes/{quiz}', [\App\Http\Controllers\CompanyLmsContentController::class, 'destroyQuiz'])->name('lms.quizzes.destroy');
+            Route::post('/lms/chapters/{chapter}/quiz', [\App\Http\Controllers\CompanyLmsContentController::class, 'storeQuiz'])->name('lms.quizzes.store');
+            Route::put('/lms/quizzes/{quiz}', [\App\Http\Controllers\CompanyLmsContentController::class, 'updateQuiz'])->name('lms.quizzes.update');
+            Route::delete('/lms/quizzes/{quiz}', [\App\Http\Controllers\CompanyLmsContentController::class, 'destroyQuiz'])->name('lms.quizzes.destroy');
 
-        Route::post('/lms/quizzes/{quiz}/questions', [\App\Http\Controllers\CompanyLmsContentController::class, 'storeQuestion'])->name('lms.questions.store');
-        Route::put('/lms/questions/{question}', [\App\Http\Controllers\CompanyLmsContentController::class, 'updateQuestion'])->name('lms.questions.update');
-        Route::delete('/lms/questions/{question}', [\App\Http\Controllers\CompanyLmsContentController::class, 'destroyQuestion'])->name('lms.questions.destroy');
+            Route::post('/lms/quizzes/{quiz}/questions', [\App\Http\Controllers\CompanyLmsContentController::class, 'storeQuestion'])->name('lms.questions.store');
+            Route::put('/lms/questions/{question}', [\App\Http\Controllers\CompanyLmsContentController::class, 'updateQuestion'])->name('lms.questions.update');
+            Route::delete('/lms/questions/{question}', [\App\Http\Controllers\CompanyLmsContentController::class, 'destroyQuestion'])->name('lms.questions.destroy');
 
-        Route::post('/lms/questions/{question}/options', [\App\Http\Controllers\CompanyLmsContentController::class, 'storeOption'])->name('lms.options.store');
-        Route::put('/lms/options/{option}', [\App\Http\Controllers\CompanyLmsContentController::class, 'updateOption'])->name('lms.options.update');
-        Route::delete('/lms/options/{option}', [\App\Http\Controllers\CompanyLmsContentController::class, 'destroyOption'])->name('lms.options.destroy');
+            Route::post('/lms/questions/{question}/options', [\App\Http\Controllers\CompanyLmsContentController::class, 'storeOption'])->name('lms.options.store');
+            Route::put('/lms/options/{option}', [\App\Http\Controllers\CompanyLmsContentController::class, 'updateOption'])->name('lms.options.update');
+            Route::delete('/lms/options/{option}', [\App\Http\Controllers\CompanyLmsContentController::class, 'destroyOption'])->name('lms.options.destroy');
 
-        Route::get('/lms/{course}/assignments/{assignment}/submissions', [\App\Http\Controllers\CompanyLmsGradingController::class, 'index'])->name('lms.grading.index');
-        Route::patch('/lms/{course}/assignments/{assignment}/submissions/{submission}', [\App\Http\Controllers\CompanyLmsGradingController::class, 'update'])->name('lms.grading.update');
+            Route::get('/lms/{course}/assignments/{assignment}/submissions', [\App\Http\Controllers\CompanyLmsGradingController::class, 'index'])->name('lms.grading.index');
+            Route::patch('/lms/{course}/assignments/{assignment}/submissions/{submission}', [\App\Http\Controllers\CompanyLmsGradingController::class, 'update'])->name('lms.grading.update');
+        });
     });
+
 
     // ── Admin ─────────────────────────────────────────────────────────
     Route::middleware(['auth', 'role:admin', 'strict.admin'])->prefix('admin')->name('admin.')->group(function () {
