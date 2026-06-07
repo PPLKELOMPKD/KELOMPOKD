@@ -54,7 +54,7 @@ const menuManajemen = [
     { name: 'Verifikasi Perusahaan', href: route('admin.verifications.index'), icon: 'building',  active: route().current('admin.verifications.*') },
     { name: 'Moderasi Lowongan',     href: route('admin.internships.index'), icon: 'briefcase', active: route().current('admin.internships.index') || route().current('admin.internships.show') },
     { name: 'Kalender Lowongan',     href: route('admin.internships.calendar'), icon: 'calendar', active: route().current('admin.internships.calendar') },
-    { name: 'Manajemen Event',       href: '#', icon: 'calendar',  active: false },
+    { name: 'Manajemen Event',       href: '#', icon: 'calendar',  active: false }, 
     { name: 'Pantau LMS',            href: route('admin.lms.index'), icon: 'book',      active: route().current('admin.lms.*') },
     { name: 'Data Lamaran',          href: route('admin.applications.index'), icon: 'inbox', active: route().current('admin.applications.*') },
 ];
