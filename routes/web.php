@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminEventModerationController;
 use App\Http\Controllers\Admin\ApplicationDataController;
 use App\Http\Controllers\Admin\CompanyVerificationController;
+use App\Http\Controllers\Admin\AdminLmsController;
 use App\Http\Controllers\Admin\InternshipModerationController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\ApplicationController;
@@ -53,6 +55,7 @@ Route::get('/event', function () {
 
     $events = \App\Models\Event::with(['company', 'company.perusahaanProfile'])
         ->where('status', 'published')
+        ->where('moderation_status', 'approved')
         ->latest()
         ->get()
         ->map(function ($event) use ($user, $isMahasiswa) {
@@ -119,7 +122,7 @@ Route::get('/event/{event}', function (\App\Models\Event $event) {
     $isAuthenticated = (bool) $user;
     $isMahasiswa = $user && $user->role === 'mahasiswa';
 
-    if ($event->status !== 'published') {
+    if ($event->status !== 'published' || $event->moderation_status !== 'approved') {
         abort(404);
     }
 
@@ -322,6 +325,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('/internships/{internship}/reject', [InternshipModerationController::class, 'reject'])->name('internships.reject');
         Route::patch('/internships/{internship}/takedown', [InternshipModerationController::class, 'takedown'])->name('internships.takedown');
 
+        // ── Pantau LMS ────────────────────────────────────────────────
+        Route::get('/lms', [AdminLmsController::class, 'index'])->name('lms.index');
+        Route::get('/lms/users/{user}/detail', [AdminLmsController::class, 'userDetail'])->name('lms.users.detail');
+        Route::patch('/lms/users/{user}/suspend', [AdminLmsController::class, 'suspendUser'])->name('lms.users.suspend');
+        Route::patch('/lms/users/{user}/activate', [AdminLmsController::class, 'activateUser'])->name('lms.users.activate');
+        Route::delete('/lms/users/{user}', [AdminLmsController::class, 'deleteUser'])->name('lms.users.destroy');
+        Route::get('/lms/enrollments/{enrollment}/detail', [AdminLmsController::class, 'enrollmentDetail'])->name('lms.enrollments.detail');
+        Route::post('/lms/enrollments/{enrollment}/reset', [AdminLmsController::class, 'resetEnrollment'])->name('lms.enrollments.reset');
+        Route::delete('/lms/enrollments/{enrollment}', [AdminLmsController::class, 'deleteEnrollment'])->name('lms.enrollments.destroy');
+
         // ── Manajemen Pengguna ─────────────────────────────────────────
         Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
         Route::get('/users/{user}', [UserManagementController::class, 'show'])->name('users.show');
@@ -338,6 +351,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // ── Data Lamaran ──────────────────────────────────────────────
         Route::get('/applications/export', [ApplicationDataController::class, 'export'])->name('applications.export');
         Route::get('/applications', [ApplicationDataController::class, 'index'])->name('applications.index');
+
+        // ── Manajemen Event ───────────────────────────────────────────
+        Route::get('/events', [AdminEventModerationController::class, 'index'])->name('events.index');
+        Route::patch('/events/{event}/approve', [AdminEventModerationController::class, 'approve'])->name('events.approve');
+        Route::patch('/events/{event}/reject', [AdminEventModerationController::class, 'reject'])->name('events.reject');
+        Route::delete('/events/{event}', [AdminEventModerationController::class, 'destroy'])->name('events.destroy');
     });
 
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
