@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminEventModerationController;
 use App\Http\Controllers\Admin\ApplicationDataController;
 use App\Http\Controllers\Admin\CompanyVerificationController;
+use App\Http\Controllers\Admin\AdminLmsController;
 use App\Http\Controllers\Admin\InternshipModerationController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\ApplicationController;
@@ -323,6 +324,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('/internships/{internship}/approve', [InternshipModerationController::class, 'approve'])->name('internships.approve');
         Route::patch('/internships/{internship}/reject', [InternshipModerationController::class, 'reject'])->name('internships.reject');
         Route::patch('/internships/{internship}/takedown', [InternshipModerationController::class, 'takedown'])->name('internships.takedown');
+
+        // ── Pantau LMS ────────────────────────────────────────────────
+        Route::get('/lms', [AdminLmsController::class, 'index'])->name('lms.index');
+        Route::get('/lms/users/{user}/detail', [AdminLmsController::class, 'userDetail'])->name('lms.users.detail');
+        Route::patch('/lms/users/{user}/suspend', [AdminLmsController::class, 'suspendUser'])->name('lms.users.suspend');
+        Route::patch('/lms/users/{user}/activate', [AdminLmsController::class, 'activateUser'])->name('lms.users.activate');
+        Route::delete('/lms/users/{user}', [AdminLmsController::class, 'deleteUser'])->name('lms.users.destroy');
+        Route::get('/lms/enrollments/{enrollment}/detail', [AdminLmsController::class, 'enrollmentDetail'])->name('lms.enrollments.detail');
+        Route::post('/lms/enrollments/{enrollment}/reset', [AdminLmsController::class, 'resetEnrollment'])->name('lms.enrollments.reset');
+        Route::delete('/lms/enrollments/{enrollment}', [AdminLmsController::class, 'deleteEnrollment'])->name('lms.enrollments.destroy');
 
         // ── Manajemen Pengguna ─────────────────────────────────────────
         Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
