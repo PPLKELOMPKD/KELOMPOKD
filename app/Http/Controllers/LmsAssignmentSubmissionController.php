@@ -35,6 +35,12 @@ class LmsAssignmentSubmissionController extends Controller
             'submitted_at' => now(),
         ]);
 
+        \App\Services\ActivityLogger::log(
+            'Submit Assignment',
+            "Mahasiswa {$request->user()->name} mengumpulkan tugas '{$assignment->title}' pada course '{$course->title}'",
+            'assignment'
+        );
+
         $progressService->refreshChapterCompletion($enrollment, $assignment->chapter);
 
         return back()->with('success', 'Tugas berhasil diunggah.');

@@ -22,7 +22,7 @@ class InternshipModerationController extends Controller
             ->latest();
 
         // Filter status
-        if (in_array($statusFilter, ['pending', 'approved', 'rejected'])) {
+        if (in_array($statusFilter, ['pending', 'approved', 'rejected', 'closed'])) {
             $query->where('moderation_status', $statusFilter);
         }
 
@@ -41,6 +41,7 @@ class InternshipModerationController extends Controller
             'pending'  => Internship::where('moderation_status', 'pending')->count(),
             'approved' => Internship::where('moderation_status', 'approved')->count(),
             'rejected' => Internship::where('moderation_status', 'rejected')->count(),
+            'closed'   => Internship::where('moderation_status', 'closed')->count(),
             'all'      => Internship::count(),
         ];
 
@@ -117,7 +118,9 @@ class InternshipModerationController extends Controller
     }
 
     /**
-     * Takedown lowongan yang sedang tayang — set ke rejected dengan alasan.
+     * Takedown lowongan yang sedang tayang.
+     * Status diubah menjadi 'closed' — perusahaan TIDAK bisa edit/resubmit.
+     * Hanya bisa melihat alasan takedown.
      */
     public function takedown(Request $request, Internship $internship)
     {
@@ -129,7 +132,7 @@ class InternshipModerationController extends Controller
         ]);
 
         $internship->update([
-            'moderation_status' => 'rejected',
+            'moderation_status' => 'closed',   // beda dari 'rejected'
             'is_published'      => false,
             'rejection_reason'  => $validated['rejection_reason'],
             'moderated_by'      => auth()->id(),
@@ -142,7 +145,7 @@ class InternshipModerationController extends Controller
             'moderasi'
         );
 
-        return back()->with('success', "Lowongan \"{$internship->title}\" berhasil dicabut dari penayangan.");
+        return back()->with('success', "Lowongan \"{$internship->title}\" berhasil dicabut. Status berubah menjadi Ditutup.");
     }
 
     /**

@@ -22,7 +22,6 @@ const form = useForm({
     start_time: props.event.start_time ? props.event.start_time.substring(0, 5) : '',
     end_time: props.event.end_time ? props.event.end_time.substring(0, 5) : '',
     max_participants: props.event.max_participants || 50,
-    status: props.event.status || 'draft',
 });
 
 // ─── Local client-side errors ───────────────────────────────────────────────
@@ -289,19 +288,12 @@ const minDate = todayStr();
                         </div>
                         <p v-if="form.errors.max_participants" class="mt-2 text-sm text-red-600 field-error">{{ form.errors.max_participants }}</p>
                     </div>
+                </div>
 
-                    <!-- Status -->
-                    <div>
-                        <label for="status" class="block text-sm font-medium text-[#101828]">Status Event <span class="text-red-500">*</span></label>
-                        <div class="mt-2">
-                            <select id="status" v-model="form.status" class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6">
-                                <option value="draft">Draft</option>
-                                <option value="published">Published</option>
-                                <option value="completed">Completed</option>
-                            </select>
-                        </div>
-                        <p v-if="form.errors.status" class="mt-2 text-sm text-red-600 field-error">{{ form.errors.status }}</p>
-                    </div>
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                    <p class="text-sm text-blue-700">
+                        <strong>Catatan:</strong> Setelah Anda menyimpan event, data akan masuk ke tahap moderasi oleh tim kami sebelum dapat ditampilkan secara publik.
+                    </p>
                 </div>
 
                 <div class="pt-5 border-t border-[#f2f4f7] flex justify-end gap-3">

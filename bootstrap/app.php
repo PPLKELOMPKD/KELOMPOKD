@@ -26,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'strict.admin' => \App\Http\Middleware\StrictAdminSession::class,
             'role.landing' => \App\Http\Middleware\RoleLandingPage::class,
             'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+            'company.verified' => \App\Http\Middleware\EnsureCompanyIsVerified::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

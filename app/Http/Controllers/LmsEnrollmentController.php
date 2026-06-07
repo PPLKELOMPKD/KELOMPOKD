@@ -20,7 +20,7 @@ class LmsEnrollmentController extends Controller
             'status' => 'accepted',
         ]);
 
-        \App\Services\ActivityLogger::log('Mendaftar Kursus', "Mendaftar pada kursus LMS: {$course->title}", 'lms');
+        \App\Services\ActivityLogger::log('Mendaftar Kursus', "Mendaftar pada kursus LMS: {$course->title}", 'enrollment');
 
         return redirect()->route('lms.module.show', $course);
     }
@@ -35,7 +35,7 @@ class LmsEnrollmentController extends Controller
 
         $enrollment->delete();
 
-        \App\Services\ActivityLogger::log('Batal Kursus', "Membatalkan pendaftaran pada kursus LMS: {$course->title}", 'lms');
+        \App\Services\ActivityLogger::log('Batal Kursus', "Membatalkan pendaftaran pada kursus LMS: {$course->title}", 'enrollment');
 
         return redirect()->route('lms')->with('success', 'Berhasil membatalkan pendaftaran pelatihan.');
     }

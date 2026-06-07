@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
@@ -95,10 +96,14 @@ class RegisteredUserController extends Controller
             $user->role,
         );
 
-        $message = $user->isPerusahaan() 
-            ? 'Registrasi berhasil! Akun Perusahaan Anda saat ini sedang dalam tahap verifikasi (Pending) oleh Administrator. Anda akan dapat masuk (login) setelah disetujui.' 
-            : 'Registrasi berhasil! Silakan masuk dengan akun Anda.';
+        // Perusahaan: auto-login lalu arahkan ke verifikasi email.
+        // Verifikasi admin (status active) akan diterapkan setelah email terverifikasi.
+        if ($user->isPerusahaan()) {
+            Auth::login($user);
+            return redirect()->route('verification.notice');
+        }
 
-        return redirect(route('login'))->with('status', $message);
+        // Mahasiswa: langsung ke login
+        return redirect(route('login'))->with('status', 'Registrasi berhasil! Silakan masuk dengan akun Anda.');
     }
 }
