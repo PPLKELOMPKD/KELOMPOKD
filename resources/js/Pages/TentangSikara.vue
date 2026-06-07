@@ -252,24 +252,6 @@ const joinRoute = computed(() => {
             </div>
         </section>
 
-        <!-- Footer -->
-        <footer class="bg-white border-t border-[#F1F5F9] py-12">
-            <div class="mx-auto max-w-7xl px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-                <div class="flex items-center gap-4">
-                    <img src="/images/Logo-SIKARA.png" alt="SIKARA" class="h-10 w-auto opacity-80 grayscale hover:grayscale-0 transition-all duration-300" />
-                    <div>
-                        <span class="block text-lg font-black tracking-tight text-[#0F172A]">SIKARA</span>
-                        <span class="block text-xs font-medium text-[#64748B]">Sistem Informasi Karir Mahasiswa</span>
-                    </div>
-                </div>
-                <div class="flex gap-6 text-sm font-medium text-[#64748B]">
-                    <a href="#" class="hover:text-[#2563EB] transition-colors">Kebijakan Privasi</a>
-                    <a href="#" class="hover:text-[#2563EB] transition-colors">Syarat & Ketentuan</a>
-                    <a href="#" class="hover:text-[#2563EB] transition-colors">Bantuan</a>
-                </div>
-                <p class="text-sm font-medium text-[#94A3B8]">© {{ new Date().getFullYear() }} SIKARA. Hak Cipta Dilindungi.</p>
-            </div>
-        </footer>
     </PortalLayout>
 </template>
 

@@ -94,6 +94,10 @@ const homeRoute = computed(() => {
                                             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
                                             Dashboard
                                         </Link>
+                                        <Link v-if="user.role === 'perusahaan'" :href="route('perusahaan.profile.show')" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-[#344054] hover:bg-[#EFF6FF] hover:text-[#2563EB] transition-colors">
+                                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/><path d="M8 15h8"/><path d="M8 18h5"/></svg>
+                                            Profil Perusahaan
+                                        </Link>
                                     </template>
                                     <template v-else>
                                         <Link :href="route('profile.show')" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-[#344054] hover:bg-[#EFF6FF] hover:text-[#2563EB] transition-colors">
