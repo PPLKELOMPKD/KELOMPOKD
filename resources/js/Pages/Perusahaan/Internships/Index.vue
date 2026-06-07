@@ -40,8 +40,9 @@ const closeRejectionModal = () => {
 };
 
 // Apakah status adalah takedown (closed)?
-const isClosed = (internship) => internship.moderation_status === 'closed';
-const isRejected = (internship) => internship.moderation_status === 'rejected';
+const isClosed = (internship) => internship?.moderation_status === 'closed';
+const isCompanyClosed = (internship) => internship?.moderation_status === 'approved' && !internship?.is_published;
+const isRejected = (internship) => internship?.moderation_status === 'rejected';
 </script>
 
 <template>
@@ -102,25 +103,23 @@ const isRejected = (internship) => internship.moderation_status === 'rejected';
                                 </span>
                                 <!-- Closed / Ditutup (takedown) — tidak bisa edit -->
                                 <span v-else-if="internship.moderation_status === 'closed'" class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/20">
-                                    <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>
                                     Ditutup
                                 </span>
-                                <span v-else class="inline-flex items-center rounded-full bg-gray-50 px-2.5 py-0.5 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">Ditutup</span>
+                                <span v-else class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/20">Ditutup</span>
                             </td>
                             <td class="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-medium">
                                 <div class="flex justify-end gap-3">
 
-                                    <!-- ❶ CLOSED (takedown): hanya tombol info alasan, tanpa edit/hapus -->
-                                    <template v-if="isClosed(internship)">
+                                    <!-- ❶ CLOSED (takedown admin ATAU ditutup mandiri perusahaan): hanya tombol info alasan -->
+                                    <template v-if="isClosed(internship) || isCompanyClosed(internship)">
                                         <button
-                                            v-if="internship.rejection_reason"
                                             @click="openRejectionModal(internship)"
-                                            title="Lihat alasan pencabutan dari admin"
+                                            :title="isClosed(internship) ? 'Lihat alasan pencabutan dari admin' : 'Lihat info penutupan'"
                                             class="rounded-lg text-slate-500 hover:text-slate-800 p-1 hover:bg-slate-100 transition-colors"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                                         </button>
-                                        <!-- Tidak ada tombol edit/hapus untuk closed -->
+                                        <!-- Tidak ada tombol edit/hapus untuk lowongan yang sudah ditutup -->
                                     </template>
 
                                     <!-- ❷ REJECTED: info alasan + tombol edit (resubmit) + hapus -->
@@ -208,7 +207,9 @@ const isRejected = (internship) => internship.moderation_status === 'rejected';
                                     </div>
                                     <div>
                                         <h3 class="text-sm font-black text-slate-900">
-                                            {{ isClosed(selectedRejectedInternship) ? 'Alasan Pencabutan (Takedown)' : 'Alasan Penolakan' }}
+                                            <template v-if="isClosed(selectedRejectedInternship)">Alasan Pencabutan (Takedown)</template>
+                                            <template v-else-if="isCompanyClosed(selectedRejectedInternship)">Info Penutupan Lowongan</template>
+                                            <template v-else>Alasan Penolakan</template>
                                         </h3>
                                         <p class="text-[11px] text-slate-500 mt-0.5 truncate max-w-[260px]">{{ selectedRejectedInternship?.title }}</p>
                                     </div>
@@ -223,12 +224,15 @@ const isRejected = (internship) => internship.moderation_status === 'rejected';
                                 <!-- Info Box — beda warna untuk closed vs rejected -->
                                 <div
                                     class="mb-4 flex items-start gap-3 rounded-xl p-3.5 border"
-                                    :class="isClosed(selectedRejectedInternship) ? 'bg-slate-50 border-slate-200' : 'bg-red-50 border-red-200'"
+                                    :class="(isClosed(selectedRejectedInternship) || isCompanyClosed(selectedRejectedInternship)) ? 'bg-slate-50 border-slate-200' : 'bg-red-50 border-red-200'"
                                 >
-                                    <svg class="h-4 w-4 mt-0.5 shrink-0" :class="isClosed(selectedRejectedInternship) ? 'text-slate-500' : 'text-red-500'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                    <svg class="h-4 w-4 mt-0.5 shrink-0" :class="(isClosed(selectedRejectedInternship) || isCompanyClosed(selectedRejectedInternship)) ? 'text-slate-500' : 'text-red-500'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                                     <p class="text-xs text-slate-700 leading-relaxed">
                                         <span v-if="isClosed(selectedRejectedInternship)">
                                             Lowongan Anda telah <strong>dicabut (takedown)</strong> oleh admin. Lowongan ini <strong>tidak dapat diedit</strong>. Jika ingin mengajukan kembali, silakan buat lowongan baru.
+                                        </span>
+                                        <span v-else-if="isCompanyClosed(selectedRejectedInternship)">
+                                            Lowongan ini telah <strong>ditutup secara mandiri</strong>. Lowongan yang sudah ditutup tidak dapat diubah atau dihapus sepenuhnya guna mempertahankan riwayat pelamaran mahasiswa yang sudah masuk.
                                         </span>
                                         <span v-else>
                                             Lowongan Anda telah <strong>ditolak</strong> oleh admin. Silakan perbaiki dan ajukan ulang dengan menekan tombol Edit.
@@ -237,7 +241,7 @@ const isRejected = (internship) => internship.moderation_status === 'rejected';
                                 </div>
 
                                 <!-- Rejection Reason -->
-                                <div class="rounded-xl bg-slate-50 border border-slate-200 px-4 py-4">
+                                <div v-if="selectedRejectedInternship?.rejection_reason" class="rounded-xl bg-slate-50 border border-slate-200 px-4 py-4">
                                     <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Catatan dari Admin</p>
                                     <p class="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap">{{ selectedRejectedInternship?.rejection_reason }}</p>
                                 </div>

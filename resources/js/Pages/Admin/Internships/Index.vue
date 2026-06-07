@@ -85,7 +85,15 @@ const closeRejectModal = () => {
 
 const submitReject = () => {
     if (!selectedInternship.value) return;
-    rejectForm.patch(route('admin.internships.reject', selectedInternship.value.id), {
+
+    // Jika lowongan sedang 'approved' → aksi adalah TAKEDOWN (status → closed)
+    // Selain itu → aksi adalah REJECT (status → rejected)
+    const isTakedown = selectedInternship.value.moderation_status === 'approved';
+    const routeName  = isTakedown
+        ? 'admin.internships.takedown'
+        : 'admin.internships.reject';
+
+    rejectForm.patch(route(routeName, selectedInternship.value.id), {
         preserveScroll: true,
         onSuccess: () => closeRejectModal(),
     });
