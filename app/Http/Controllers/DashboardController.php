@@ -228,6 +228,8 @@ class DashboardController extends Controller
                 'title'    => 'Dashboard Perusahaan',
                 'subtitle' => 'Ringkasan performa rekrutmen dan manajemen event Anda.',
                 'role'     => 'perusahaan',
+                'companyStatus'          => $user->status,
+                'isPendingVerification'  => $user->status === 'inactive',
                 'stats'    => [
                     ['label' => 'LOWONGAN AKTIF',    'value' => (string) $activeInternships,  'icon' => 'briefcase',  'color' => 'blue'],
                     ['label' => 'TOTAL PELAMAR',     'value' => (string) $totalApplicants,    'trend' => 'dari semua lowongan', 'trendUp' => true, 'icon' => 'users', 'color' => 'green'],

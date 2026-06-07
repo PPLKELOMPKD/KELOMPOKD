@@ -142,7 +142,7 @@ class LmsMonitorSeeder extends Seeder
                 'title' => 'Fundamental UI/UX Design',
                 'provider' => 'PT Telkom Indonesia',
                 'description' => 'Pelajari prinsip dasar desain antarmuka dan pengalaman pengguna yang modern.',
-                'level' => 'Beginner',
+                'level' => 'BEGINNER',
                 'status' => LmsCourse::STATUS_PUBLISHED,
                 'started_at' => now()->subDays(10),
                 'ends_at' => now()->addMonths(2),
@@ -163,7 +163,7 @@ class LmsMonitorSeeder extends Seeder
 
         $quizUiUx = LmsQuiz::query()->firstOrCreate(
             ['chapter_id' => $ch1UiUx->id],
-            ['title' => 'Kuis Dasar UI/UX', 'passing_score' => 75]
+            ['title' => 'Kuis Dasar UI/UX', 'passing_score' => 75, 'max_attempts' => 3]
         );
 
         $qUiUx1 = $quizUiUx->questions()->firstOrCreate(
@@ -199,7 +199,7 @@ class LmsMonitorSeeder extends Seeder
                 'title' => 'Backend Laravel Development',
                 'provider' => 'PT Bank Mandiri',
                 'description' => 'Membangun API handal dan aplikasi web menggunakan framework Laravel.',
-                'level' => 'Intermediate',
+                'level' => 'INTERMEDIATE',
                 'status' => LmsCourse::STATUS_PUBLISHED,
                 'started_at' => now()->subDays(5),
                 'ends_at' => now()->addMonths(3),
@@ -220,7 +220,7 @@ class LmsMonitorSeeder extends Seeder
 
         $quizLaravel = LmsQuiz::query()->firstOrCreate(
             ['chapter_id' => $ch1Laravel->id],
-            ['title' => 'Kuis Laravel MVC', 'passing_score' => 70]
+            ['title' => 'Kuis Laravel MVC', 'passing_score' => 70, 'max_attempts' => 3]
         );
         $qLaravel1 = $quizLaravel->questions()->firstOrCreate(
             ['question' => 'M di MVC singkatan dari?'],
@@ -237,7 +237,7 @@ class LmsMonitorSeeder extends Seeder
                 'title' => 'Data Analyst Bootcamp',
                 'provider' => 'PT Astra International',
                 'description' => 'Pondasi analisis data praktis dengan Python, Pandas, dan visualisasi data.',
-                'level' => 'Intermediate',
+                'level' => 'INTERMEDIATE',
                 'status' => LmsCourse::STATUS_PUBLISHED,
                 'started_at' => now()->subDays(2),
                 'ends_at' => now()->addMonths(4),
@@ -264,7 +264,7 @@ class LmsMonitorSeeder extends Seeder
                 'title' => 'Cloud Computing Essentials',
                 'provider' => 'PT Telkom Indonesia',
                 'description' => 'Pengenalan infrastruktur awan, AWS, dan model deployment cloud.',
-                'level' => 'Beginner',
+                'level' => 'BEGINNER',
                 'status' => LmsCourse::STATUS_PUBLISHED,
                 'started_at' => now()->subDays(15),
                 'ends_at' => now()->addMonths(1),
@@ -282,5 +282,139 @@ class LmsMonitorSeeder extends Seeder
             ['chapter_id' => $ch1Cloud->id, 'title' => 'IaaS, PaaS, SaaS'],
             ['type' => 'video', 'content' => 'Model layanan cloud komputasi.', 'position' => 1]
         );
+
+        // ── 4. Create Enrollments & Complete Activities ──────────────────
+        
+        // -------------------------------------------------------------
+        // ENROLLMENT 1: Putvi Ilyasyah - Fundamental UI/UX (Progress: 100% / Selesai)
+        // -------------------------------------------------------------
+        $en1 = LmsEnrollment::query()->updateOrCreate(
+            ['course_id' => $courseUiUx->id, 'student_id' => $students['Putvi Ilyasyah']->id],
+            ['enrolled_at' => now()->subDays(9), 'status' => 'accepted', 'is_graduated' => true, 'completed_at' => now()->subDays(1)]
+        );
+
+        // Complete lesson 1
+        LmsLessonCompletion::query()->firstOrCreate(
+            ['enrollment_id' => $en1->id, 'lesson_id' => $les1UiUx->id],
+            ['completed_at' => now()->subDays(8)]
+        );
+
+        // Pass Quiz 1
+        LmsQuizAttempt::query()->firstOrCreate(
+            ['enrollment_id' => $en1->id, 'quiz_id' => $quizUiUx->id],
+            [
+                'score' => 100,
+                'passed' => true,
+                'answers' => json_encode([$qUiUx1->id => $qUiUx1->options->firstWhere('is_correct', true)->id]),
+                'submitted_at' => now()->subDays(8),
+            ]
+        );
+
+        // Chapter 1 Completion
+        LmsChapterCompletion::query()->firstOrCreate(
+            ['enrollment_id' => $en1->id, 'chapter_id' => $ch1UiUx->id],
+            ['completed_at' => now()->subDays(8)]
+        );
+
+        // Complete lesson 2
+        LmsLessonCompletion::query()->firstOrCreate(
+            ['enrollment_id' => $en1->id, 'lesson_id' => $les2UiUx->id],
+            ['completed_at' => now()->subDays(7)]
+        );
+
+        // Submit Assignment
+        LmsAssignmentSubmission::query()->firstOrCreate(
+            ['enrollment_id' => $en1->id, 'assignment_id' => $assignUiUx->id],
+            [
+                'file_url' => 'submissions/wireframing.pdf',
+                'score' => 90,
+                'feedback' => 'Bagus sekali! Tata letak sangat bersih.',
+                'submitted_at' => now()->subDays(7),
+            ]
+        );
+
+        // Chapter 2 Completion
+        LmsChapterCompletion::query()->firstOrCreate(
+            ['enrollment_id' => $en1->id, 'chapter_id' => $ch2UiUx->id],
+            ['completed_at' => now()->subDays(7)]
+        );
+
+
+        // -------------------------------------------------------------
+        // ENROLLMENT 2: Putvi Ilyasyah - Backend Laravel (Progress: 50% / Aktif)
+        // -------------------------------------------------------------
+        $en2 = LmsEnrollment::query()->updateOrCreate(
+            ['course_id' => $courseLaravel->id, 'student_id' => $students['Putvi Ilyasyah']->id],
+            ['enrolled_at' => now()->subDays(4), 'status' => 'accepted', 'is_graduated' => false]
+        );
+
+        // Complete lesson 1
+        LmsLessonCompletion::query()->firstOrCreate(
+            ['enrollment_id' => $en2->id, 'lesson_id' => $les1Laravel->id],
+            ['completed_at' => now()->subDays(3)]
+        );
+
+
+        // -------------------------------------------------------------
+        // ENROLLMENT 3: Bintang Pratama - Data Analyst (Progress: 100% / Selesai)
+        // -------------------------------------------------------------
+        $en3 = LmsEnrollment::query()->updateOrCreate(
+            ['course_id' => $courseDataAnalyst->id, 'student_id' => $students['Bintang Pratama']->id],
+            ['enrolled_at' => now()->subDays(2), 'status' => 'accepted', 'is_graduated' => true, 'completed_at' => now()->subDays(1)]
+        );
+
+        // Complete lesson 1
+        LmsLessonCompletion::query()->firstOrCreate(
+            ['enrollment_id' => $en3->id, 'lesson_id' => $les1Analyst->id],
+            ['completed_at' => now()->subDays(1)]
+        );
+
+        // Chapter 1 Completion
+        LmsChapterCompletion::query()->firstOrCreate(
+            ['enrollment_id' => $en3->id, 'chapter_id' => $ch1Analyst->id],
+            ['completed_at' => now()->subDays(1)]
+        );
+
+
+        // -------------------------------------------------------------
+        // ENROLLMENT 4: Bintang Pratama - Cloud Computing (Progress: 0% / Aktif)
+        // -------------------------------------------------------------
+        LmsEnrollment::query()->updateOrCreate(
+            ['course_id' => $courseCloud->id, 'student_id' => $students['Bintang Pratama']->id],
+            ['enrolled_at' => now()->subDays(1), 'status' => 'accepted', 'is_graduated' => false]
+        );
+
+
+        // -------------------------------------------------------------
+        // ENROLLMENT 5: Farah Nabila - Backend Laravel (Progress: 100% / Selesai)
+        // -------------------------------------------------------------
+        $en5 = LmsEnrollment::query()->updateOrCreate(
+            ['course_id' => $courseLaravel->id, 'student_id' => $students['Farah Nabila']->id],
+            ['enrolled_at' => now()->subDays(4), 'status' => 'accepted', 'is_graduated' => true, 'completed_at' => now()->subDays(2)]
+        );
+
+        // Complete lesson 1
+        LmsLessonCompletion::query()->firstOrCreate(
+            ['enrollment_id' => $en5->id, 'lesson_id' => $les1Laravel->id],
+            ['completed_at' => now()->subDays(3)]
+        );
+
+        // Pass Quiz
+        LmsQuizAttempt::query()->firstOrCreate(
+            ['enrollment_id' => $en5->id, 'quiz_id' => $quizLaravel->id],
+            [
+                'score' => 100,
+                'passed' => true,
+                'answers' => json_encode([$qLaravel1->id => $qLaravel1->options->firstWhere('is_correct', true)->id]),
+                'submitted_at' => now()->subDays(2),
+            ]
+        );
+
+        // Chapter 1 Completion
+        LmsChapterCompletion::query()->firstOrCreate(
+            ['enrollment_id' => $en5->id, 'chapter_id' => $ch1Laravel->id],
+            ['completed_at' => now()->subDays(2)]
+        );
+
     }
 }

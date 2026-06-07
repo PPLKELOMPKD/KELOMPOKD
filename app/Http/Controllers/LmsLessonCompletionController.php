@@ -22,6 +22,12 @@ class LmsLessonCompletionController extends Controller
             'completed_at' => now(),
         ]);
 
+        \App\Services\ActivityLogger::log(
+            'Menyelesaikan Lesson',
+            "Mahasiswa {$request->user()->name} menyelesaikan lesson '{$lesson->title}' pada course '{$course->title}'",
+            'lesson'
+        );
+
         $progressService->refreshChapterCompletion($enrollment, $lesson->chapter);
 
         return redirect()->back();

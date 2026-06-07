@@ -19,6 +19,8 @@ const props = defineProps({
     latestNotifications: Array,
     filters: Object,
     recruitmentTrend: Object,
+    isPendingVerification: { type: Boolean, default: false },
+    companyStatus: { type: String, default: null },
 });
 
 const showFilterMenu       = ref(false);
@@ -88,7 +90,7 @@ const modalConfig = computed(() => {
     <Head :title="title" />
 
     <SikaraLayout :title="title" :subtitle="subtitle">
-        <template #headerAction v-if="isCompanyDashboard">
+        <template #headerAction v-if="isCompanyDashboard && !isPendingVerification">
             <div class="flex flex-wrap items-center gap-3">
                 <Link :href="route('perusahaan.internships.create')" class="flex h-11 items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 text-sm font-semibold text-white shadow-sm hover:bg-[#1D4ED8] transition-all">
                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -245,6 +247,48 @@ const modalConfig = computed(() => {
         </div>
 
         <div v-else-if="isCompanyDashboard" class="space-y-6">
+            <!-- Pending Verification Banner -->
+            <Transition
+                enter-active-class="transition ease-out duration-300"
+                enter-from-class="opacity-0 -translate-y-2"
+                enter-to-class="opacity-100 translate-y-0"
+            >
+                <div v-if="isPendingVerification" class="relative overflow-hidden rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-5">
+                    <div class="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-amber-300/20 blur-2xl"></div>
+                    <div class="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="flex items-start gap-4">
+                            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-100 shadow-sm">
+                                <svg class="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-base font-bold text-amber-900">Akun Menunggu Verifikasi Admin</h3>
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-amber-200 px-2.5 py-0.5 text-xs font-bold text-amber-800">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                        Pending
+                                    </span>
+                                </div>
+                                <p class="mt-1 text-sm leading-relaxed text-amber-700">
+                                    Email Anda sudah terverifikasi. Akun perusahaan Anda sedang ditinjau oleh administrator SIKARA.
+                                    Menu <strong>Dashboard, Kelola Pelamar, Lowongan, Event, LMS,</strong> dan <strong>Laporan</strong> akan aktif setelah diverifikasi.
+                                </p>
+                            </div>
+                        </div>
+                        <Link
+                            :href="route('perusahaan.pending-verification')"
+                            class="shrink-0 inline-flex items-center gap-2 rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-amber-700 hover:shadow-md"
+                        >
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                            </svg>
+                            Lihat Status
+                        </Link>
+                    </div>
+                </div>
+            </Transition>
+
             <!-- Stats -->
             <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 <div v-for="stat in stats" :key="stat.label" class="group relative overflow-hidden flex flex-col justify-between rounded-2xl border border-[#eaecf0]/60 bg-white/80 backdrop-blur-md p-6 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 hover:-translate-y-1 transition-all duration-300">
