@@ -92,4 +92,16 @@ class Internship extends Model
     {
         return $query->where('moderation_status', 'pending');
     }
+
+    /** Scope: hanya lowongan yang ditakedown (closed) */
+    public function scopeClosed($query)
+    {
+        return $query->where('moderation_status', 'closed');
+    }
+
+    /** Apakah lowongan bisa diedit oleh perusahaan? Closed (takedown) tidak bisa. */
+    public function isEditable(): bool
+    {
+        return in_array($this->moderation_status, ['pending', 'rejected', 'approved']);
+    }
 }
