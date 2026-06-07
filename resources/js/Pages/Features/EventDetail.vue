@@ -46,6 +46,12 @@ const formatTime = (timeString) => {
     if (!timeString) return '';
     return timeString.substring(0, 5);
 };
+const formatCommentDate = (dt) => {
+    if (!dt) return '';
+    return new Date(dt).toLocaleDateString('id-ID', {
+        day: 'numeric', month: 'long', year: 'numeric',
+    });
+};
 const sisa = computed(() => {
     const e = props.event;
     if (e.max_participants === null || e.max_participants === undefined) return null;
@@ -90,6 +96,19 @@ const categoryColor = (cat) => {
     if (cat === 'seminar')  return 'bg-[#F5F3FF] text-[#7C3AED] border-[#DDD6FE]';
     return 'bg-[#F1F5F9] text-[#475569] border-[#E2E8F0]';
 };
+
+// Rating stars helpers
+const starFill = (avg, index) => {
+    if (!avg) return '#E2E8F0';
+    return index <= Math.round(avg) ? '#F59E0B' : '#E2E8F0';
+};
+
+// Ulasan pagination
+const showAllReviews = ref(false);
+const visibleRatings = computed(() => {
+    const all = props.event.ratings || [];
+    return showAllReviews.value ? all : all.slice(0, 3);
+});
 </script>
 
 <template>
@@ -168,9 +187,17 @@ const categoryColor = (cat) => {
 
                     <h1 class="text-3xl md:text-4xl font-extrabold leading-tight mb-3">{{ event.title }}</h1>
 
-                    <p class="text-white/70 text-sm font-semibold uppercase tracking-wider">
-                        Oleh {{ event.company?.name || 'Perusahaan' }}
-                    </p>
+                    <div class="flex flex-wrap items-center gap-4">
+                        <p class="text-white/70 text-sm font-semibold uppercase tracking-wider">
+                            Oleh {{ event.company?.name || 'Perusahaan' }}
+                        </p>
+                        <!-- TC-11: Avg Rating di hero -->
+                        <div v-if="event.avg_rating" class="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full">
+                            <svg class="h-4 w-4 text-[#F59E0B]" viewBox="0 0 24 24" fill="#F59E0B"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                            <span class="text-white text-sm font-bold">{{ Number(event.avg_rating).toFixed(1) }}</span>
+                            <span class="text-white/60 text-xs">({{ event.rating_count }} ulasan)</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -245,6 +272,91 @@ const categoryColor = (cat) => {
                                 </div>
                             </div>
                         </div>
+
+                        <!-- ── TC-11: Ulasan & Rating Section ──────────────────────── -->
+                        <div class="rounded-2xl border border-[#E2E8F0] bg-white p-8 shadow-sm">
+                            <div class="flex items-center justify-between mb-6">
+                                <h2 class="text-lg font-bold text-[#0F172A] flex items-center gap-2">
+                                    <svg class="h-5 w-5 text-[#F59E0B]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                    Ulasan & Rating
+                                </h2>
+                                <span v-if="event.rating_count" class="rounded-full bg-[#FFFBEB] border border-[#FDE68A] px-3 py-1 text-xs font-bold text-[#92400E]">
+                                    {{ event.rating_count }} ulasan
+                                </span>
+                            </div>
+
+                            <!-- Avg Rating Summary -->
+                            <div v-if="event.avg_rating" class="flex items-center gap-6 p-5 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] mb-6">
+                                <div class="text-center">
+                                    <p class="text-4xl font-black text-[#92400E]">{{ Number(event.avg_rating).toFixed(1) }}</p>
+                                    <div class="flex items-center justify-center gap-0.5 mt-1">
+                                        <svg v-for="i in 5" :key="i" class="h-4 w-4" viewBox="0 0 24 24" :fill="starFill(event.avg_rating, i)"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                    </div>
+                                    <p class="text-xs text-[#92400E] mt-1 font-medium">dari {{ event.rating_count }} ulasan</p>
+                                </div>
+                                <div class="flex-1 space-y-1.5">
+                                    <div v-for="star in [5,4,3,2,1]" :key="star" class="flex items-center gap-2 text-xs">
+                                        <span class="w-3 text-[#92400E] font-bold">{{ star }}</span>
+                                        <svg class="h-3 w-3 text-[#F59E0B]" viewBox="0 0 24 24" fill="#F59E0B"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                        <div class="flex-1 h-1.5 rounded-full bg-[#FDE68A] overflow-hidden">
+                                            <div
+                                                class="h-full rounded-full bg-[#F59E0B] transition-all"
+                                                :style="{ width: `${event.rating_count ? ((event.ratings || []).filter(r => r.rating === star).length / event.rating_count) * 100 : 0}%` }"
+                                            ></div>
+                                        </div>
+                                        <span class="w-4 text-right text-[#92400E]">{{ (event.ratings || []).filter(r => r.rating === star).length }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- No Ratings Yet -->
+                            <div v-else class="flex flex-col items-center py-8 text-center">
+                                <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FFFBEB] mb-3">
+                                    <svg class="h-7 w-7 text-[#F59E0B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                </div>
+                                <p class="text-sm font-semibold text-[#475569]">Belum ada ulasan</p>
+                                <p class="text-xs text-[#94A3B8] mt-1">Event ini belum mendapatkan ulasan dari peserta.</p>
+                            </div>
+
+                            <!-- Review Cards -->
+                            <div v-if="(event.ratings || []).length > 0" class="space-y-4">
+                                <div
+                                    v-for="review in visibleRatings"
+                                    :key="review.id"
+                                    class="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-5"
+                                >
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div class="flex items-center gap-3">
+                                            <div class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#2563EB] to-[#7C3AED] text-white text-sm font-bold flex-shrink-0">
+                                                {{ review.user_name ? review.user_name.charAt(0).toUpperCase() : 'M' }}
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-bold text-[#0F172A]">{{ review.user_name }}</p>
+                                                <p class="text-xs text-[#94A3B8]">{{ formatCommentDate(review.created_at) }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-0.5">
+                                            <svg v-for="i in 5" :key="i" class="h-3.5 w-3.5" viewBox="0 0 24 24" :fill="i <= review.rating ? '#F59E0B' : '#E2E8F0'"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                            <span class="ml-1 text-xs font-bold text-[#64748B]">{{ review.rating }}/5</span>
+                                        </div>
+                                    </div>
+                                    <p v-if="review.comment" class="text-sm text-[#475569] leading-relaxed">{{ review.comment }}</p>
+                                    <p v-else class="text-sm text-[#94A3B8] italic">Tidak ada komentar.</p>
+                                </div>
+
+                                <!-- Show More / Show Less -->
+                                <div v-if="(event.ratings || []).length > 3" class="text-center pt-2">
+                                    <button
+                                        @click="showAllReviews = !showAllReviews"
+                                        class="inline-flex items-center gap-1.5 text-sm font-semibold text-[#2563EB] hover:text-[#1D4ED8] transition-colors"
+                                    >
+                                        {{ showAllReviews ? 'Tampilkan Lebih Sedikit' : `Lihat Semua ${event.ratings.length} Ulasan` }}
+                                        <svg class="h-4 w-4 transition-transform" :class="showAllReviews ? 'rotate-180' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- ── End Ulasan Section ──────────────────────────────────── -->
                     </div>
 
                     <!-- Sidebar Action -->
@@ -327,6 +439,20 @@ const categoryColor = (cat) => {
                             <Link v-if="isMahasiswa" :href="route('my-events')" class="block w-full text-center rounded-xl border border-[#E2E8F0] py-2.5 text-sm font-semibold text-[#475569] hover:bg-[#F8FAFC] transition-colors">
                                 Lihat Event Saya
                             </Link>
+
+                            <!-- Rating info di sidebar -->
+                            <div v-if="event.avg_rating" class="mt-5 pt-5 border-t border-[#E2E8F0]">
+                                <p class="text-xs font-bold text-[#94A3B8] uppercase tracking-wider mb-2">Rating Event</p>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-2xl font-black text-[#0F172A]">{{ Number(event.avg_rating).toFixed(1) }}</span>
+                                    <div>
+                                        <div class="flex items-center gap-0.5">
+                                            <svg v-for="i in 5" :key="i" class="h-3.5 w-3.5" viewBox="0 0 24 24" :fill="starFill(event.avg_rating, i)"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                        </div>
+                                        <p class="text-xs text-[#94A3B8] mt-0.5">{{ event.rating_count }} ulasan</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

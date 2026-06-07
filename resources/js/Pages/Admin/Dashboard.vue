@@ -114,15 +114,18 @@ const lineOptions = { ...barOptions };
                 <div class="flex flex-col justify-center px-4 py-2 bg-white/5 rounded-xl border border-white/10 relative overflow-hidden group cursor-default" title="Kapasitas Server">
                     <div class="absolute inset-0 bg-gradient-to-r from-teal-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div class="flex items-center gap-2 mb-1">
-                        <div class="h-2 w-2 rounded-full" :class="systemHealth.storage > 85 ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'"></div>
+                        <div class="h-2 w-2 rounded-full" :class="systemHealth.storage >= 90 ? 'bg-red-500 animate-pulse' : systemHealth.storage >= 75 ? 'bg-yellow-400 animate-pulse' : 'bg-emerald-500'"></div>
                         <span class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">System Health</span>
                     </div>
                     <div class="flex items-center gap-3">
                         <div class="w-20 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                            <div class="h-full bg-emerald-400 rounded-full" :style="`width: ${systemHealth.storage}%`"></div>
+                            <div class="h-full rounded-full transition-all duration-700"
+                                :class="systemHealth.storage >= 90 ? 'bg-red-500' : systemHealth.storage >= 75 ? 'bg-yellow-400' : 'bg-emerald-400'"
+                                :style="`width: ${systemHealth.storage}%`"></div>
                         </div>
                         <span class="text-xs font-bold text-white">{{ systemHealth.storage }}%</span>
                     </div>
+                    <p class="mt-1 text-[10px] font-semibold" :class="systemHealth.storage >= 90 ? 'text-red-400' : systemHealth.storage >= 75 ? 'text-yellow-400' : 'text-emerald-400'">{{ systemHealth.status }}</p>
                 </div>
                 <div class="flex flex-col justify-center items-end px-4 py-2 bg-white/5 rounded-xl border border-white/10">
                     <span class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Registrasi Hari Ini</span>
@@ -141,7 +144,7 @@ const lineOptions = { ...barOptions };
                 <h2 class="text-sm font-bold text-slate-900">Tindakan Cepat</h2>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Link href="#" class="group relative overflow-hidden rounded-2xl bg-white p-4 border border-slate-200 shadow-sm transition-all hover:shadow-md hover:border-blue-300 flex items-center gap-4 hover:-translate-y-0.5">
+                <Link :href="route('admin.users.index')" class="group relative overflow-hidden rounded-2xl bg-white p-4 border border-slate-200 shadow-sm transition-all hover:shadow-md hover:border-blue-300 flex items-center gap-4 hover:-translate-y-0.5">
                     <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-transform group-hover:scale-110">
                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     </div>
