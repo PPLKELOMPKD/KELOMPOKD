@@ -67,6 +67,16 @@ class CompanyInternshipController extends Controller
 
     public function edit(Internship $internship)
     {
+        // Pastikan hanya pemilik yang bisa akses
+        abort_unless($internship->company_id === auth()->id(), 403);
+
+        // Lowongan yang ditakedown (closed) tidak bisa diedit
+        if ($internship->moderation_status === 'closed') {
+            return redirect()
+                ->route('perusahaan.internships.index')
+                ->with('error', 'Lowongan yang telah dicabut (takedown) tidak dapat diedit. Silakan buat lowongan baru.');
+        }
+
         return Inertia::render('Perusahaan/Internships/Form', [
             'internship' => $internship
         ]);
@@ -102,11 +112,28 @@ class CompanyInternshipController extends Controller
             'quota.min' => 'Kuota harus berupa angka positif.'
         ]);
 
-        $internship->update($validated);
+        // Jika lowongan sebelumnya 'rejected', resubmit → kembali ke 'pending'
+        // Jika 'approved' atau 'pending', update biasa (tidak ubah status moderasi)
+        $moderationUpdate = [];
+        if ($internship->moderation_status === 'rejected') {
+            $moderationUpdate = [
+                'moderation_status' => 'pending',
+                'is_published'      => false,
+                'rejection_reason'  => null,
+                'moderated_by'      => null,
+                'moderated_at'      => null,
+            ];
+        }
+
+        $internship->update(array_merge($validated, $moderationUpdate));
+
+        $message = $internship->moderation_status === 'pending' && !empty($moderationUpdate)
+            ? 'Lowongan berhasil diperbarui dan dikirim ulang untuk ditinjau admin.'
+            : 'Lowongan Magang Berhasil Diperbarui';
 
         \App\Services\ActivityLogger::log('Memperbarui Lowongan', "Memperbarui lowongan berjudul: {$internship->title}", 'lowongan');
 
-        return redirect()->route('perusahaan.internships.index')->with('success', 'Lowongan Magang Berhasil Diperbarui');
+        return redirect()->route('perusahaan.internships.index')->with('success', $message);
     }
 
     public function destroy(Internship $internship)

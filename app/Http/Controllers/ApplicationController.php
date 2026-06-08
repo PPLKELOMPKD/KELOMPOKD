@@ -4,12 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\Application;
 use App\Models\Notification;
+use App\Services\AutomatedMailService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class ApplicationController extends Controller
 {
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, AutomatedMailService $mailService): RedirectResponse
     {
         $data = $request->validate([
             'internship_id' => ['required', 'exists:internships,id'],
@@ -32,7 +35,7 @@ class ApplicationController extends Controller
         }
 
         $application = $user->applications()->create([
-            'users_id' => $user->id,
+            'user_id' => $user->id,
             'internship_id' => $data['internship_id'],
             'status' => 'submitted'
         ]);
@@ -58,6 +61,15 @@ class ApplicationController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Lamaran berhasil dikirim!');
+        try {
+            $mailService->sendApplicationSubmittedToCompany($application);
+        } catch (Throwable $exception) {
+            Log::error('Application submission email flow failed.', [
+                'application_id' => $application->id,
+                'message' => $exception->getMessage(),
+            ]);
+        }
+
+        return redirect()->route('internships.index')->with('success', 'Lamaran berhasil dikirim!');
     }
 }

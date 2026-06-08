@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
@@ -49,15 +50,19 @@ class RegisteredUserController extends Controller
             'nim' => 'nullable|required_if:role,mahasiswa|string|max:50|unique:mahasiswa_profiles,nim',
             'university' => 'nullable|required_if:role,mahasiswa|string|max:255',
             'study_program' => 'nullable|required_if:role,mahasiswa|string|max:255',
+            'legal_document' => 'nullable|required_if:role,perusahaan|file|mimes:pdf|max:5120',
             'terms' => 'accepted',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
+
+        $status = $request->role === 'perusahaan' ? 'inactive' : 'active';
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
+            'status' => $status,
         ]);
 
         if ($user->isMahasiswa()) {
@@ -69,6 +74,15 @@ class RegisteredUserController extends Controller
                 'gpa' => 0,
                 'phone' => $request->string('phone')->toString() ?: null,
                 'university' => $request->string('university')->toString(),
+            ]);
+        } elseif ($user->isPerusahaan()) {
+            $path = null;
+            if ($request->hasFile('legal_document')) {
+                $path = $request->file('legal_document')->store('legal_documents', 'public');
+            }
+            \App\Models\PerusahaanProfile::create([
+                'user_id' => $user->id,
+                'legal_document_path' => $path,
             ]);
         }
 
@@ -82,6 +96,14 @@ class RegisteredUserController extends Controller
             $user->role,
         );
 
+        // Perusahaan: auto-login lalu arahkan ke verifikasi email.
+        // Verifikasi admin (status active) akan diterapkan setelah email terverifikasi.
+        if ($user->isPerusahaan()) {
+            Auth::login($user);
+            return redirect()->route('verification.notice');
+        }
+
+        // Mahasiswa: langsung ke login
         return redirect(route('login'))->with('status', 'Registrasi berhasil! Silakan masuk dengan akun Anda.');
     }
 }

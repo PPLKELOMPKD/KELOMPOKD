@@ -37,6 +37,7 @@ class AdminDashboardController extends Controller
         // ── Event stats ───────────────────────────────────────────────
         $totalEvents  = Event::count();
         $activeEvents = Event::where('status', 'published')
+            ->where('moderation_status', 'approved')
             ->where('date', '>=', now()->toDateString())
             ->count();
 
@@ -94,18 +95,24 @@ class AdminDashboardController extends Controller
         // ── Pending Actions for Quick Action Badges ───────────────────
         $pendingPerusahaan = User::where('role', 'perusahaan')->where('status', 'inactive')->count();
         $pendingLowongan   = Internship::where('moderation_status', 'pending')->count();
+        $pendingEvents     = Event::where('moderation_status', 'pending')->count();
         $draftCourses      = LmsCourse::where('status', 'draft')->count();
 
         $pendingActions = [
             'perusahaan' => $pendingPerusahaan,
             'lowongan'   => $pendingLowongan,
+            'events'     => $pendingEvents,
             'lms'        => $draftCourses,
         ];
 
-        // ── System Health (Mockup for representation) ─────────────────
+        // ── System Health (real disk usage) ───────────────────────────
+        $diskTotal   = @disk_total_space(base_path()) ?: 1;
+        $diskFree    = @disk_free_space(base_path()) ?: 0;
+        $diskUsed    = $diskTotal - $diskFree;
+        $diskPercent = (int) round(($diskUsed / $diskTotal) * 100);
         $systemHealth = [
-            'storage' => 68, // 68% used
-            'status'  => 'Optimal',
+            'storage' => $diskPercent,
+            'status'  => $diskPercent >= 90 ? 'Kritis' : ($diskPercent >= 75 ? 'Perlu Perhatian' : 'Optimal'),
         ];
 
         // ── Chart data: Monthly user registrations (last 6 months) ────

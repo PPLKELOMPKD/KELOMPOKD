@@ -17,7 +17,32 @@ const props = defineProps({
     profileSummary: Object,
     latestInternships: Array,
     latestNotifications: Array,
+    filters: Object,
+    recruitmentTrend: Object,
+    isPendingVerification: { type: Boolean, default: false },
+    companyStatus: { type: String, default: null },
 });
+
+const showFilterMenu       = ref(false);
+const showRecruitDropdown = ref(false);
+const showEventDropdown   = ref(false);
+const statusOptions = ['Semua', 'Menunggu Ulasan', 'Submitted', 'Wawancara', 'Lolos', 'Tidak Lolos'];
+
+const applyFilter = (status) => {
+    router.get(route('perusahaan.dashboard'), { status: status === 'Semua' ? 'all' : status.toLowerCase() }, { preserveState: true, preserveScroll: true });
+    showFilterMenu.value = false;
+};
+
+// Download report helpers – triggers a direct browser download
+const downloadReport = (type, format) => {
+    showRecruitDropdown.value = false;
+    showEventDropdown.value   = false;
+    const routeName = type === 'recruitment'
+        ? 'perusahaan.reports.download'
+        : 'perusahaan.reports.events.download';
+    const url = route(routeName) + '?format=' + format;
+    window.open(url, '_blank');
+};
 
 const getColorClass = (color, type) => {
     const map = {
@@ -46,7 +71,7 @@ const confirmAction = () => {
     if (!modalApplicant.value) return;
     processing.value = true;
     router.patch(route('perusahaan.applicants.updateStatus', modalApplicant.value.id), {
-        status: modalAction.value, redirect: 'index',
+        status: modalAction.value, redirect: 'dashboard',
     }, {
         preserveScroll: true,
         onFinish: () => { processing.value = false; closeModal(); },
@@ -65,7 +90,7 @@ const modalConfig = computed(() => {
     <Head :title="title" />
 
     <SikaraLayout :title="title" :subtitle="subtitle">
-        <template #headerAction v-if="isCompanyDashboard">
+        <template #headerAction v-if="isCompanyDashboard && !isPendingVerification">
             <div class="flex flex-wrap items-center gap-3">
                 <Link :href="route('perusahaan.internships.create')" class="flex h-11 items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-5 text-sm font-semibold text-white shadow-sm hover:bg-[#1D4ED8] transition-all">
                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -73,12 +98,12 @@ const modalConfig = computed(() => {
                     </svg>
                     Buat Lowongan
                 </Link>
-                <button class="flex h-11 items-center justify-center gap-2 rounded-xl border border-[#E2E8F0] bg-white px-5 text-sm font-semibold text-[#0F172A] shadow-sm hover:bg-slate-50 transition-all">
+                <Link :href="route('perusahaan.events.create')" class="flex h-11 items-center justify-center gap-2 rounded-xl border border-[#E2E8F0] bg-white px-5 text-sm font-semibold text-[#0F172A] shadow-sm hover:bg-slate-50 transition-all">
                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                     </svg>
                     Tambah Event
-                </button>
+                </Link>
             </div>
         </template>
 
@@ -222,10 +247,53 @@ const modalConfig = computed(() => {
         </div>
 
         <div v-else-if="isCompanyDashboard" class="space-y-6">
+            <!-- Pending Verification Banner -->
+            <Transition
+                enter-active-class="transition ease-out duration-300"
+                enter-from-class="opacity-0 -translate-y-2"
+                enter-to-class="opacity-100 translate-y-0"
+            >
+                <div v-if="isPendingVerification" class="relative overflow-hidden rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-5">
+                    <div class="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-amber-300/20 blur-2xl"></div>
+                    <div class="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="flex items-start gap-4">
+                            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-100 shadow-sm">
+                                <svg class="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-base font-bold text-amber-900">Akun Menunggu Verifikasi Admin</h3>
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-amber-200 px-2.5 py-0.5 text-xs font-bold text-amber-800">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                        Pending
+                                    </span>
+                                </div>
+                                <p class="mt-1 text-sm leading-relaxed text-amber-700">
+                                    Email Anda sudah terverifikasi. Akun perusahaan Anda sedang ditinjau oleh administrator SIKARA.
+                                    Menu <strong>Dashboard, Kelola Pelamar, Lowongan, Event, LMS,</strong> dan <strong>Laporan</strong> akan aktif setelah diverifikasi.
+                                </p>
+                            </div>
+                        </div>
+                        <Link
+                            :href="route('perusahaan.pending-verification')"
+                            class="shrink-0 inline-flex items-center gap-2 rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-amber-700 hover:shadow-md"
+                        >
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                            </svg>
+                            Lihat Status
+                        </Link>
+                    </div>
+                </div>
+            </Transition>
+
             <!-- Stats -->
             <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                <div v-for="stat in stats" :key="stat.label" class="flex flex-col justify-between rounded-2xl border border-[#eaecf0] bg-white p-6 shadow-[0_1px_3px_rgba(16,24,40,0.1),0_1px_2px_rgba(16,24,40,0.06)]">
-                    <div class="flex items-center justify-between">
+                <div v-for="stat in stats" :key="stat.label" class="group relative overflow-hidden flex flex-col justify-between rounded-2xl border border-[#eaecf0]/60 bg-white/80 backdrop-blur-md p-6 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 hover:-translate-y-1 transition-all duration-300">
+                    <div class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-gradient-to-br from-transparent to-current opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-300" :class="getColorClass(stat.color, 'text')"></div>
+                    <div class="flex items-center justify-between relative z-10">
                         <p class="text-xs font-semibold uppercase tracking-wider text-[#667085]">{{ stat.label }}</p>
                         <div class="flex h-10 w-10 items-center justify-center rounded-xl" :class="[getColorClass(stat.color, 'bg'), getColorClass(stat.color, 'text')]">
                             <svg v-if="stat.icon === 'briefcase'" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1"/><path d="M4 7h16v12H4z"/><path d="M4 12h16"/></svg>
@@ -248,12 +316,12 @@ const modalConfig = computed(() => {
 
             <div class="grid gap-6 lg:grid-cols-3">
                 <!-- Pipeline -->
-                <div class="rounded-2xl border border-[#eaecf0] bg-white p-6 shadow-[0_1px_3px_rgba(16,24,40,0.1),0_1px_2px_rgba(16,24,40,0.06)] lg:col-span-2">
+                <div class="rounded-2xl border border-[#eaecf0]/60 bg-white/80 backdrop-blur-md p-6 shadow-sm hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300 lg:col-span-2">
                     <div class="flex items-center justify-between">
                         <h3 class="text-xl font-semibold text-[#101828]">Pipeline Rekrutmen</h3>
-                        <button class="text-[#667085] hover:text-[#101828]">
+                        <Link :href="route('perusahaan.applicants.index')" title="Lihat Kelola Pelamar" class="text-[#667085] hover:text-[#2563EB] transition-colors">
                             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
-                        </button>
+                        </Link>
                     </div>
                     <div class="mt-10 mb-4 flex items-center justify-between relative px-4">
                         <!-- Connecting line -->
@@ -272,31 +340,46 @@ const modalConfig = computed(() => {
                 </div>
 
                 <!-- Trend -->
-                <div class="rounded-2xl border border-[#eaecf0] bg-white p-6 shadow-[0_1px_3px_rgba(16,24,40,0.1),0_1px_2px_rgba(16,24,40,0.06)]">
+                <div class="rounded-2xl border border-[#eaecf0]/60 bg-white/80 backdrop-blur-md p-6 shadow-sm hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300">
                     <h3 class="text-xl font-semibold text-[#101828]">Tren Rekrutmen</h3>
                     <!-- A simple bar chart representation using flex divs -->
                     <div class="mt-8 flex h-32 items-end justify-between gap-3">
-                         <div v-for="(h, i) in [30, 45, 35, 60, 50, 85]" :key="i" class="w-full rounded-t bg-[#DBEAFE] relative group transition-all" :style="`height: ${h}%`">
-                             <div v-if="i===5" class="absolute inset-0 rounded-t bg-[#2563EB]"></div>
+                         <div v-for="(h, i) in (recruitmentTrend?.data || [0,0,0,0,0,0])" :key="i" class="w-full rounded-t bg-[#DBEAFE] relative group transition-all duration-300 hover:bg-blue-300 cursor-pointer" :style="`height: ${h > 0 ? h : 5}%`">
+                             <!-- active state for current month -->
+                             <div v-if="i === ((recruitmentTrend?.data?.length || 6) - 1)" class="absolute inset-0 rounded-t bg-gradient-to-t from-blue-600 to-blue-400"></div>
+                             
+                             <!-- Tooltip -->
+                             <div class="absolute -top-10 left-1/2 -translate-x-1/2 rounded bg-gray-900 px-2 py-1 text-xs font-medium text-white opacity-0 transition-opacity group-hover:opacity-100 whitespace-nowrap pointer-events-none z-10">
+                                 {{ recruitmentTrend?.raw_data?.[i] || 0 }} Pelamar
+                                 <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                             </div>
                          </div>
                     </div>
                     <div class="mt-3 flex justify-between text-xs font-medium text-[#667085]">
-                         <span>Mei</span><span>Jun</span><span>Jul</span><span>Ags</span><span>Sep</span><span>Okt</span>
+                         <span v-for="(label, i) in (recruitmentTrend?.labels || ['-','-','-','-','-','-'])" :key="i">{{ label }}</span>
                     </div>
                 </div>
             </div>
 
             <!-- Table Daftar Pelamar -->
-            <div class="rounded-2xl border border-[#eaecf0] bg-white shadow-[0_1px_3px_rgba(16,24,40,0.1),0_1px_2px_rgba(16,24,40,0.06)] overflow-hidden">
+            <div class="rounded-2xl border border-[#eaecf0]/60 bg-white/80 backdrop-blur-md shadow-sm hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300 overflow-hidden">
                 <div class="flex items-center justify-between p-6">
                     <div>
                         <h3 class="text-xl font-semibold text-[#101828]">Daftar Pelamar Terbaru</h3>
                         <p class="mt-1 text-sm text-[#667085]">Menampilkan {{ recentApplicants?.length || 0 }} pelamar terakhir</p>
                     </div>
-                    <div class="flex gap-3">
-                        <Link :href="route('perusahaan.applicants.index')" class="flex h-10 w-10 items-center justify-center rounded-lg border border-[#eaecf0] text-[#667085] hover:bg-[#EFF6FF] hover:text-[#2563EB] hover:border-[#2563EB] transition-all duration-300 active:scale-95">
+                    <div class="flex gap-3 relative">
+                        <button @click="showFilterMenu = !showFilterMenu" class="flex h-10 items-center justify-center gap-2 rounded-lg border border-[#eaecf0] px-3 text-[#667085] hover:bg-[#EFF6FF] hover:text-[#2563EB] hover:border-[#2563EB] transition-all duration-300 active:scale-95" :class="{'bg-[#EFF6FF] text-[#2563EB] border-[#2563EB]': (filters?.status && filters.status !== 'all')}">
                              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                        </Link>
+                             <span class="text-sm font-medium hidden sm:block capitalize">{{ filters?.status === 'all' || !filters?.status ? 'Filter' : filters?.status }}</span>
+                        </button>
+                        <Transition enter-active-class="transition ease-out duration-200" enter-from-class="opacity-0 translate-y-1" enter-to-class="opacity-100 translate-y-0" leave-active-class="transition ease-in duration-150" leave-from-class="opacity-100 translate-y-0" leave-to-class="opacity-0 translate-y-1">
+                            <div v-if="showFilterMenu" class="absolute right-[110px] top-12 z-50 w-48 rounded-xl border border-[#eaecf0] bg-white py-2 shadow-lg">
+                                <button v-for="option in statusOptions" :key="option" @click="applyFilter(option)" class="w-full px-4 py-2 text-left text-sm text-[#344054] hover:bg-[#f9fafb] transition-colors" :class="{'font-semibold text-[#2563EB] bg-[#EFF6FF]': (filters?.status === 'all' && option === 'Semua') || (filters?.status === option.toLowerCase())}">
+                                    {{ option }}
+                                </button>
+                            </div>
+                        </Transition>
                         <Link :href="route('perusahaan.applicants.index')" class="flex h-10 items-center justify-center rounded-lg border border-[#eaecf0] px-4 text-sm font-semibold text-[#344054] hover:bg-[#EFF6FF] hover:text-[#2563EB] hover:border-[#2563EB] transition-all duration-300 active:scale-95 shadow-sm">
                             Lihat Semua
                         </Link>
@@ -362,7 +445,7 @@ const modalConfig = computed(() => {
             
             <div class="grid gap-6 lg:grid-cols-2">
                  <!-- Event Mendatang -->
-                 <div class="rounded-2xl border border-[#eaecf0] bg-white p-6 shadow-[0_1px_3px_rgba(16,24,40,0.1),0_1px_2px_rgba(16,24,40,0.06)]">
+                 <div class="rounded-2xl border border-[#eaecf0]/60 bg-white/80 backdrop-blur-md p-6 shadow-sm hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300">
                     <div class="flex items-center justify-between">
                          <h3 class="text-xl font-semibold text-[#101828]">Event Mendatang</h3>
                          <Link :href="route('perusahaan.events.index')" class="text-sm font-semibold text-[#2563EB] hover:text-[#1d4ed8] hover:underline transition-all">Kelola Event</Link>
@@ -392,7 +475,7 @@ const modalConfig = computed(() => {
                                  <p class="text-[11px] uppercase tracking-wider font-semibold text-[#667085]">{{ event.participants ? 'Peserta' : 'Status' }}</p>
                              </div>
                          </div>
-                         <Link :href="route('perusahaan.events.index')" class="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-[#d0d5dd] bg-white py-3 text-sm font-semibold text-[#344054] hover:bg-[#EFF6FF] hover:border-[#2563EB] hover:text-[#2563EB] hover:shadow-sm transition-all duration-300 active:scale-95 group">
+                         <Link :href="route('perusahaan.events.create')" class="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-[#d0d5dd] bg-white py-3 text-sm font-semibold text-[#344054] hover:bg-[#EFF6FF] hover:border-[#2563EB] hover:text-[#2563EB] hover:shadow-sm transition-all duration-300 active:scale-95 group">
                              <svg class="h-4 w-4 transition-transform group-hover:scale-110" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
                              Tambah Event Baru
                          </Link>
@@ -400,28 +483,145 @@ const modalConfig = computed(() => {
                  </div>
 
                  <div class="space-y-6">
-                     <!-- Laporan -->
-                     <div class="rounded-2xl bg-[#0F172A] p-6 text-white shadow-[0_1px_3px_rgba(16,24,40,0.1),0_1px_2px_rgba(16,24,40,0.06)] relative overflow-hidden">
-                         <!-- Decorative background -->
-                         <div class="absolute -right-6 -top-6 w-32 h-32 bg-blue-500 rounded-full blur-3xl opacity-20"></div>
-                         <div class="relative z-10">
-                             <h3 class="text-xl font-semibold">Laporan Komprehensif</h3>
-                             <p class="mt-2 text-sm text-slate-300 leading-relaxed pr-8">Unduh data rekrutmen, analitik event, dan performa pelamar dalam format PDF atau Excel.</p>
-                             <div class="mt-6 flex flex-col sm:flex-row gap-3">
-                                 <Link :href="route('perusahaan.reports.index')" class="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-white/5 py-3 text-sm font-semibold hover:bg-[#2563EB] hover:border-[#2563EB] hover:shadow-[0_0_15px_rgba(37,99,235,0.4)] hover:-translate-y-1 transition-all duration-300 active:scale-95">
-                                     <svg class="h-4 w-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                                     Laporan Rekrutmen
-                                 </Link>
-                                 <Link :href="route('perusahaan.reports.index')" class="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-white/5 py-3 text-sm font-semibold hover:bg-[#10B981] hover:border-[#10B981] hover:shadow-[0_0_15px_rgba(16,185,129,0.4)] hover:-translate-y-1 transition-all duration-300 active:scale-95">
-                                     <svg class="h-4 w-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                                     Laporan Event
-                                 </Link>
+                     <!-- Laporan Komprehensif -->
+                     <div class="rounded-2xl bg-[#0F172A] p-6 text-white shadow-[0_1px_3px_rgba(16,24,40,0.1),0_1px_2px_rgba(16,24,40,0.06)] relative z-20">
+                         <!-- Decorative blobs (scoped overflow, does NOT clip dropdowns) -->
+                         <div class="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
+                             <div class="absolute -right-6 -top-6 w-32 h-32 bg-blue-500 rounded-full blur-3xl opacity-20"></div>
+                             <div class="absolute -left-4 -bottom-4 w-24 h-24 bg-emerald-500 rounded-full blur-3xl opacity-10"></div>
+                         </div>
+                         <div class="relative">
+
+                             <div class="flex items-center gap-2.5 mb-1">
+                                 <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10">
+                                     <svg class="h-4 w-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+                                 </div>
+                                 <h3 class="text-lg font-bold">Laporan Komprehensif</h3>
+                             </div>
+                             <p class="mt-1 text-sm text-slate-400 leading-relaxed">Unduh data rekrutmen, analitik event, dan performa pelamar dalam format PDF atau Excel.</p>
+
+                             <div class="mt-5 flex flex-col sm:flex-row gap-3">
+
+                                 <!-- ── Tombol Laporan Rekrutmen ── -->
+                                 <div class="relative flex-1">
+                                     <button
+                                         @click="showRecruitDropdown = !showRecruitDropdown; showEventDropdown = false"
+                                         class="flex w-full items-center justify-between gap-2 rounded-xl border border-slate-600 bg-white/8 px-4 py-2.5 text-sm font-semibold transition-all duration-300 hover:bg-[#2563EB] hover:border-[#2563EB] hover:shadow-[0_0_15px_rgba(37,99,235,0.35)] active:scale-95"
+                                         :class="showRecruitDropdown ? 'bg-[#2563EB] border-[#2563EB]' : ''"
+                                     >
+                                         <span class="flex items-center gap-2">
+                                             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                                             Laporan Rekrutmen
+                                         </span>
+                                         <svg class="h-3.5 w-3.5 transition-transform duration-200" :class="showRecruitDropdown ? 'rotate-180' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                                     </button>
+
+                                     <Transition
+                                         enter-active-class="transition ease-out duration-200"
+                                         enter-from-class="opacity-0 -translate-y-1"
+                                         enter-to-class="opacity-100 translate-y-0"
+                                         leave-active-class="transition ease-in duration-150"
+                                         leave-from-class="opacity-100 translate-y-0"
+                                         leave-to-class="opacity-0 -translate-y-1"
+                                     >
+                                         <div v-if="showRecruitDropdown" class="absolute left-0 top-full mt-2 z-[999] w-full min-w-[180px] rounded-xl border border-slate-700 bg-[#1e293b] py-1.5 shadow-2xl">
+                                             <p class="px-3 pb-1 pt-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Pilih Format</p>
+                                             <!-- PDF -->
+                                             <button @click="downloadReport('recruitment', 'pdf')" class="flex w-full items-center gap-3 px-3 py-2 text-sm text-slate-200 hover:bg-white/10 hover:text-white transition-colors">
+                                                 <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-red-500/20 text-red-400">
+                                                     <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                                 </span>
+                                                 <div class="text-left">
+                                                     <p class="font-semibold text-xs">Unduh PDF</p>
+                                                     <p class="text-[10px] text-slate-400">Format laporan siap cetak</p>
+                                                 </div>
+                                             </button>
+                                             <!-- Excel / CSV -->
+                                             <button @click="downloadReport('recruitment', 'excel')" class="flex w-full items-center gap-3 px-3 py-2 text-sm text-slate-200 hover:bg-white/10 hover:text-white transition-colors">
+                                                 <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
+                                                     <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+                                                 </span>
+                                                 <div class="text-left">
+                                                     <p class="font-semibold text-xs">Unduh Excel (CSV)</p>
+                                                     <p class="text-[10px] text-slate-400">Buka dengan Microsoft Excel</p>
+                                                 </div>
+                                             </button>
+                                             <div class="my-1 mx-3 border-t border-slate-700"></div>
+                                             <Link :href="route('perusahaan.reports.index')" class="flex w-full items-center gap-3 px-3 py-2 text-sm text-slate-400 hover:bg-white/10 hover:text-white transition-colors">
+                                                 <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-700 text-slate-400">
+                                                     <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                                 </span>
+                                                 <div class="text-left">
+                                                     <p class="font-semibold text-xs">Lihat Analitik</p>
+                                                     <p class="text-[10px] text-slate-400">Buka halaman laporan lengkap</p>
+                                                 </div>
+                                             </Link>
+                                         </div>
+                                     </Transition>
+                                 </div>
+
+                                 <!-- ── Tombol Laporan Event ── -->
+                                 <div class="relative flex-1">
+                                     <button
+                                         @click="showEventDropdown = !showEventDropdown; showRecruitDropdown = false"
+                                         class="flex w-full items-center justify-between gap-2 rounded-xl border border-slate-600 bg-white/8 px-4 py-2.5 text-sm font-semibold transition-all duration-300 hover:bg-[#10B981] hover:border-[#10B981] hover:shadow-[0_0_15px_rgba(16,185,129,0.35)] active:scale-95"
+                                         :class="showEventDropdown ? 'bg-[#10B981] border-[#10B981]' : ''"
+                                     >
+                                         <span class="flex items-center gap-2">
+                                             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                             Laporan Event
+                                         </span>
+                                         <svg class="h-3.5 w-3.5 transition-transform duration-200" :class="showEventDropdown ? 'rotate-180' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                                     </button>
+
+                                     <Transition
+                                         enter-active-class="transition ease-out duration-200"
+                                         enter-from-class="opacity-0 -translate-y-1"
+                                         enter-to-class="opacity-100 translate-y-0"
+                                         leave-active-class="transition ease-in duration-150"
+                                         leave-from-class="opacity-100 translate-y-0"
+                                         leave-to-class="opacity-0 -translate-y-1"
+                                     >
+                                         <div v-if="showEventDropdown" class="absolute left-0 top-full mt-2 z-[999] w-full min-w-[180px] rounded-xl border border-slate-700 bg-[#1e293b] py-1.5 shadow-2xl">
+                                             <p class="px-3 pb-1 pt-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Pilih Format</p>
+                                             <button @click="downloadReport('events', 'pdf')" class="flex w-full items-center gap-3 px-3 py-2 text-sm text-slate-200 hover:bg-white/10 hover:text-white transition-colors">
+                                                 <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-red-500/20 text-red-400">
+                                                     <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                                 </span>
+                                                 <div class="text-left">
+                                                     <p class="font-semibold text-xs">Unduh PDF</p>
+                                                     <p class="text-[10px] text-slate-400">Format laporan siap cetak</p>
+                                                 </div>
+                                             </button>
+                                             <button @click="downloadReport('events', 'excel')" class="flex w-full items-center gap-3 px-3 py-2 text-sm text-slate-200 hover:bg-white/10 hover:text-white transition-colors">
+                                                 <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
+                                                     <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+                                                 </span>
+                                                 <div class="text-left">
+                                                     <p class="font-semibold text-xs">Unduh Excel (CSV)</p>
+                                                     <p class="text-[10px] text-slate-400">Buka dengan Microsoft Excel</p>
+                                                 </div>
+                                             </button>
+                                             <div class="my-1 mx-3 border-t border-slate-700"></div>
+                                             <Link :href="route('perusahaan.events.index')" class="flex w-full items-center gap-3 px-3 py-2 text-sm text-slate-400 hover:bg-white/10 hover:text-white transition-colors">
+                                                 <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-700 text-slate-400">
+                                                     <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                                 </span>
+                                                 <div class="text-left">
+                                                     <p class="font-semibold text-xs">Kelola Event</p>
+                                                     <p class="text-[10px] text-slate-400">Buka halaman manajemen event</p>
+                                                 </div>
+                                             </Link>
+                                         </div>
+                                     </Transition>
+                                 </div>
+
                              </div>
                          </div>
                      </div>
                      
                      <!-- Notifikasi -->
-                     <div class="rounded-2xl border border-[#eaecf0] bg-white p-6 shadow-[0_1px_3px_rgba(16,24,40,0.1),0_1px_2px_rgba(16,24,40,0.06)]">
+                     <div class="rounded-2xl border border-[#eaecf0]/60 bg-white/80 backdrop-blur-md p-6 shadow-sm hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300">
                          <div class="flex items-center justify-between">
                              <h3 class="text-xl font-semibold text-[#101828]">Notifikasi Sistem</h3>
                              <span v-if="unreadCount > 0" class="rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-600">{{ unreadCount }} Baru</span>

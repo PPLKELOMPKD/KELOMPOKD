@@ -27,6 +27,8 @@ class LmsCourse extends Model
         'location',
         'quota',
         'passing_grade',
+        'moderation_status',
+        'rejection_reason',
     ];
 
     protected function casts(): array

@@ -31,7 +31,7 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user()?->loadMissing('mahasiswaProfile');
-        $authUser = $user?->only(['id', 'name', 'email', 'role']);
+        $authUser = $user?->only(['id', 'name', 'email', 'role', 'status']);
 
         if ($user) {
             $authUser['profile_photo_url'] = $user->mahasiswaProfile?->photo_path

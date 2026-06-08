@@ -51,7 +51,7 @@ class CompanyLmsCourseController extends Controller
 
         $slug = Str::slug($validated['title']) . '-' . uniqid();
 
-        LmsCourse::create([
+        $course = LmsCourse::create([
             'title' => $validated['title'],
             'provider' => $validated['provider'] ?? null,
             'description' => $validated['description'] ?? null,
@@ -69,12 +69,19 @@ class CompanyLmsCourseController extends Controller
             'status' => LmsCourse::STATUS_DRAFT,
         ]);
 
+        \App\Services\ActivityLogger::log(
+            'Membuat Course',
+            "Perusahaan {$request->user()->name} membuat course '{$course->title}'",
+            'course'
+        );
+
         return redirect()->route('perusahaan.lms.index');
     }
 
     public function edit(Request $request, LmsCourse $course)
     {
         abort_if($course->company_id !== $request->user()->id, 403);
+        abort_if($course->moderation_status === 'takedown', 403, 'Modul ini telah dinonaktifkan (takedown) oleh Admin.');
 
         return Inertia::render('Perusahaan/Lms/Form', [
             'course' => $course,
@@ -84,6 +91,7 @@ class CompanyLmsCourseController extends Controller
     public function update(Request $request, LmsCourse $course)
     {
         abort_if($course->company_id !== $request->user()->id, 403);
+        abort_if($course->moderation_status === 'takedown', 403, 'Modul ini telah dinonaktifkan (takedown) oleh Admin.');
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -127,6 +135,7 @@ class CompanyLmsCourseController extends Controller
     public function destroy(Request $request, LmsCourse $course)
     {
         abort_if($course->company_id !== $request->user()->id, 403);
+        abort_if($course->moderation_status === 'takedown', 403, 'Modul ini telah dinonaktifkan (takedown) oleh Admin.');
         $course->delete();
         return redirect()->route('perusahaan.lms.index');
     }
@@ -134,6 +143,7 @@ class CompanyLmsCourseController extends Controller
     public function publish(Request $request, LmsCourse $course)
     {
         abort_if($course->company_id !== $request->user()->id, 403);
+        abort_if($course->moderation_status === 'takedown', 403, 'Modul ini telah dinonaktifkan (takedown) oleh Admin.');
         
         if ($course->chapters()->count() === 0) {
             return back()->with('error', 'Gagal mempublish: Modul harus memiliki setidaknya satu Bab materi sebelum dipublikasikan.');
@@ -141,14 +151,27 @@ class CompanyLmsCourseController extends Controller
 
         $course->update(['status' => LmsCourse::STATUS_PUBLISHED]);
 
+        \App\Services\ActivityLogger::log(
+            'Publish Course',
+            "Perusahaan {$request->user()->name} mempublikasikan course '{$course->title}'",
+            'course'
+        );
+
         return back()->with('success', 'Modul berhasil dipublikasikan!');
     }
 
     public function unpublish(Request $request, LmsCourse $course)
     {
         abort_if($course->company_id !== $request->user()->id, 403);
+        abort_if($course->moderation_status === 'takedown', 403, 'Modul ini telah dinonaktifkan (takedown) oleh Admin.');
 
         $course->update(['status' => LmsCourse::STATUS_DRAFT]);
+
+        \App\Services\ActivityLogger::log(
+            'Unpublish Course',
+            "Perusahaan {$request->user()->name} membatalkan publikasi (unpublish) course '{$course->title}'",
+            'course'
+        );
 
         return back();
     }
