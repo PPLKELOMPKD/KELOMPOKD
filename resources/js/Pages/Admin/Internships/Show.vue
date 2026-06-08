@@ -9,9 +9,10 @@ const props = defineProps({
 
 // ─── Status Config ──────────────────────────────────────────────────
 const statusConfig = {
-    pending:  { label: 'Menunggu Review', bg: 'bg-amber-100',   text: 'text-amber-700',   dot: 'bg-amber-500',   borderBar: 'border-amber-400', gradient: 'from-amber-50 to-orange-50' },
+    pending:  { label: 'Menunggu Review',    bg: 'bg-amber-100',   text: 'text-amber-700',   dot: 'bg-amber-500',   borderBar: 'border-amber-400',   gradient: 'from-amber-50 to-orange-50' },
     approved: { label: 'Disetujui & Tayang', bg: 'bg-emerald-100', text: 'text-emerald-700', dot: 'bg-emerald-500', borderBar: 'border-emerald-400', gradient: 'from-emerald-50 to-teal-50' },
-    rejected: { label: 'Ditolak',         bg: 'bg-red-100',     text: 'text-red-700',     dot: 'bg-red-500',     borderBar: 'border-red-400',    gradient: 'from-red-50 to-rose-50' },
+    rejected: { label: 'Ditolak',            bg: 'bg-red-100',     text: 'text-red-700',     dot: 'bg-red-500',     borderBar: 'border-red-400',     gradient: 'from-red-50 to-rose-50' },
+    closed:   { label: 'Ditutup (Takedown)', bg: 'bg-slate-100',   text: 'text-slate-600',   dot: 'bg-slate-400',   borderBar: 'border-slate-400',   gradient: 'from-slate-50 to-gray-50' },
 };
 
 const currentStatus = () => statusConfig[props.internship.moderation_status] ?? statusConfig.pending;
@@ -97,15 +98,17 @@ const submitModal = () => {
                     </div>
                 </div>
 
-                <!-- Rejection Reason Card (jika ditolak) -->
-                <div v-if="internship.moderation_status === 'rejected' && internship.rejection_reason"
-                    class="rounded-2xl border border-red-200 bg-red-50 p-5 animate-fade-in-up"
+                <!-- Rejection/Takedown Reason Card -->
+                <div v-if="(internship.moderation_status === 'rejected' || internship.moderation_status === 'closed') && internship.rejection_reason"
+                    :class="internship.moderation_status === 'closed' ? 'rounded-2xl border border-slate-200 bg-slate-50 p-5 animate-fade-in-up' : 'rounded-2xl border border-red-200 bg-red-50 p-5 animate-fade-in-up'"
                 >
                     <div class="flex items-start gap-3">
-                        <svg class="h-5 w-5 text-red-500 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+                        <svg class="h-5 w-5 shrink-0 mt-0.5" :class="internship.moderation_status === 'closed' ? 'text-slate-500' : 'text-red-500'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
                         <div>
-                            <p class="text-sm font-black text-red-700 mb-1">Alasan Penolakan / Pencabutan</p>
-                            <p class="text-sm text-red-800 leading-relaxed">{{ internship.rejection_reason }}</p>
+                            <p class="text-sm font-black mb-1" :class="internship.moderation_status === 'closed' ? 'text-slate-700' : 'text-red-700'">
+                                {{ internship.moderation_status === 'closed' ? 'Alasan Pencabutan (Takedown)' : 'Alasan Penolakan' }}
+                            </p>
+                            <p class="text-sm leading-relaxed" :class="internship.moderation_status === 'closed' ? 'text-slate-800' : 'text-red-800'">{{ internship.rejection_reason }}</p>
                         </div>
                     </div>
                 </div>
@@ -183,6 +186,94 @@ const submitModal = () => {
                             <div class="rounded-xl bg-slate-50 p-4">
                                 <p class="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{{ internship.benefits }}</p>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Card -->
+                <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden animate-fade-in-up delay-150">
+                    <div class="border-b border-slate-100 px-6 py-4">
+                        <h3 class="text-sm font-black text-slate-800 flex items-center gap-2">
+                            <svg class="h-4 w-4 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                            Garis Waktu Alur Lowongan
+                        </h3>
+                    </div>
+                    <div class="px-6 py-5">
+                        <div class="relative border-l-2 border-slate-200 ml-4 space-y-8 py-2">
+                            
+                            <!-- Titik 1: Lowongan Dibuat -->
+                            <div class="relative pl-6">
+                                <div class="absolute -left-2.5 top-1 h-4 w-4 rounded-full bg-blue-500 border-4 border-white shadow-sm"></div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-slate-850">Lowongan Dibuat</h4>
+                                    <p class="text-xs text-slate-500 mt-1">Dibuat oleh mitra perusahaan <strong>{{ internship.company_name }}</strong></p>
+                                    <span class="inline-block text-[10px] font-semibold text-slate-500 mt-2 bg-slate-100 px-2.5 py-1 rounded-lg">
+                                        {{ formatDateTime(internship.created_at) }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Titik 2: Proses Moderasi -->
+                            <div class="relative pl-6">
+                                <!-- Status Approved -->
+                                <template v-if="internship.moderation_status === 'approved'">
+                                    <div class="absolute -left-2.5 top-1 h-4 w-4 rounded-full bg-emerald-500 border-4 border-white shadow-sm"></div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-emerald-800">Disetujui & Diterbitkan</h4>
+                                        <p class="text-xs text-slate-600 mt-1">Lolos tahap moderasi oleh Admin <strong>{{ internship.moderator?.name ?? 'Admin' }}</strong> dan saat ini sedang tayang di katalog lowongan.</p>
+                                        <span class="inline-block text-[10px] font-semibold text-emerald-700 mt-2 bg-emerald-50 px-2.5 py-1 rounded-lg">
+                                            {{ formatDateTime(internship.moderated_at) }}
+                                        </span>
+                                    </div>
+                                </template>
+                                
+                                <!-- Status Rejected -->
+                                <template v-else-if="internship.moderation_status === 'rejected'">
+                                    <div class="absolute -left-2.5 top-1 h-4 w-4 rounded-full bg-red-500 border-4 border-white shadow-sm"></div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-red-800">Ditolak / Dicabut dari Penayangan</h4>
+                                        <p class="text-xs text-slate-600 mt-1">Ditolak/dicabut oleh Admin <strong>{{ internship.moderator?.name ?? 'Admin' }}</strong>.</p>
+                                        <div v-if="internship.rejection_reason" class="mt-2 text-xs text-red-700 bg-red-50 p-3 rounded-xl border border-red-100 whitespace-pre-wrap">
+                                            <strong>Alasan:</strong> {{ internship.rejection_reason }}
+                                        </div>
+                                        <span class="inline-block text-[10px] font-semibold text-red-700 mt-2 bg-red-50 px-2.5 py-1 rounded-lg">
+                                            {{ formatDateTime(internship.moderated_at) }}
+                                        </span>
+                                    </div>
+                                </template>
+
+                                <!-- Status Pending -->
+                                <template v-else>
+                                    <div class="absolute -left-2.5 top-1 h-4 w-4 rounded-full bg-amber-500 border-4 border-white shadow-sm animate-pulse"></div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-amber-800">Menunggu Review Admin</h4>
+                                        <p class="text-xs text-slate-500 mt-1">Masuk ke antrean moderasi lowongan. Menunggu keputusan persetujuan atau penolakan oleh Administrator.</p>
+                                        <span class="inline-block text-[10px] font-semibold text-amber-700 mt-2 bg-amber-50 px-2.5 py-1 rounded-lg">
+                                            Dalam Antrean
+                                        </span>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <!-- Titik 3: Batas Waktu Pendaftaran -->
+                            <div class="relative pl-6">
+                                <div class="absolute -left-2.5 top-1 h-4 w-4 rounded-full border-4 border-white shadow-sm"
+                                    :class="isExpired(internship.deadline_at) ? 'bg-red-400' : 'bg-slate-400'"></div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-slate-800">Batas Waktu Pelamaran (Deadline)</h4>
+                                    <p class="text-xs text-slate-500 mt-1">
+                                        <span v-if="isExpired(internship.deadline_at)" class="text-red-600 font-bold">Masa pendaftaran mahasiswa telah berakhir.</span>
+                                        <span v-else>Batas akhir bagi mahasiswa untuk mengirimkan lamaran ke lowongan ini.</span>
+                                    </p>
+                                    <span class="inline-block text-[10px] font-semibold mt-2 px-2.5 py-1 rounded-lg"
+                                        :class="isExpired(internship.deadline_at) ? 'bg-red-50 text-red-700' : 'bg-slate-100 text-slate-600'">
+                                        {{ formatDate(internship.deadline_at) }}
+                                    </span>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -275,10 +366,18 @@ const submitModal = () => {
                             </template>
 
                             <!-- Jika REJECTED -->
-                            <template v-else>
+                            <template v-else-if="internship.moderation_status === 'rejected'">
                                 <div class="flex items-start gap-2 rounded-xl bg-red-50 p-3">
                                     <svg class="h-4 w-4 text-red-500 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></svg>
-                                    <p class="text-xs text-red-700 font-medium">Lowongan ini sudah ditolak. Perusahaan perlu membuat lowongan baru.</p>
+                                    <p class="text-xs text-red-700 font-medium">Lowongan ini sudah ditolak. Perusahaan bisa mengedit dan mengajukan ulang.</p>
+                                </div>
+                            </template>
+
+                            <!-- Jika CLOSED (takedown) -->
+                            <template v-else-if="internship.moderation_status === 'closed'">
+                                <div class="flex items-start gap-2 rounded-xl bg-slate-100 p-3">
+                                    <svg class="h-4 w-4 text-slate-500 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+                                    <p class="text-xs text-slate-700 font-medium">Lowongan ini telah dicabut (takedown). Perusahaan tidak bisa mengedit — hanya bisa melihat alasan pencabutan.</p>
                                 </div>
                             </template>
 
@@ -347,7 +446,7 @@ const submitModal = () => {
                                     <svg class="h-4 w-4 mt-0.5 shrink-0" :class="modalMode === 'takedown' ? 'text-orange-500' : 'text-red-500'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
                                     <p class="text-xs text-slate-700 leading-relaxed">
                                         <span v-if="modalMode === 'takedown'">
-                                            Lowongan akan <strong>dicabut dari penayangan</strong> dan tidak lagi bisa dilihat mahasiswa. Status berubah menjadi <strong>Ditolak</strong>.
+                                            Lowongan akan <strong>dicabut dari penayangan</strong> dan tidak lagi bisa dilihat mahasiswa. Status berubah menjadi <strong>Ditutup</strong> — perusahaan tidak bisa mengedit.
                                         </span>
                                         <span v-else>
                                             Lowongan akan <strong>ditolak</strong>. Perusahaan perlu membuat lowongan baru untuk mengajukan kembali.

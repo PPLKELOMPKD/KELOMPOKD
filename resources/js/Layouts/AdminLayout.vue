@@ -1,23 +1,62 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 
-defineProps({ title: String });
+defineProps({ title: String, pendingActions: Object });
 
 const isSidebarOpen = ref(true);
 const logout = () => router.post(route('logout'));
+
+// --- Resizable Sidebar Logic ---
+const sidebarWidth = ref(256); // default 256px
+const minWidth = 220;
+const maxWidth = 400;
+const isResizing = ref(false);
+
+onMounted(() => {
+    const savedWidth = localStorage.getItem('adminSidebarWidth');
+    if (savedWidth) {
+        sidebarWidth.value = parseInt(savedWidth);
+    }
+});
+
+const startResize = (e) => {
+    isResizing.value = true;
+    document.addEventListener('mousemove', doResize);
+    document.addEventListener('mouseup', stopResize);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+};
+
+const doResize = (e) => {
+    if (!isResizing.value) return;
+    let newWidth = e.clientX;
+    if (newWidth < minWidth) newWidth = minWidth;
+    if (newWidth > maxWidth) newWidth = maxWidth;
+    sidebarWidth.value = newWidth;
+};
+
+const stopResize = () => {
+    isResizing.value = false;
+    document.removeEventListener('mousemove', doResize);
+    document.removeEventListener('mouseup', stopResize);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    localStorage.setItem('adminSidebarWidth', sidebarWidth.value);
+};
 
 const menuUtama = [
     { name: 'Dashboard', href: route('admin.dashboard'), icon: 'dashboard', active: route().current('admin.dashboard') },
 ];
 
 const menuManajemen = [
-    { name: 'Manajemen Pengguna',    href: '#', icon: 'users',     active: false },
-    { name: 'Verifikasi Perusahaan', href: '#', icon: 'building',  active: false },
-    { name: 'Moderasi Lowongan',     href: route('admin.internships.index'), icon: 'briefcase', active: route().current('admin.internships.*') },
-    { name: 'Manajemen Event',       href: '#', icon: 'calendar',  active: false },
-    { name: 'Pantau LMS',            href: '#', icon: 'book',      active: false },
-    { name: 'Data Lamaran',          href: '#', icon: 'inbox',     active: false },
+    { name: 'Manajemen Pengguna',    href: route('admin.users.index'), icon: 'users',     active: route().current('admin.users.*') },
+    { name: 'Verifikasi Perusahaan', href: route('admin.verifications.index'), icon: 'building',  active: route().current('admin.verifications.*') },
+    { name: 'Moderasi Lowongan',     href: route('admin.internships.index'), icon: 'briefcase', active: route().current('admin.internships.index') || route().current('admin.internships.show') },
+    { name: 'Kalender Lowongan',     href: route('admin.internships.calendar'), icon: 'calendar', active: route().current('admin.internships.calendar') },
+    { name: 'Manajemen Event',       href: route('admin.events.index'), icon: 'event',  active: route().current('admin.events.*') },
+    { name: 'Pantau LMS',            href: route('admin.lms.index'), icon: 'book',      active: route().current('admin.lms.*') },
+    { name: 'Data Lamaran',          href: route('admin.applications.index'), icon: 'inbox', active: route().current('admin.applications.*') },
 ];
 
 const menuSistem = [
@@ -32,9 +71,19 @@ const menuSistem = [
 
         <!-- Sidebar -->
         <aside
-            class="fixed left-0 top-0 z-40 h-screen w-64 border-r border-[#E2E8F0] bg-white transition-transform duration-300 flex flex-col"
-            :class="{ '-translate-x-full': !isSidebarOpen }"
+            class="fixed left-0 top-0 z-40 h-screen border-r border-[#E2E8F0] bg-white flex flex-col"
+            :class="[
+                !isSidebarOpen ? '-translate-x-full' : '',
+                !isResizing ? 'transition-transform duration-300' : ''
+            ]"
+            :style="{ width: sidebarWidth + 'px' }"
         >
+            <!-- Resizer Handle -->
+            <div 
+                @mousedown.prevent="startResize" 
+                class="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-blue-400/50 active:bg-blue-500 z-50 transition-colors"
+                title="Tarik untuk mengubah ukuran sidebar"
+            ></div>
             <!-- Brand -->
             <div class="flex h-20 shrink-0 items-center border-b border-[#F1F5F9] px-6">
                 <Link :href="route('admin.dashboard')" class="flex items-center gap-2.5 transition-transform hover:scale-105">
@@ -90,6 +139,7 @@ const menuSistem = [
                                     <svg v-if="item.icon==='building'" class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 20h16"/><path d="M7 20V6l5-2 5 2v14"/><path d="M9 9h.01M9 12h.01M9 15h.01M12 9h.01M12 12h.01M12 15h.01M15 9h.01M15 12h.01M15 15h.01"/></svg>
                                     <svg v-if="item.icon==='briefcase'" class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
                                     <svg v-if="item.icon==='calendar'" class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                                    <svg v-if="item.icon==='event'" class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
                                     <svg v-if="item.icon==='book'" class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                                     <svg v-if="item.icon==='inbox'" class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
                                 </span>
@@ -141,7 +191,11 @@ const menuSistem = [
         </aside>
 
         <!-- Main Content -->
-        <main class="transition-all duration-300 min-h-screen flex flex-col" :class="{ 'pl-64': isSidebarOpen, 'pl-0': !isSidebarOpen }">
+        <main 
+            class="min-h-screen flex flex-col" 
+            :class="[!isResizing ? 'transition-all duration-300' : '']"
+            :style="{ paddingLeft: isSidebarOpen ? sidebarWidth + 'px' : '0px' }"
+        >
             <!-- Header -->
             <header class="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-[#E2E8F0] bg-white/80 px-8 backdrop-blur-md">
                 <div class="flex items-center gap-4">

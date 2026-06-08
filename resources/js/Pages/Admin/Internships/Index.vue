@@ -30,6 +30,7 @@ const tabs = computed(() => [
     { key: 'pending',  label: 'Pending',  count: props.counts?.pending,  color: 'amber' },
     { key: 'approved', label: 'Disetujui', count: props.counts?.approved, color: 'emerald' },
     { key: 'rejected', label: 'Ditolak',  count: props.counts?.rejected, color: 'red' },
+    { key: 'closed',   label: 'Ditutup',  count: props.counts?.closed,   color: 'slate' },
 ]);
 
 const changeFilter = (key) => {
@@ -44,13 +45,15 @@ const statusConfig = {
     pending:  { label: 'Menunggu Review', bg: 'bg-amber-100',   text: 'text-amber-700',   dot: 'bg-amber-500' },
     approved: { label: 'Disetujui',       bg: 'bg-emerald-100', text: 'text-emerald-700', dot: 'bg-emerald-500' },
     rejected: { label: 'Ditolak',         bg: 'bg-red-100',     text: 'text-red-700',     dot: 'bg-red-500' },
+    closed:   { label: 'Ditutup',         bg: 'bg-slate-100',   text: 'text-slate-600',   dot: 'bg-slate-400' },
 };
 
 const tabConfig = {
-    all:      { activeClass: 'border-slate-900 text-slate-900 bg-slate-50',   badgeClass: 'bg-slate-200 text-slate-700' },
-    pending:  { activeClass: 'border-amber-500 text-amber-700 bg-amber-50',   badgeClass: 'bg-amber-200 text-amber-800' },
+    all:      { activeClass: 'border-slate-900 text-slate-900 bg-slate-50',       badgeClass: 'bg-slate-200 text-slate-700' },
+    pending:  { activeClass: 'border-amber-500 text-amber-700 bg-amber-50',       badgeClass: 'bg-amber-200 text-amber-800' },
     approved: { activeClass: 'border-emerald-500 text-emerald-700 bg-emerald-50', badgeClass: 'bg-emerald-200 text-emerald-800' },
-    rejected: { activeClass: 'border-red-500 text-red-700 bg-red-50',         badgeClass: 'bg-red-200 text-red-800' },
+    rejected: { activeClass: 'border-red-500 text-red-700 bg-red-50',             badgeClass: 'bg-red-200 text-red-800' },
+    closed:   { activeClass: 'border-slate-500 text-slate-700 bg-slate-50',       badgeClass: 'bg-slate-200 text-slate-700' },
 };
 
 const activeTab = computed(() => props.statusFilter || 'all');
@@ -82,7 +85,15 @@ const closeRejectModal = () => {
 
 const submitReject = () => {
     if (!selectedInternship.value) return;
-    rejectForm.patch(route('admin.internships.reject', selectedInternship.value.id), {
+
+    // Jika lowongan sedang 'approved' → aksi adalah TAKEDOWN (status → closed)
+    // Selain itu → aksi adalah REJECT (status → rejected)
+    const isTakedown = selectedInternship.value.moderation_status === 'approved';
+    const routeName  = isTakedown
+        ? 'admin.internships.takedown'
+        : 'admin.internships.reject';
+
+    rejectForm.patch(route(routeName, selectedInternship.value.id), {
         preserveScroll: true,
         onSuccess: () => closeRejectModal(),
     });
@@ -139,7 +150,11 @@ const isExpired = (dateStr) => {
                     </div>
                     <div class="flex flex-col items-center px-4 py-2 bg-red-500/20 rounded-xl ring-1 ring-red-400/30">
                         <span class="text-xl font-black text-red-300">{{ counts?.rejected ?? 0 }}</span>
-                        <span class="text-[10px] font-bold text-red-400/80 uppercase tracking-wider">Rejected</span>
+                        <span class="text-[10px] font-bold text-red-400/80 uppercase tracking-wider">Ditolak</span>
+                    </div>
+                    <div class="flex flex-col items-center px-4 py-2 bg-slate-500/20 rounded-xl ring-1 ring-slate-400/30">
+                        <span class="text-xl font-black text-slate-300">{{ counts?.closed ?? 0 }}</span>
+                        <span class="text-[10px] font-bold text-slate-400/80 uppercase tracking-wider">Ditutup</span>
                     </div>
                 </div>
             </div>
@@ -413,7 +428,7 @@ const isExpired = (dateStr) => {
                                     <svg class="h-4 w-4 mt-0.5 shrink-0" :class="selectedInternship?.moderation_status === 'approved' ? 'text-orange-500' : 'text-red-500'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
                                     <p class="text-xs text-slate-700 leading-relaxed">
                                         <span v-if="selectedInternship?.moderation_status === 'approved'">
-                                            Lowongan ini akan <strong>dicabut dari penayangan</strong> dan tidak lagi bisa dilihat mahasiswa. Status akan berubah menjadi <strong>Ditolak</strong>.
+                                            Lowongan ini akan <strong>dicabut dari penayangan</strong> dan tidak lagi bisa dilihat mahasiswa. Status akan berubah menjadi <strong>Ditutup</strong> (tidak bisa diedit perusahaan).
                                         </span>
                                         <span v-else>
                                             Lowongan ini akan <strong>ditolak</strong> dan tidak akan tayang. Perusahaan perlu membuat lowongan baru untuk mengajukan kembali.

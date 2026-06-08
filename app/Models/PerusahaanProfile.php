@@ -20,6 +20,7 @@ class PerusahaanProfile extends Model
         'office_address',
         'logo_path',
         'cover_path',
+        'legal_document_path',
     ];
 
     protected function casts(): array
