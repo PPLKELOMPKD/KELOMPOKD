@@ -17,6 +17,7 @@ class CompanyLmsContentController extends Controller
     public function builder(Request $request, LmsCourse $course)
     {
         abort_if($course->company_id !== $request->user()->id, 403);
+        abort_if($course->moderation_status === 'takedown', 403, 'Modul ini telah dinonaktifkan (takedown) oleh Admin.');
 
         $course->load('chapters.lessons', 'chapters.assignments', 'chapters.quiz.questions.options');
 

@@ -13,15 +13,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // MySQL tidak mendukung ALTER COLUMN pada enum secara langsung,
-        // sehingga kita gunakan raw SQL untuk memodifikasi kolom enum.
-        DB::statement("ALTER TABLE internships MODIFY COLUMN moderation_status ENUM('pending', 'approved', 'rejected', 'closed') NOT NULL DEFAULT 'pending'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE internships MODIFY COLUMN moderation_status ENUM('pending', 'approved', 'rejected', 'closed') NOT NULL DEFAULT 'pending'");
+        }
     }
 
     public function down(): void
     {
         // Kembalikan record 'closed' ke 'rejected' sebelum menghapus nilainya dari enum
         DB::table('internships')->where('moderation_status', 'closed')->update(['moderation_status' => 'rejected']);
-        DB::statement("ALTER TABLE internships MODIFY COLUMN moderation_status ENUM('pending', 'approved', 'rejected') NOT NULL DEFAULT 'pending'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE internships MODIFY COLUMN moderation_status ENUM('pending', 'approved', 'rejected') NOT NULL DEFAULT 'pending'");
+        }
     }
 };

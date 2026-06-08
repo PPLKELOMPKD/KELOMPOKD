@@ -14,6 +14,8 @@ class LmsAssignmentSubmissionController extends Controller
     {
         abort_if($request->user()->role !== 'mahasiswa', 403);
 
+        abort_if($assignment->status === 'takedown' || $course->moderation_status !== 'approved', 404);
+
         $enrollment = $request->user()->lmsEnrollments()->where('course_id', $course->id)->firstOrFail();
         abort_if($assignment->chapter->course_id !== $course->id, 404);
 

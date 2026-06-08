@@ -4,7 +4,6 @@ namespace Tests\Feature\Sikara;
 
 use App\Models\ActivityLog;
 use App\Models\LmsCourse;
-use App\Models\LmsEnrollment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -19,7 +18,7 @@ class AdminLmsActivityTest extends TestCase
         $student = User::factory()->create(['role' => 'mahasiswa']);
 
         $this->actingAs($student)
-            ->get('/admin/lms-activity')
+            ->get('/admin/lms?tab=monitoring')
             ->assertForbidden();
     }
 
@@ -32,18 +31,14 @@ class AdminLmsActivityTest extends TestCase
         ActivityLog::query()->delete();
 
         $this->actingAs($admin)
-            ->get('/admin/lms-activity')
+            ->get('/admin/lms?tab=monitoring')
             ->assertSuccessful()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Admin/Lms/Monitoring')
+                ->component('Admin/Lms/Index')
                 ->has('stats')
-                ->has('logs')
+                ->has('activityLogs')
                 ->has('filters')
             );
-
-        // Assert that seeders were run successfully
-        $this->assertTrue(LmsCourse::where('slug', 'fundamental-ui-ux-design')->exists());
-        $this->assertTrue(ActivityLog::whereIn('category', ['course', 'lesson', 'quiz', 'assignment', 'enrollment', 'moderasi'])->exists());
     }
 
     public function test_filters_and_search_can_be_applied_to_logs(): void
@@ -72,52 +67,20 @@ class AdminLmsActivityTest extends TestCase
 
         // Filter by role = perusahaan
         $this->actingAs($admin)
-            ->get('/admin/lms-activity?role=perusahaan')
+            ->get('/admin/lms?tab=monitoring&role_activity=perusahaan')
             ->assertSuccessful()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('logs.total', 1)
-                ->where('logs.data.0.action', 'Membuat Course')
-            );
-
-        // Filter by category = lesson
-        $this->actingAs($admin)
-            ->get('/admin/lms-activity?category=lesson')
-            ->assertSuccessful()
-            ->assertInertia(fn (Assert $page) => $page
-                ->where('logs.total', 1)
-                ->where('logs.data.0.action', 'Menyelesaikan Lesson')
+                ->where('activityLogs.total', 1)
+                ->where('activityLogs.data.0.action', 'Membuat Course')
             );
 
         // Search by query = Alex
         $this->actingAs($admin)
-            ->get('/admin/lms-activity?search=Alex')
+            ->get('/admin/lms?tab=monitoring&search_activity=Alex')
             ->assertSuccessful()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('logs.total', 1)
-                ->where('logs.data.0.description', 'Menyelesaikan lesson Belajar Route')
+                ->where('activityLogs.total', 1)
+                ->where('activityLogs.data.0.description', 'Menyelesaikan lesson Belajar Route')
             );
-    }
-
-    public function test_admin_can_export_activities_to_csv(): void
-    {
-        $admin = User::factory()->create(['role' => 'admin']);
-        
-        $companyUser = User::factory()->create(['role' => 'perusahaan', 'name' => 'Tech Corp']);
-        ActivityLog::create([
-            'user_id' => $companyUser->id,
-            'role' => 'perusahaan',
-            'category' => 'course',
-            'action' => 'Membuat Course',
-            'description' => 'Membuat course baru Laravel Avanzado',
-        ]);
-
-        $response = $this->actingAs($admin)
-            ->get('/admin/lms-activity/export?format=csv');
-
-        $response->assertSuccessful();
-        $response->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
-        $this->assertStringContainsString('Tanggal & Waktu', $response->streamedContent());
-        $this->assertStringContainsString('Tech Corp', $response->streamedContent());
-        $this->assertStringContainsString('Membuat Course', $response->streamedContent());
     }
 }

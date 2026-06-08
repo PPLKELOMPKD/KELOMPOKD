@@ -56,7 +56,6 @@ const menuManajemen = [
     { name: 'Kalender Lowongan',     href: route('admin.internships.calendar'), icon: 'calendar', active: route().current('admin.internships.calendar') },
     { name: 'Manajemen Event',       href: route('admin.events.index'), icon: 'event',  active: route().current('admin.events.*') },
     { name: 'Pantau LMS',            href: route('admin.lms.index'), icon: 'book',      active: route().current('admin.lms.*') },
-    { name: 'Aktivitas LMS',         href: route('admin.lms-activity.index'), icon: 'book',      active: route().current('admin.lms-activity.*') },
     { name: 'Data Lamaran',          href: route('admin.applications.index'), icon: 'inbox', active: route().current('admin.applications.*') },
 ];
 

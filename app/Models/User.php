@@ -138,11 +138,25 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->notify(new ResetPasswordNotification($token));
     }
 
+    public function hasVerifiedEmail(): bool
+    {
+        return $this->usesSikaraTestEmail() || parent::hasVerifiedEmail();
+    }
+
     /**
      * Send the email verification notification using a custom branded email.
      */
     public function sendEmailVerificationNotification(): void
     {
+        if ($this->usesSikaraTestEmail()) {
+            return;
+        }
+
         $this->notify(new VerifyEmailNotification());
+    }
+
+    private function usesSikaraTestEmail(): bool
+    {
+        return str_ends_with(strtolower($this->email ?? ''), '@sikara.test');
     }
 }

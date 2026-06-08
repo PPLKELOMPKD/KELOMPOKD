@@ -351,8 +351,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('/lms/users/{user}/suspend', [AdminLmsController::class, 'suspendUser'])->name('lms.users.suspend');
         Route::patch('/lms/users/{user}/activate', [AdminLmsController::class, 'activateUser'])->name('lms.users.activate');
         Route::delete('/lms/users/{user}', [AdminLmsController::class, 'deleteUser'])->name('lms.users.destroy');
+        
+        // Course Moderation
+        Route::patch('/lms/courses/{course:id}/approve', [AdminLmsController::class, 'approveCourse'])->name('lms.courses.approve');
+        Route::patch('/lms/courses/{course:id}/reject', [AdminLmsController::class, 'rejectCourse'])->name('lms.courses.reject');
+        Route::patch('/lms/courses/{course:id}/takedown', [AdminLmsController::class, 'takedownCourse'])->name('lms.courses.takedown');
+        Route::patch('/lms/courses/{course:id}/restore', [AdminLmsController::class, 'restoreCourse'])->name('lms.courses.restore');
+
+        // Content Moderation
+        Route::patch('/lms/lessons/{lesson}/takedown', [AdminLmsController::class, 'takedownLesson'])->name('lms.lessons.takedown');
+        Route::patch('/lms/lessons/{lesson}/restore', [AdminLmsController::class, 'restoreLesson'])->name('lms.lessons.restore');
+        Route::patch('/lms/quizzes/{quiz}/takedown', [AdminLmsController::class, 'takedownQuiz'])->name('lms.quizzes.takedown');
+        Route::patch('/lms/quizzes/{quiz}/restore', [AdminLmsController::class, 'restoreQuiz'])->name('lms.quizzes.restore');
+        Route::patch('/lms/assignments/{assignment}/takedown', [AdminLmsController::class, 'takedownAssignment'])->name('lms.assignments.takedown');
+        Route::patch('/lms/assignments/{assignment}/restore', [AdminLmsController::class, 'restoreAssignment'])->name('lms.assignments.restore');
+
+        // Enrollment Management
         Route::get('/lms/enrollments/{enrollment}/detail', [AdminLmsController::class, 'enrollmentDetail'])->name('lms.enrollments.detail');
+        Route::post('/lms/enrollments', [AdminLmsController::class, 'storeEnrollment'])->name('lms.enrollments.store');
         Route::post('/lms/enrollments/{enrollment}/reset', [AdminLmsController::class, 'resetEnrollment'])->name('lms.enrollments.reset');
+        Route::patch('/lms/enrollments/{enrollment}/suspend', [AdminLmsController::class, 'suspendEnrollment'])->name('lms.enrollments.suspend');
+        Route::patch('/lms/enrollments/{enrollment}/activate', [AdminLmsController::class, 'activateEnrollment'])->name('lms.enrollments.activate');
         Route::delete('/lms/enrollments/{enrollment}', [AdminLmsController::class, 'deleteEnrollment'])->name('lms.enrollments.destroy');
 
         // ── Manajemen Pengguna ─────────────────────────────────────────
@@ -368,9 +387,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/settings', [\App\Http\Controllers\Admin\SettingController::class, 'update'])->name('settings.update');
         Route::get('/activity-logs', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('activity-logs.index');
 
-        // ── Monitoring Aktivitas LMS ──
-        Route::get('/lms-activity', [\App\Http\Controllers\Admin\AdminLmsActivityController::class, 'index'])->name('lms-activity.index');
-        Route::get('/lms-activity/export', [\App\Http\Controllers\Admin\AdminLmsActivityController::class, 'export'])->name('lms-activity.export');
+
 
         // ── Data Lamaran ──────────────────────────────────────────────
         Route::get('/applications/export', [ApplicationDataController::class, 'export'])->name('applications.export');
