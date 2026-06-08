@@ -6,12 +6,32 @@ use App\Models\Application;
 use App\Models\User;
 use App\Notifications\ApplicationStatusUpdatedNotification;
 use App\Notifications\ApplicationSubmittedToCompanyNotification;
+use App\Notifications\CompanyVerifiedNotification;
+use App\Notifications\CompanyRejectedNotification;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class AutomatedMailService
 {
+    public function sendCompanyVerified(User $company): void
+    {
+        $this->send(
+            'company_verified',
+            $company,
+            new CompanyVerifiedNotification($company)
+        );
+    }
+
+    public function sendCompanyRejected(User $company, ?string $reason): void
+    {
+        $this->send(
+            'company_rejected',
+            $company,
+            new CompanyRejectedNotification($company, $reason)
+        );
+    }
+
     public function sendApplicationSubmittedToCompany(Application $application): void
     {
         $application->loadMissing(['internship.company', 'user']);

@@ -21,12 +21,17 @@ class PerusahaanProfile extends Model
         'logo_path',
         'cover_path',
         'legal_document_path',
+        'contact_email',
+        'instagram',
+        'linkedin',
+        'gallery_photos',
     ];
 
     protected function casts(): array
     {
         return [
             'specializations' => 'array',
+            'gallery_photos' => 'array',
         ];
     }
 

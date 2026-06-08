@@ -199,6 +199,12 @@ class CompanyVerificationController extends Controller
             );
         });
 
+        if ($newStatus === 'active') {
+            app(\App\Services\AutomatedMailService::class)->sendCompanyVerified($user);
+        } elseif ($newStatus === 'banned') {
+            app(\App\Services\AutomatedMailService::class)->sendCompanyRejected($user, $validated['reason'] ?? null);
+        }
+
         $messages = [
             'active'   => "Company \"{$user->name}\" has been successfully verified and activated.",
             'inactive' => "Verification for company \"{$user->name}\" has been successfully revoked.",

@@ -115,7 +115,7 @@ class PBI38ValidasiDeadlineLowonganTest extends TestCase
 
         // Harus redirect back ke halaman show lowongan
         $response->assertRedirect(route('internships.show', $internship->id));
-        $response->assertSessionHas('error', 'Batas waktu pendaftaran lowongan ini telah berakhir. Anda tidak dapat melamar lagi.');
+        $response->assertSessionHas('error', 'The application deadline for this job listing has passed. You can no longer apply.');
 
         // Pastikan lamaran tidak masuk ke database
         $this->assertDatabaseMissing('applications', [
@@ -147,7 +147,7 @@ class PBI38ValidasiDeadlineLowonganTest extends TestCase
             ]);
 
         $responseStore->assertSessionHasErrors([
-            'deadline_at' => 'Batas waktu lamaran tidak boleh kurang dari tanggal hari ini.'
+            'deadline_at' => 'Application deadline cannot be earlier than today.'
         ]);
 
         // Skenario 2: Saat UPDATE (mengubah lowongan yang ada)
@@ -178,7 +178,7 @@ class PBI38ValidasiDeadlineLowonganTest extends TestCase
             ]);
 
         $responseUpdate->assertSessionHasErrors([
-            'deadline_at' => 'Batas waktu lamaran tidak boleh kurang dari tanggal hari ini.'
+            'deadline_at' => 'Application deadline cannot be earlier than today.'
         ]);
         
         // Pastikan deadline_at di database TIDAK berubah menjadi kemarin

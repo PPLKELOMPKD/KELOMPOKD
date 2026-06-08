@@ -28,8 +28,6 @@ class CompanyInternshipController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'company_name' => 'required|string|max:255',
-            'company_logo' => 'nullable|string|max:255',
             'description' => 'required|string',
             'requirements' => 'required|string',
             'location' => 'required|string|max:255',
@@ -43,7 +41,6 @@ class CompanyInternshipController extends Controller
             'quota' => 'required|integer|min:1',
         ], [
             'title.required' => 'Position is required.',
-            'company_name.required' => 'Company name is required.',
             'description.required' => 'Description is required.',
             'requirements.required' => 'Requirements are required.',
             'location.required' => 'Location is required.',
@@ -54,10 +51,15 @@ class CompanyInternshipController extends Controller
             'quota.min' => 'Quota must be a positive number.'
         ]);
 
+        $user = auth()->user();
+        $profile = $user->perusahaanProfile;
+
         // Lowongan baru masuk ke antrian moderasi (pending), bukan langsung tayang
+        $validated['company_name']      = $user->name;
+        $validated['company_logo']      = $profile?->logo_path;
         $validated['is_published']      = false;
         $validated['moderation_status'] = 'pending';
-        $validated['company_id']        = auth()->id();
+        $validated['company_id']        = $user->id;
         $internship = Internship::create($validated);
 
         \App\Services\ActivityLogger::log('Membuat Lowongan', "Membuat lowongan baru berjudul: {$internship->title} (menunggu moderasi)", 'lowongan');
@@ -86,8 +88,6 @@ class CompanyInternshipController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'company_name' => 'required|string|max:255',
-            'company_logo' => 'nullable|string|max:255',
             'description' => 'required|string',
             'requirements' => 'required|string',
             'location' => 'required|string|max:255',
@@ -101,7 +101,6 @@ class CompanyInternshipController extends Controller
             'quota' => 'required|integer|min:1',
         ], [
             'title.required' => 'Position is required.',
-            'company_name.required' => 'Company name is required.',
             'description.required' => 'Description is required.',
             'requirements.required' => 'Requirements are required.',
             'location.required' => 'Location is required.',
@@ -111,6 +110,12 @@ class CompanyInternshipController extends Controller
             'quota.required' => 'Quota is required.',
             'quota.min' => 'Quota must be a positive number.'
         ]);
+
+        $user = auth()->user();
+        $profile = $user->perusahaanProfile;
+
+        $validated['company_name'] = $user->name;
+        $validated['company_logo'] = $profile?->logo_path;
 
         // Jika lowongan sebelumnya 'rejected', resubmit → kembali ke 'pending'
         // Jika 'approved' atau 'pending', update biasa (tidak ubah status moderasi)

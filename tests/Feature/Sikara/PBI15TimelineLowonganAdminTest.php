@@ -39,7 +39,7 @@ class PBI15TimelineLowonganAdminTest extends TestCase
             'description' => 'Mengevaluasi infrastruktur jaringan.',
             'requirements' => 'Paham CCNA.',
             'work_type' => 'Magang',
-            'deadline_at' => Carbon::create(2026, 6, 19),
+            'deadline_at' => Carbon::create(2026, 6, 19, 12, 0, 0),
             'quota' => 2,
             'is_published' => true,
             'moderation_status' => 'approved',

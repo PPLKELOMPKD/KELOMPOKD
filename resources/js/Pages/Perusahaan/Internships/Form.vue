@@ -15,8 +15,6 @@ const isEditing = computed(() => !!props.internship.id);
 
 const form = useForm({
     title: props.internship.title || '',
-    company_name: props.internship.company_name || '',
-    company_logo: props.internship.company_logo || '',
     location: props.internship.location || '',
     education_level: props.internship.education_level || 'S1',
     work_type: props.internship.work_type || 'Magang',
@@ -80,33 +78,13 @@ const selectLocation = (loc) => {
         <div class="rounded-[16px] border border-[#eaecf0] bg-white p-8 shadow-[0_1px_3px_rgba(16,24,40,0.1),0_1px_2px_rgba(16,24,40,0.06)]">
             <form @submit.prevent="submit" class="space-y-6">
                 
-                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    <!-- Posisi -->
-                    <div>
-                        <label for="title" class="block text-sm font-medium text-[#101828]">Posisi Magang <span class="text-red-500">*</span></label>
-                        <div class="mt-2">
-                            <input type="text" id="title" v-model="form.title" class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] placeholder:text-[#98a2b3] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6" placeholder="Misal: Frontend Developer Intern">
-                        </div>
-                        <p v-if="form.errors.title" class="mt-2 text-sm text-red-600" id="title-error">{{ form.errors.title }}</p>
-                    </div>
-
-                    <!-- Perusahaan -->
-                    <div>
-                        <label for="company_name" class="block text-sm font-medium text-[#101828]">Nama Perusahaan <span class="text-red-500">*</span></label>
-                        <div class="mt-2">
-                            <input type="text" id="company_name" v-model="form.company_name" class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] placeholder:text-[#98a2b3] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6" placeholder="Misal: PT Teknologi Nusantara">
-                        </div>
-                        <p v-if="form.errors.company_name" class="mt-2 text-sm text-red-600">{{ form.errors.company_name }}</p>
-                    </div>
-                </div>
-
-                <!-- Logo Perusahaan -->
+                <!-- Posisi -->
                 <div>
-                    <label for="company_logo" class="block text-sm font-medium text-[#101828]">URL Logo Perusahaan</label>
+                    <label for="title" class="block text-sm font-medium text-[#101828]">Posisi Magang <span class="text-red-500">*</span></label>
                     <div class="mt-2">
-                        <input type="text" id="company_logo" v-model="form.company_logo" class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] placeholder:text-[#98a2b3] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6" placeholder="Misal: https://example.com/logo.png">
+                        <input type="text" id="title" v-model="form.title" class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] placeholder:text-[#98a2b3] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6" placeholder="Misal: Frontend Developer Intern">
                     </div>
-                    <p v-if="form.errors.company_logo" class="mt-2 text-sm text-red-600">{{ form.errors.company_logo }}</p>
+                    <p v-if="form.errors.title" class="mt-2 text-sm text-red-600" id="title-error">{{ form.errors.title }}</p>
                 </div>
 
                 <!-- Deskripsi -->

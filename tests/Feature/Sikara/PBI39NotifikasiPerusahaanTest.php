@@ -65,7 +65,7 @@ class PBI39NotifikasiPerusahaanTest extends TestCase
         // 4. Pastikan notifikasi baru tersimpan untuk mitra di database
         $this->assertDatabaseHas('notifications', [
             'user_id' => $company->id,
-            'title' => 'Lamaran Baru Masuk',
+            'title' => 'New Application Received',
             'type' => 'application',
         ]);
 
@@ -116,8 +116,8 @@ class PBI39NotifikasiPerusahaanTest extends TestCase
         // Buat notifikasi secara eksplisit dengan format yang sesuai saat pelamar mendaftar
         $notification = Notification::create([
             'user_id' => $company->id,
-            'title' => 'Lamaran Baru Masuk',
-            'message' => "{$student->name} telah melamar untuk posisi {$internship->title}.",
+            'title' => 'New Application Received',
+            'message' => "{$student->name} has applied for the position {$internship->title}.",
             'type' => 'application',
             'link' => route('perusahaan.applicants.show', 1),
         ]);
@@ -131,8 +131,8 @@ class PBI39NotifikasiPerusahaanTest extends TestCase
             ->component('Dashboard')
             ->has('notifications', 1, fn (Assert $item) => $item
                 ->where('id', $notification->id)
-                ->where('title', 'Lamaran Baru Masuk')
-                ->where('message', 'Budi Santoso telah melamar untuk posisi UI/UX Designer.')
+                ->where('title', 'New Application Received')
+                ->where('message', 'Budi Santoso has applied for the position UI/UX Designer.')
                 ->where('type', 'application')
                 ->etc()
             )
@@ -147,8 +147,8 @@ class PBI39NotifikasiPerusahaanTest extends TestCase
             ->component('Notifications/Index')
             ->has('items', 1, fn (Assert $item) => $item
                 ->where('id', $notification->id)
-                ->where('title', 'Lamaran Baru Masuk')
-                ->where('message', 'Budi Santoso telah melamar untuk posisi UI/UX Designer.')
+                ->where('title', 'New Application Received')
+                ->where('message', 'Budi Santoso has applied for the position UI/UX Designer.')
                 ->where('type', 'application')
                 ->etc()
             )
@@ -195,8 +195,8 @@ class PBI39NotifikasiPerusahaanTest extends TestCase
         // Buat notifikasi dengan field 'link' mengarah ke detail pelamar
         $notification = Notification::create([
             'user_id' => $company->id,
-            'title' => 'Lamaran Baru Masuk',
-            'message' => "{$student->name} telah melamar untuk posisi {$internship->title}.",
+            'title' => 'New Application Received',
+            'message' => "{$student->name} has applied for the position {$internship->title}.",
             'type' => 'application',
             'link' => route('perusahaan.applicants.show', $application->id),
         ]);
@@ -256,8 +256,8 @@ class PBI39NotifikasiPerusahaanTest extends TestCase
 
         $notification = Notification::create([
             'user_id' => $company->id,
-            'title' => 'Lamaran Baru Masuk',
-            'message' => "{$student->name} telah melamar untuk posisi {$internship->title}.",
+            'title' => 'New Application Received',
+            'message' => "{$student->name} has applied for the position {$internship->title}.",
             'type' => 'application',
             'link' => route('perusahaan.applicants.show', 1),
             'read_at' => null,
