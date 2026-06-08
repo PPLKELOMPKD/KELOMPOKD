@@ -17,7 +17,7 @@ class LmsCertificateController extends Controller
 
         $progress = $progressService->courseProgress($enrollment);
 
-        abort_if(!$enrollment->is_graduated, 403, 'Sertifikat belum tersedia. Tunggu konfirmasi kelulusan dari perusahaan.');
+        abort_if(!$enrollment->is_graduated, 403, 'Certificate is not yet available. Please wait for graduation confirmation from the company.');
 
         $course->load('company.perusahaanProfile');
 

@@ -76,6 +76,6 @@ class SettingController extends Controller
 
         Cache::forget('global_settings');
 
-        return redirect()->back()->with('success', 'Pengaturan berhasil disimpan.');
+        return redirect()->back()->with('success', 'Settings saved successfully.');
     }
 }

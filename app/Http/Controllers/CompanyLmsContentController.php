@@ -17,7 +17,7 @@ class CompanyLmsContentController extends Controller
     public function builder(Request $request, LmsCourse $course)
     {
         abort_if($course->company_id !== $request->user()->id, 403);
-        abort_if($course->moderation_status === 'takedown', 403, 'Modul ini telah dinonaktifkan (takedown) oleh Admin.');
+        abort_if($course->moderation_status === 'takedown', 403, 'This course has been taken down by the Administrator.');
 
         $course->load('chapters.lessons', 'chapters.assignments', 'chapters.quiz.questions.options');
 
@@ -287,7 +287,7 @@ class CompanyLmsContentController extends Controller
             'assignment'
         );
 
-        return back()->with('success', 'Tugas berhasil ditambahkan.');
+        return back()->with('success', 'Assignment added successfully.');
     }
 
     public function updateAssignment(Request $request, LmsAssignment $assignment)
@@ -321,13 +321,13 @@ class CompanyLmsContentController extends Controller
             'assignment'
         );
 
-        return back()->with('success', 'Tugas berhasil diperbarui.');
+        return back()->with('success', 'Assignment updated successfully.');
     }
 
     public function destroyAssignment(Request $request, LmsAssignment $assignment)
     {
         abort_if($assignment->chapter->course->company_id !== $request->user()->id, 403);
         $assignment->delete();
-        return back()->with('success', 'Tugas berhasil dihapus.');
+        return back()->with('success', 'Assignment deleted successfully.');
     }
 }

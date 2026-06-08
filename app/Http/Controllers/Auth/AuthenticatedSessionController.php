@@ -39,7 +39,7 @@ class AuthenticatedSessionController extends Controller
         if (isset($settings['maintenance_mode']) && $settings['maintenance_mode'] === 'true') {
             if ($request->role !== User::ROLE_ADMIN) {
                 throw \Illuminate\Validation\ValidationException::withMessages([
-                    'email' => 'Sistem sedang dalam pemeliharaan. Hanya admin yang dapat login saat ini.',
+                    'email' => 'The system is currently under maintenance. Only administrators can log in at this time.',
                 ]);
             }
         }
@@ -61,7 +61,7 @@ class AuthenticatedSessionController extends Controller
             $request->session()->regenerateToken();
 
             throw \Illuminate\Validation\ValidationException::withMessages([
-                'email' => 'Akun Anda telah diblokir karena pelanggaran. Silakan hubungi administrator.',
+                'email' => 'Your account has been blocked due to a violation. Please contact the administrator.',
             ]);
         }
 
@@ -72,7 +72,7 @@ class AuthenticatedSessionController extends Controller
             $request->session()->regenerateToken();
 
             throw \Illuminate\Validation\ValidationException::withMessages([
-                'email' => 'Akun Anda saat ini dinonaktifkan. Silakan hubungi administrator.',
+                'email' => 'Your account is currently deactivated. Please contact the administrator.',
             ]);
         }
 

@@ -102,7 +102,7 @@ class CompanyController extends Controller
 
         $company->perusahaanProfile()->save($profile);
 
-        return back()->with('success', 'Profil perusahaan berhasil diperbarui.');
+        return back()->with('success', 'Company profile updated successfully.');
     }
 
     private function renderProfile(User $company, bool $isOwner = false)

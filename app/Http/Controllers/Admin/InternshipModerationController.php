@@ -84,7 +84,7 @@ class InternshipModerationController extends Controller
             'moderasi'
         );
 
-        return back()->with('success', "Lowongan \"{$internship->title}\" berhasil disetujui dan sekarang tayang.");
+        return back()->with('success', "Job listing \"{$internship->title}\" has been successfully approved and is now live.");
     }
 
     /**
@@ -95,9 +95,9 @@ class InternshipModerationController extends Controller
         $validated = $request->validate([
             'rejection_reason' => 'required|string|min:10|max:1000',
         ], [
-            'rejection_reason.required' => 'Alasan penolakan wajib diisi.',
-            'rejection_reason.min'      => 'Alasan penolakan minimal 10 karakter.',
-            'rejection_reason.max'      => 'Alasan penolakan maksimal 1000 karakter.',
+            'rejection_reason.required' => 'Rejection reason is required.',
+            'rejection_reason.min'      => 'Rejection reason must be at least 10 characters.',
+            'rejection_reason.max'      => 'Rejection reason cannot exceed 1000 characters.',
         ]);
 
         $internship->update([
@@ -114,7 +114,7 @@ class InternshipModerationController extends Controller
             'moderasi'
         );
 
-        return back()->with('success', "Lowongan \"{$internship->title}\" berhasil ditolak.");
+        return back()->with('success', "Job listing \"{$internship->title}\" has been successfully rejected.");
     }
 
     /**
@@ -127,8 +127,8 @@ class InternshipModerationController extends Controller
         $validated = $request->validate([
             'rejection_reason' => 'required|string|min:10|max:1000',
         ], [
-            'rejection_reason.required' => 'Alasan pencabutan wajib diisi.',
-            'rejection_reason.min'      => 'Alasan pencabutan minimal 10 karakter.',
+            'rejection_reason.required' => 'Takedown reason is required.',
+            'rejection_reason.min'      => 'Takedown reason must be at least 10 characters.',
         ]);
 
         $internship->update([
@@ -145,7 +145,7 @@ class InternshipModerationController extends Controller
             'moderasi'
         );
 
-        return back()->with('success', "Lowongan \"{$internship->title}\" berhasil dicabut. Status berubah menjadi Ditutup.");
+        return back()->with('success', "Job listing \"{$internship->title}\" has been successfully taken down. Status changed to Closed.");
     }
 
     /**

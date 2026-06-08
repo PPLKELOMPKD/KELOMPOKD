@@ -81,7 +81,7 @@ class CompanyVerificationController extends Controller
     public function show(User $user): Response
     {
         if ($user->role !== 'perusahaan') {
-            abort(404, 'Data tidak ditemukan.');
+            abort(404, 'Data not found.');
         }
 
         $user->load('perusahaanProfile');
@@ -145,22 +145,22 @@ class CompanyVerificationController extends Controller
     public function updateStatus(Request $request, User $user): RedirectResponse
     {
         if ($user->role !== 'perusahaan') {
-            return back()->with('error', 'Hanya akun perusahaan yang dapat diverifikasi melalui modul ini.');
+            return back()->with('error', 'Only company accounts can be verified through this module.');
         }
 
         $validated = $request->validate([
             'status' => ['required', 'in:active,inactive,banned'],
             'reason' => ['nullable', 'string', 'max:500'],
         ], [
-            'status.required' => 'Status baru wajib dipilih.',
-            'status.in'       => 'Status tidak valid.',
+            'status.required' => 'New status is required.',
+            'status.in'       => 'Invalid status.',
         ]);
 
         $oldStatus = $user->status;
         $newStatus = $validated['status'];
 
         if ($oldStatus === $newStatus) {
-            return back()->with('info', 'Status perusahaan tidak berubah.');
+            return back()->with('info', 'Company status remains unchanged.');
         }
 
         DB::transaction(function () use ($user, $newStatus, $oldStatus, $validated) {
@@ -200,9 +200,9 @@ class CompanyVerificationController extends Controller
         });
 
         $messages = [
-            'active'   => "Perusahaan \"{$user->name}\" berhasil diverifikasi dan diaktifkan.",
-            'inactive' => "Verifikasi perusahaan \"{$user->name}\" berhasil dicabut.",
-            'banned'   => "Perusahaan \"{$user->name}\" berhasil diblokir (banned).",
+            'active'   => "Company \"{$user->name}\" has been successfully verified and activated.",
+            'inactive' => "Verification for company \"{$user->name}\" has been successfully revoked.",
+            'banned'   => "Company \"{$user->name}\" has been successfully banned.",
         ];
 
         return back()->with('success', $messages[$newStatus]);

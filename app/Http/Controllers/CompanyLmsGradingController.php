@@ -46,6 +46,6 @@ class CompanyLmsGradingController extends Controller
 
         $submission->update($validated);
 
-        return back()->with('success', 'Nilai dan feedback berhasil disimpan.');
+        return back()->with('success', 'Grade and feedback saved successfully.');
     }
 }

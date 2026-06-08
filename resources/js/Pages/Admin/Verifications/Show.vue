@@ -69,6 +69,10 @@ const getStatusBadge = (status) => {
             </div>
             
             <div class="ml-auto flex items-center gap-3">
+                <Link :href="route('admin.users.show', company.id)" class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-all shadow-sm">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    Lihat Profil User
+                </Link>
                 <span class="inline-flex items-center rounded-md px-3 py-1 text-sm font-bold ring-1 ring-inset" :class="getStatusBadge(company.status).class">
                     Status saat ini: {{ getStatusBadge(company.status).label }}
                 </span>
@@ -176,6 +180,29 @@ const getStatusBadge = (status) => {
                                 <dt class="text-xs font-semibold text-slate-500">Deskripsi Perusahaan</dt>
                                 <dd class="mt-1 text-sm text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-lg ring-1 ring-slate-200/50">
                                     {{ profile?.description || 'Belum ada deskripsi.' }}
+                                </dd>
+                            </div>
+                            <!-- Vision -->
+                            <div v-if="profile?.vision" class="sm:col-span-2">
+                                <dt class="text-xs font-semibold text-slate-500">Visi Perusahaan</dt>
+                                <dd class="mt-1 text-sm text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-lg ring-1 ring-slate-200/50">
+                                    {{ profile.vision }}
+                                </dd>
+                            </div>
+                            <!-- Mission -->
+                            <div v-if="profile?.mission" class="sm:col-span-2">
+                                <dt class="text-xs font-semibold text-slate-500">Misi Perusahaan</dt>
+                                <dd class="mt-1 text-sm text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-lg ring-1 ring-slate-200/50">
+                                    {{ profile.mission }}
+                                </dd>
+                            </div>
+                            <!-- Specializations -->
+                            <div v-if="profile?.specializations?.length" class="sm:col-span-2">
+                                <dt class="text-xs font-semibold text-slate-500 mb-2">Bidang Spesialisasi</dt>
+                                <dd class="flex flex-wrap gap-2">
+                                    <span v-for="spec in profile.specializations" :key="spec" class="inline-flex rounded-md bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 ring-1 ring-blue-200">
+                                        {{ spec }}
+                                    </span>
                                 </dd>
                             </div>
                             <div class="sm:col-span-2 mt-2">

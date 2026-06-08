@@ -20,7 +20,7 @@ class LmsAssignmentSubmissionController extends Controller
         abort_if($assignment->chapter->course_id !== $course->id, 404);
 
         if ($assignment->deadline_at && now()->isAfter($assignment->deadline_at)) {
-            return back()->withErrors(['message' => 'Tenggat waktu pengumpulan tugas telah berakhir.']);
+            return back()->withErrors(['message' => 'The submission deadline for this assignment has passed.']);
         }
 
         $validated = $request->validate([
@@ -45,7 +45,7 @@ class LmsAssignmentSubmissionController extends Controller
 
         $progressService->refreshChapterCompletion($enrollment, $assignment->chapter);
 
-        return back()->with('success', 'Tugas berhasil diunggah.');
+        return back()->with('success', 'Assignment uploaded successfully.');
     }
 
     public function destroy(Request $request, LmsCourse $course, LmsAssignment $assignment, LmsAssignmentSubmission $submission, LmsProgressService $progressService)
@@ -55,7 +55,7 @@ class LmsAssignmentSubmissionController extends Controller
         abort_if($submission->enrollment->student_id !== $request->user()->id, 403);
 
         if ($assignment->deadline_at && now()->isAfter($assignment->deadline_at)) {
-            return back()->withErrors(['message' => 'Tenggat waktu pengumpulan tugas telah berakhir sehingga data tidak bisa diubah.']);
+            return back()->withErrors(['message' => 'The assignment submission deadline has passed, so the submission cannot be modified.']);
         }
 
         $submission->delete();
@@ -66,6 +66,6 @@ class LmsAssignmentSubmissionController extends Controller
             ->where('chapter_id', $assignment->chapter_id)
             ->delete();
 
-        return back()->with('success', 'Tugas berhasil ditarik/dihapus.');
+        return back()->with('success', 'Assignment submission successfully withdrawn/deleted.');
     }
 }

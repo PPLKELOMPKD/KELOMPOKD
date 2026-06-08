@@ -21,7 +21,7 @@ class ApplicationController extends Controller
         // Validasi deadline lowongan — tolak jika sudah kedaluwarsa
         $internship = \App\Models\Internship::findOrFail($data['internship_id']);
         if ($internship->deadline_at && $internship->deadline_at->isPast()) {
-            return back()->with('error', 'Batas waktu pendaftaran lowongan ini telah berakhir. Anda tidak dapat melamar lagi.');
+            return back()->with('error', 'The application deadline for this job listing has passed. You can no longer apply.');
         }
 
         $user = $request->user();
@@ -31,7 +31,7 @@ class ApplicationController extends Controller
             ->exists();
 
         if ($hasApplied) {
-            return back()->with('error', 'Anda sudah melamar posisi ini.');
+            return back()->with('error', 'You have already applied for this position.');
         }
 
         $application = $user->applications()->create([
@@ -45,8 +45,8 @@ class ApplicationController extends Controller
         // Notifikasi untuk Mahasiswa
         Notification::query()->create([
             'user_id' => $request->user()->id,
-            'title' => 'Lamaran berhasil dikirim',
-            'message' => 'Lamaran Anda telah tersimpan dengan status submitted.',
+            'title' => 'Application submitted successfully',
+            'message' => 'Your application has been saved with the status: submitted.',
             'type' => 'application',
         ]);
 
@@ -54,8 +54,8 @@ class ApplicationController extends Controller
         if ($internship->company_id) {
             Notification::query()->create([
                 'user_id' => $internship->company_id,
-                'title' => 'Lamaran Baru Masuk',
-                'message' => "{$user->name} telah melamar untuk posisi {$internship->title}.",
+                'title' => 'New Application Received',
+                'message' => "{$user->name} has applied for the position {$internship->title}.",
                 'type' => 'application',
                 'link' => route('perusahaan.applicants.show', $application->id),
             ]);
@@ -70,6 +70,6 @@ class ApplicationController extends Controller
             ]);
         }
 
-        return redirect()->route('internships.index')->with('success', 'Lamaran berhasil dikirim!');
+        return redirect()->route('internships.index')->with('success', 'Application sent successfully!');
     }
 }

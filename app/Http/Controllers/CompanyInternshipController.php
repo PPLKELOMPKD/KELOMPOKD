@@ -42,16 +42,16 @@ class CompanyInternshipController extends Controller
             'deadline_at' => 'required|date|after_or_equal:today',
             'quota' => 'required|integer|min:1',
         ], [
-            'title.required' => 'Posisi wajib diisi.',
-            'company_name.required' => 'Nama perusahaan wajib diisi.',
-            'description.required' => 'Deskripsi wajib diisi.',
-            'requirements.required' => 'Kualifikasi wajib diisi.',
-            'location.required' => 'Lokasi wajib diisi.',
-            'work_type.required' => 'Tipe pekerjaan wajib diisi.',
-            'deadline_at.required' => 'Batas waktu lamaran wajib diisi.',
-            'deadline_at.after_or_equal' => 'Batas waktu lamaran tidak boleh kurang dari tanggal hari ini.',
-            'quota.required' => 'Kuota wajib diisi.',
-            'quota.min' => 'Kuota harus berupa angka positif.'
+            'title.required' => 'Position is required.',
+            'company_name.required' => 'Company name is required.',
+            'description.required' => 'Description is required.',
+            'requirements.required' => 'Requirements are required.',
+            'location.required' => 'Location is required.',
+            'work_type.required' => 'Work type is required.',
+            'deadline_at.required' => 'Application deadline is required.',
+            'deadline_at.after_or_equal' => 'Application deadline cannot be earlier than today.',
+            'quota.required' => 'Quota is required.',
+            'quota.min' => 'Quota must be a positive number.'
         ]);
 
         // Lowongan baru masuk ke antrian moderasi (pending), bukan langsung tayang
@@ -62,7 +62,7 @@ class CompanyInternshipController extends Controller
 
         \App\Services\ActivityLogger::log('Membuat Lowongan', "Membuat lowongan baru berjudul: {$internship->title} (menunggu moderasi)", 'lowongan');
 
-        return redirect()->route('perusahaan.internships.index')->with('success', 'Lowongan Berhasil Dikirim! Sedang menunggu persetujuan admin sebelum tayang.');
+        return redirect()->route('perusahaan.internships.index')->with('success', 'Job listing sent successfully! Waiting for admin approval before going live.');
     }
 
     public function edit(Internship $internship)
@@ -74,7 +74,7 @@ class CompanyInternshipController extends Controller
         if ($internship->moderation_status === 'closed') {
             return redirect()
                 ->route('perusahaan.internships.index')
-                ->with('error', 'Lowongan yang telah dicabut (takedown) tidak dapat diedit. Silakan buat lowongan baru.');
+                ->with('error', 'Taken down job listings cannot be edited. Please create a new listing.');
         }
 
         return Inertia::render('Perusahaan/Internships/Form', [
@@ -100,16 +100,16 @@ class CompanyInternshipController extends Controller
             'deadline_at' => 'required|date|after_or_equal:today',
             'quota' => 'required|integer|min:1',
         ], [
-            'title.required' => 'Posisi wajib diisi.',
-            'company_name.required' => 'Nama perusahaan wajib diisi.',
-            'description.required' => 'Deskripsi wajib diisi.',
-            'requirements.required' => 'Kualifikasi wajib diisi.',
-            'location.required' => 'Lokasi wajib diisi.',
-            'work_type.required' => 'Tipe pekerjaan wajib diisi.',
-            'deadline_at.required' => 'Batas waktu lamaran wajib diisi.',
-            'deadline_at.after_or_equal' => 'Batas waktu lamaran tidak boleh kurang dari tanggal hari ini.',
-            'quota.required' => 'Kuota wajib diisi.',
-            'quota.min' => 'Kuota harus berupa angka positif.'
+            'title.required' => 'Position is required.',
+            'company_name.required' => 'Company name is required.',
+            'description.required' => 'Description is required.',
+            'requirements.required' => 'Requirements are required.',
+            'location.required' => 'Location is required.',
+            'work_type.required' => 'Work type is required.',
+            'deadline_at.required' => 'Application deadline is required.',
+            'deadline_at.after_or_equal' => 'Application deadline cannot be earlier than today.',
+            'quota.required' => 'Quota is required.',
+            'quota.min' => 'Quota must be a positive number.'
         ]);
 
         // Jika lowongan sebelumnya 'rejected', resubmit → kembali ke 'pending'
@@ -128,8 +128,8 @@ class CompanyInternshipController extends Controller
         $internship->update(array_merge($validated, $moderationUpdate));
 
         $message = $internship->moderation_status === 'pending' && !empty($moderationUpdate)
-            ? 'Lowongan berhasil diperbarui dan dikirim ulang untuk ditinjau admin.'
-            : 'Lowongan Magang Berhasil Diperbarui';
+            ? 'Job listing updated successfully and resubmitted for admin review.'
+            : 'Job listing updated successfully';
 
         \App\Services\ActivityLogger::log('Memperbarui Lowongan', "Memperbarui lowongan berjudul: {$internship->title}", 'lowongan');
 
@@ -141,12 +141,12 @@ class CompanyInternshipController extends Controller
         if ($internship->applications()->exists()) {
             $internship->update(['is_published' => false]);
             \App\Services\ActivityLogger::log('Menutup Lowongan', "Lowongan \"{$internship->title}\" ditutup (memiliki pelamar)", 'lowongan');
-            return redirect()->route('perusahaan.internships.index')->with('error', 'Lowongan tidak bisa dihapus penuh karena sudah memiliki pelamar. Status lowongan diubah menjadi Ditutup.');
+            return redirect()->route('perusahaan.internships.index')->with('error', 'The job listing cannot be fully deleted because it already has applicants. The status has been changed to Closed.');
         }
 
         \App\Services\ActivityLogger::log('Menghapus Lowongan', "Menghapus lowongan berjudul: {$internship->title}", 'lowongan');
         $internship->delete();
 
-        return redirect()->route('perusahaan.internships.index')->with('success', 'Lowongan Magang Berhasil Dihapus');
+        return redirect()->route('perusahaan.internships.index')->with('success', 'Job listing deleted successfully');
     }
 }
