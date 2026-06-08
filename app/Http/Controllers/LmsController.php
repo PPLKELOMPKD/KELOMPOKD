@@ -75,7 +75,7 @@ class LmsController extends Controller
             : null;
 
         if ($request->user()?->role === 'mahasiswa') {
-            abort_if(!$enrollment, 403, 'Anda belum terdaftar di pelatihan ini.');
+            abort_if(!$enrollment, 403, 'You are not enrolled in this training.');
         }
 
         $progress = $enrollment ? app(\App\Services\LmsProgressService::class)->courseProgress($enrollment) : 0;

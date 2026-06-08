@@ -93,7 +93,7 @@ class AdminEventModerationController extends Controller
             'event'
         );
 
-        return back()->with('success', "Event \"{$event->title}\" berhasil disetujui dan sekarang tayang.");
+        return back()->with('success', "Event \"{$event->title}\" has been successfully approved and is now live.");
     }
 
     /**
@@ -104,9 +104,9 @@ class AdminEventModerationController extends Controller
         $validated = $request->validate([
             'rejection_reason' => 'required|string|min:10|max:1000',
         ], [
-            'rejection_reason.required' => 'Alasan penolakan wajib diisi.',
-            'rejection_reason.min'      => 'Alasan penolakan minimal 10 karakter.',
-            'rejection_reason.max'      => 'Alasan penolakan maksimal 1000 karakter.',
+            'rejection_reason.required' => 'Rejection reason is required.',
+            'rejection_reason.min'      => 'Rejection reason must be at least 10 characters.',
+            'rejection_reason.max'      => 'Rejection reason cannot exceed 1000 characters.',
         ]);
 
         $event->update([
@@ -123,7 +123,7 @@ class AdminEventModerationController extends Controller
             'event'
         );
 
-        return back()->with('success', "Event \"{$event->title}\" berhasil ditolak.");
+        return back()->with('success', "Event \"{$event->title}\" has been successfully rejected.");
     }
 
     /**
@@ -132,7 +132,7 @@ class AdminEventModerationController extends Controller
     public function destroy(Event $event)
     {
         if ($event->registrations()->exists()) {
-            return back()->with('error', 'Event tidak bisa dihapus karena sudah memiliki peserta terdaftar.');
+            return back()->with('error', 'Event cannot be deleted because it already has registered participants.');
         }
 
         $title = $event->title;
@@ -140,6 +140,6 @@ class AdminEventModerationController extends Controller
 
         ActivityLogger::log('Menghapus Event', "Menghapus event \"{$title}\" dari panel admin", 'event');
 
-        return back()->with('success', "Event \"{$title}\" berhasil dihapus.");
+        return back()->with('success', "Event \"{$title}\" has been successfully deleted.");
     }
 }

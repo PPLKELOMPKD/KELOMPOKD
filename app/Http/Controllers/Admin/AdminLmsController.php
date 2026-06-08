@@ -358,7 +358,7 @@ class AdminLmsController extends Controller
     {
         $user->update(['status' => User::STATUS_BANNED]);
         ActivityLogger::log('Suspend Pengguna LMS', "Menangguhkan pengguna {$user->name} ({$user->email})", 'moderasi');
-        return back()->with('success', "Akun \"{$user->name}\" berhasil ditangguhkan.");
+        return back()->with('success', "Account \"{$user->name}\" has been successfully suspended.");
     }
 
     /**
@@ -368,7 +368,7 @@ class AdminLmsController extends Controller
     {
         $user->update(['status' => User::STATUS_ACTIVE]);
         ActivityLogger::log('Aktifkan Pengguna LMS', "Mengaktifkan pengguna {$user->name} ({$user->email})", 'moderasi');
-        return back()->with('success', "Akun \"{$user->name}\" berhasil diaktifkan kembali.");
+        return back()->with('success', "Account \"{$user->name}\" has been successfully reactivated.");
     }
 
     /**
@@ -379,7 +379,7 @@ class AdminLmsController extends Controller
         $userName = $user->name;
         $user->delete();
         ActivityLogger::log('Hapus Pengguna LMS', "Menghapus pengguna {$userName}", 'moderasi');
-        return back()->with('success', "Akun \"{$userName}\" berhasil dihapus dari sistem.");
+        return back()->with('success', "Account \"{$userName}\" has been successfully removed from the system.");
     }
 
     /**
@@ -452,7 +452,7 @@ class AdminLmsController extends Controller
             'moderasi'
         );
 
-        return back()->with('success', 'Progress belajar peserta berhasil direset.');
+        return back()->with('success', 'Participant learning progress has been reset successfully.');
     }
 
     /**
@@ -475,7 +475,7 @@ class AdminLmsController extends Controller
             'moderasi'
         );
 
-        return back()->with('success', 'Enrollment peserta berhasil dihapus.');
+        return back()->with('success', 'Participant enrollment has been deleted successfully.');
     }
 
     // ─── NEW ACTIONS FOR COURSE MODERATION ───
@@ -493,7 +493,7 @@ class AdminLmsController extends Controller
             'moderasi'
         );
 
-        return back()->with('success', "Course '{$course->title}' berhasil disetujui.");
+        return back()->with('success', "Course '{$course->title}' has been successfully approved.");
     }
 
     public function rejectCourse(Request $request, LmsCourse $course)
@@ -513,7 +513,7 @@ class AdminLmsController extends Controller
             'moderasi'
         );
 
-        return back()->with('success', "Course '{$course->title}' ditolak.");
+        return back()->with('success', "Course '{$course->title}' has been rejected.");
     }
 
     public function takedownCourse(Request $request, LmsCourse $course)
@@ -533,7 +533,7 @@ class AdminLmsController extends Controller
             'moderasi'
         );
 
-        return back()->with('success', "Course '{$course->title}' berhasil diturunkan.");
+        return back()->with('success', "Course '{$course->title}' has been successfully taken down.");
     }
 
     public function restoreCourse(LmsCourse $course)
@@ -549,7 +549,7 @@ class AdminLmsController extends Controller
             'moderasi'
         );
 
-        return back()->with('success', "Course '{$course->title}' berhasil dipulihkan.");
+        return back()->with('success', "Course '{$course->title}' has been successfully restored.");
     }
 
     // ─── NEW ACTIONS FOR CONTENT MODERATION ───
@@ -564,7 +564,7 @@ class AdminLmsController extends Controller
             'moderasi'
         );
 
-        return back()->with('success', "Modul '{$lesson->title}' berhasil diturunkan.");
+        return back()->with('success', "Module '{$lesson->title}' has been successfully taken down.");
     }
 
     public function restoreLesson(LmsLesson $lesson)
@@ -577,7 +577,7 @@ class AdminLmsController extends Controller
             'moderasi'
         );
 
-        return back()->with('success', "Modul '{$lesson->title}' berhasil dipulihkan.");
+        return back()->with('success', "Module '{$lesson->title}' has been successfully restored.");
     }
 
     public function takedownQuiz(LmsQuiz $quiz)
@@ -590,7 +590,7 @@ class AdminLmsController extends Controller
             'moderasi'
         );
 
-        return back()->with('success', "Quiz '{$quiz->title}' berhasil diturunkan.");
+        return back()->with('success', "Quiz '{$quiz->title}' has been successfully taken down.");
     }
 
     public function restoreQuiz(LmsQuiz $quiz)
@@ -603,7 +603,7 @@ class AdminLmsController extends Controller
             'moderasi'
         );
 
-        return back()->with('success', "Quiz '{$quiz->title}' berhasil dipulihkan.");
+        return back()->with('success', "Quiz '{$quiz->title}' has been successfully restored.");
     }
 
     public function takedownAssignment(LmsAssignment $assignment)
@@ -616,7 +616,7 @@ class AdminLmsController extends Controller
             'moderasi'
         );
 
-        return back()->with('success', "Tugas '{$assignment->title}' berhasil diturunkan.");
+        return back()->with('success', "Assignment '{$assignment->title}' has been successfully taken down.");
     }
 
     public function restoreAssignment(LmsAssignment $assignment)
@@ -629,7 +629,7 @@ class AdminLmsController extends Controller
             'moderasi'
         );
 
-        return back()->with('success', "Tugas '{$assignment->title}' berhasil dipulihkan.");
+        return back()->with('success', "Assignment '{$assignment->title}' has been successfully restored.");
     }
 
     // ─── NEW ACTIONS FOR ENROLLMENT ───
@@ -647,7 +647,7 @@ class AdminLmsController extends Controller
             ->exists();
 
         if ($exists) {
-            return back()->with('error', 'Peserta tersebut sudah terdaftar pada course ini.');
+            return back()->with('error', 'This participant is already enrolled in the course.');
         }
 
         $enrollment = LmsEnrollment::create([
@@ -666,7 +666,7 @@ class AdminLmsController extends Controller
             'moderasi'
         );
 
-        return back()->with('success', "Mahasiswa '{$student->name}' berhasil didaftarkan ke course '{$course->title}'.");
+        return back()->with('success', "Student '{$student->name}' has been successfully enrolled in the course '{$course->title}'.");
     }
 
     public function suspendEnrollment(LmsEnrollment $enrollment)
@@ -679,7 +679,7 @@ class AdminLmsController extends Controller
             'moderasi'
         );
 
-        return back()->with('success', "Pendaftaran peserta berhasil ditangguhkan.");
+        return back()->with('success', "Participant enrollment has been successfully suspended.");
     }
 
     public function activateEnrollment(LmsEnrollment $enrollment)
@@ -692,6 +692,6 @@ class AdminLmsController extends Controller
             'moderasi'
         );
 
-        return back()->with('success', "Pendaftaran peserta berhasil diaktifkan kembali.");
+        return back()->with('success', "Participant enrollment has been successfully reactivated.");
     }
 }

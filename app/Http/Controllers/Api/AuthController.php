@@ -54,7 +54,7 @@ class AuthController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Registrasi berhasil.',
+                'message' => 'Registration successful.',
                 'data' => [
                     'user' => [
                         'id' => $user->id,
@@ -70,13 +70,13 @@ class AuthController extends Controller
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validasi gagal.',
+                'message' => 'Validation failed.',
                 'errors' => $e->errors()
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan pada server saat registrasi.',
+                'message' => 'A server error occurred during registration.',
                 'error' => config('app.debug') ? $e->getMessage() : 'Internal Server Error'
             ], 500);
         }
@@ -99,7 +99,7 @@ class AuthController extends Controller
             if (! $user || ! Hash::check($request->password, $user->password)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Email atau kata sandi tidak valid.',
+                    'message' => 'Invalid email or password.',
                 ], 401);
             }
 
@@ -112,7 +112,7 @@ class AuthController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Autentikasi berhasil.',
+                'message' => 'Authentication successful.',
                 'data' => [
                     'user' => [
                         'id' => $user->id,
@@ -129,13 +129,13 @@ class AuthController extends Controller
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validasi gagal.',
+                'message' => 'Validation failed.',
                 'errors' => $e->errors()
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan pada server.',
+                'message' => 'A server error occurred.',
                 'error' => config('app.debug') ? $e->getMessage() : 'Internal Server Error'
             ], 500);
         }
@@ -158,13 +158,13 @@ class AuthController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data profil berhasil diambil.',
+                'message' => 'Profile data retrieved successfully.',
                 'data' => $user
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengambil data profil.',
+                'message' => 'Failed to retrieve profile data.',
             ], 500);
         }
     }
@@ -180,12 +180,12 @@ class AuthController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Berhasil logout. Token telah dicabut.'
+                'message' => 'Logged out successfully. Token has been revoked.'
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal melakukan logout.',
+                'message' => 'Failed to log out.',
             ], 500);
         }
     }

@@ -20,17 +20,17 @@ class EventRegistrationController extends Controller
         // A1: Pastikan user sudah login (dicek via middleware, tapi double-check)
         if (!$user) {
             return redirect()->route('login', ['role' => 'mahasiswa'])
-                ->with('error', 'Silakan login terlebih dahulu untuk mendaftar.');
+                ->with('error', 'Please log in first to register.');
         }
 
         // Role check: hanya mahasiswa
         if ($user->role !== 'mahasiswa') {
-            return back()->with('error', 'Hanya mahasiswa yang dapat mendaftar ke event.');
+            return back()->with('error', 'Only students can register for events.');
         }
 
         // TC-07: Event harus berstatus published DAN sudah disetujui admin
         if ($event->status !== 'published' || $event->moderation_status !== 'approved') {
-            return back()->with('error', 'Event tidak tersedia untuk pendaftaran.');
+            return back()->with('error', 'This event is not available for registration.');
         }
 
         // Precondition: event belum dimulai (tanggal + start_time belum terlewati)
@@ -39,11 +39,11 @@ class EventRegistrationController extends Controller
         $now = Carbon::now();
 
         if ($now->gte($eventEndDateTime)) {
-            return back()->with('error', 'Event sudah selesai dan tidak dapat didaftari.');
+            return back()->with('error', 'The event has ended and cannot be registered.');
         }
 
         if ($now->gte($eventStartDateTime)) {
-            return back()->with('error', 'Event sudah dimulai dan tidak dapat didaftari lagi.');
+            return back()->with('error', 'The event has started and cannot be registered.');
         }
 
         // TC-05: Cek kuota (jumlah registrasi aktif = max_participants)
@@ -52,7 +52,7 @@ class EventRegistrationController extends Controller
             ->count();
 
         if ($event->max_participants !== null && $activeCount >= $event->max_participants) {
-            return back()->with('error', 'Maaf, kuota event sudah penuh.');
+            return back()->with('error', 'Sorry, the event quota is full.');
         }
 
         // TC-06: Cek duplikat pendaftaran
@@ -74,10 +74,10 @@ class EventRegistrationController extends Controller
                     'event'
                 );
 
-                return back()->with('success', 'Pendaftaran berhasil! Kamu sekarang terdaftar di event ini.');
+                return back()->with('success', 'Registration successful! You are now registered for this event.');
             }
 
-            return back()->with('error', 'Anda sudah terdaftar di event ini.');
+            return back()->with('error', 'You are already registered for this event.');
         }
 
         // TC-03: Buat record baru
@@ -94,7 +94,7 @@ class EventRegistrationController extends Controller
             'event'
         );
 
-        return back()->with('success', 'Pendaftaran berhasil! Kamu sekarang terdaftar di event ini.');
+        return back()->with('success', 'Registration successful! You are now registered for this event.');
     }
 
     /**
@@ -105,7 +105,7 @@ class EventRegistrationController extends Controller
         $user = $request->user();
 
         if (!$user || $user->role !== 'mahasiswa') {
-            return back()->with('error', 'Aksi tidak diizinkan.');
+            return back()->with('error', 'Action not authorized.');
         }
 
         $registration = EventRegistration::where('event_id', $event->id)
@@ -114,7 +114,7 @@ class EventRegistrationController extends Controller
             ->first();
 
         if (!$registration) {
-            return back()->with('error', 'Pendaftaran tidak ditemukan atau sudah dibatalkan.');
+            return back()->with('error', 'Registration not found or has been cancelled.');
         }
 
         $registration->update(['status' => 'cancelled']);
@@ -125,7 +125,7 @@ class EventRegistrationController extends Controller
             'event'
         );
 
-        return back()->with('success', 'Pendaftaran berhasil dibatalkan.');
+        return back()->with('success', 'Registration cancelled successfully.');
     }
 
     public function myEvents(Request $request)

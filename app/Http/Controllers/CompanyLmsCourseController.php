@@ -81,7 +81,7 @@ class CompanyLmsCourseController extends Controller
     public function edit(Request $request, LmsCourse $course)
     {
         abort_if($course->company_id !== $request->user()->id, 403);
-        abort_if($course->moderation_status === 'takedown', 403, 'Modul ini telah dinonaktifkan (takedown) oleh Admin.');
+        abort_if($course->moderation_status === 'takedown', 403, 'This course has been taken down by the Administrator.');
 
         return Inertia::render('Perusahaan/Lms/Form', [
             'course' => $course,
@@ -91,7 +91,7 @@ class CompanyLmsCourseController extends Controller
     public function update(Request $request, LmsCourse $course)
     {
         abort_if($course->company_id !== $request->user()->id, 403);
-        abort_if($course->moderation_status === 'takedown', 403, 'Modul ini telah dinonaktifkan (takedown) oleh Admin.');
+        abort_if($course->moderation_status === 'takedown', 403, 'This course has been taken down by the Administrator.');
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -135,7 +135,7 @@ class CompanyLmsCourseController extends Controller
     public function destroy(Request $request, LmsCourse $course)
     {
         abort_if($course->company_id !== $request->user()->id, 403);
-        abort_if($course->moderation_status === 'takedown', 403, 'Modul ini telah dinonaktifkan (takedown) oleh Admin.');
+        abort_if($course->moderation_status === 'takedown', 403, 'This course has been taken down by the Administrator.');
         $course->delete();
         return redirect()->route('perusahaan.lms.index');
     }
@@ -143,10 +143,10 @@ class CompanyLmsCourseController extends Controller
     public function publish(Request $request, LmsCourse $course)
     {
         abort_if($course->company_id !== $request->user()->id, 403);
-        abort_if($course->moderation_status === 'takedown', 403, 'Modul ini telah dinonaktifkan (takedown) oleh Admin.');
+        abort_if($course->moderation_status === 'takedown', 403, 'This course has been taken down by the Administrator.');
         
         if ($course->chapters()->count() === 0) {
-            return back()->with('error', 'Gagal mempublish: Modul harus memiliki setidaknya satu Bab materi sebelum dipublikasikan.');
+            return back()->with('error', 'Failed to publish: The course must have at least one chapter before it can be published.');
         }
 
         $course->update(['status' => LmsCourse::STATUS_PUBLISHED]);
@@ -157,13 +157,13 @@ class CompanyLmsCourseController extends Controller
             'course'
         );
 
-        return back()->with('success', 'Modul berhasil dipublikasikan!');
+        return back()->with('success', 'Course published successfully!');
     }
 
     public function unpublish(Request $request, LmsCourse $course)
     {
         abort_if($course->company_id !== $request->user()->id, 403);
-        abort_if($course->moderation_status === 'takedown', 403, 'Modul ini telah dinonaktifkan (takedown) oleh Admin.');
+        abort_if($course->moderation_status === 'takedown', 403, 'This course has been taken down by the Administrator.');
 
         $course->update(['status' => LmsCourse::STATUS_DRAFT]);
 

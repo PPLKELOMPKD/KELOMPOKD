@@ -121,22 +121,22 @@ class UserManagementController extends Controller
     {
         // Guard: jangan izinkan admin mengubah akun admin lain
         if ($user->role === 'admin') {
-            return back()->with('error', 'Tidak diizinkan mengubah status akun admin.');
+            return back()->with('error', 'Not authorized to modify admin account status.');
         }
 
         $validated = $request->validate([
             'status' => ['required', 'in:active,inactive,banned'],
             'reason' => ['nullable', 'string', 'max:500'],
         ], [
-            'status.required' => 'Status baru wajib dipilih.',
-            'status.in'       => 'Status tidak valid.',
+            'status.required' => 'New status is required.',
+            'status.in'       => 'Invalid status.',
         ]);
 
         $oldStatus = $user->status;
         $newStatus = $validated['status'];
 
         if ($oldStatus === $newStatus) {
-            return back()->with('info', 'Status pengguna tidak berubah.');
+            return back()->with('info', 'User status remains unchanged.');
         }
 
         DB::transaction(function () use ($user, $newStatus, $oldStatus, $validated) {
@@ -179,9 +179,9 @@ class UserManagementController extends Controller
         });
 
         $messages = [
-            'active'   => "Akun \"{$user->name}\" berhasil diaktifkan.",
-            'inactive' => "Akun \"{$user->name}\" berhasil dinonaktifkan.",
-            'banned'   => "Akun \"{$user->name}\" berhasil diblokir (banned).",
+            'active'   => "Account \"{$user->name}\" has been activated successfully.",
+            'inactive' => "Account \"{$user->name}\" has been deactivated successfully.",
+            'banned'   => "Account \"{$user->name}\" has been banned successfully.",
         ];
 
         return back()->with('success', $messages[$newStatus]);
@@ -193,7 +193,7 @@ class UserManagementController extends Controller
     public function show(User $user): Response
     {
         if ($user->role === 'admin') {
-            abort(403, 'Tidak dapat melihat detail akun admin.');
+            abort(403, 'Cannot view admin account details.');
         }
 
         $user->load(['mahasiswaProfile', 'perusahaanProfile', 'skills']);
@@ -233,14 +233,19 @@ class UserManagementController extends Controller
         } elseif ($user->role === 'perusahaan') {
             $p = $user->perusahaanProfile;
             $profile = $p ? [
-                'industry'      => $p->industry,
-                'location'      => $p->location,
-                'website'       => $p->website,
-                'description'   => $p->description,
-                'employee_count'=> $p->employee_count,
-                'founded_year'  => $p->founded_year,
-                'office_address'=> $p->office_address,
-                'logo_path'     => $p->logo_path,
+                'industry'        => $p->industry,
+                'location'        => $p->location,
+                'website'         => $p->website,
+                'description'     => $p->description,
+                'vision'          => $p->vision,
+                'mission'         => $p->mission,
+                'employee_count'  => $p->employee_count,
+                'founded_year'    => $p->founded_year,
+                'office_address'  => $p->office_address,
+                'specializations' => $p->specializations,
+                'logo_path'       => $p->logo_path,
+                'cover_path'      => $p->cover_path,
+                'legal_document_path' => $p->legal_document_path,
             ] : null;
 
             $internships = $user->internships()

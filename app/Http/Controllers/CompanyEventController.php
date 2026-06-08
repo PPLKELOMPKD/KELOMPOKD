@@ -37,17 +37,17 @@ class CompanyEventController extends Controller
             'type'             => 'required|in:online,offline',
             'max_participants' => 'required|integer|min:1',
         ], [
-            'title.required'            => 'Judul wajib diisi.',
-            'description.required'      => 'Deskripsi wajib diisi.',
-            'date.required'             => 'Tanggal acara wajib diisi.',
-            'date.after_or_equal'       => 'Tanggal acara tidak boleh kurang dari hari ini.',
-            'start_time.required'       => 'Waktu mulai wajib diisi.',
-            'end_time.required'         => 'Waktu selesai wajib diisi.',
-            'end_time.after'            => 'Waktu selesai harus setelah waktu mulai.',
-            'location.required'         => 'Lokasi wajib diisi.',
-            'type.required'             => 'Tipe acara wajib diisi.',
-            'max_participants.required' => 'Maksimal peserta wajib diisi.',
-            'max_participants.min'      => 'Maksimal peserta harus lebih dari 0.',
+            'title.required'            => 'Title is required.',
+            'description.required'      => 'Description is required.',
+            'date.required'             => 'Event date is required.',
+            'date.after_or_equal'       => 'Event date cannot be earlier than today.',
+            'start_time.required'       => 'Start time is required.',
+            'end_time.required'         => 'End time is required.',
+            'end_time.after'            => 'End time must be after start time.',
+            'location.required'         => 'Location is required.',
+            'type.required'             => 'Event type is required.',
+            'max_participants.required' => 'Maximum participants is required.',
+            'max_participants.min'      => 'Maximum participants must be greater than 0.',
         ]);
 
         // Extra check: if the event is scheduled for today, times must not have already passed.
@@ -57,13 +57,13 @@ class CompanyEventController extends Controller
 
             if ($validated['start_time'] <= $now) {
                 return back()->withErrors([
-                    'start_time' => 'Waktu mulai tidak boleh di waktu yang sudah lewat. Pilih waktu yang akan datang.',
+                    'start_time' => 'Start time cannot be in the past. Please select a future time.',
                 ])->withInput();
             }
 
             if ($validated['end_time'] <= $now) {
                 return back()->withErrors([
-                    'end_time' => 'Waktu selesai tidak boleh di waktu yang sudah lewat.',
+                    'end_time' => 'End time cannot be in the past.',
                 ])->withInput();
             }
         }
@@ -76,7 +76,7 @@ class CompanyEventController extends Controller
 
         \App\Services\ActivityLogger::log('Membuat Event', "Membuat event baru: {$event->title} (menunggu persetujuan admin)", 'event');
 
-        return redirect()->route('perusahaan.events.index')->with('success', 'Event berhasil diajukan dan sedang menunggu persetujuan Admin.');
+        return redirect()->route('perusahaan.events.index')->with('success', 'Event submitted successfully and is waiting for Admin approval.');
     }
 
     public function edit(Event $event)
@@ -108,16 +108,16 @@ class CompanyEventController extends Controller
             'type'             => 'required|in:online,offline',
             'max_participants' => 'required|integer|min:1',
         ], [
-            'title.required'            => 'Judul wajib diisi.',
-            'description.required'      => 'Deskripsi wajib diisi.',
-            'date.required'             => 'Tanggal acara wajib diisi.',
-            'start_time.required'       => 'Waktu mulai wajib diisi.',
-            'end_time.required'         => 'Waktu selesai wajib diisi.',
-            'end_time.after'            => 'Waktu selesai harus setelah waktu mulai.',
-            'location.required'         => 'Lokasi wajib diisi.',
-            'type.required'             => 'Tipe acara wajib diisi.',
-            'max_participants.required' => 'Maksimal peserta wajib diisi.',
-            'max_participants.min'      => 'Maksimal peserta harus lebih dari 0.',
+            'title.required'            => 'Title is required.',
+            'description.required'      => 'Description is required.',
+            'date.required'             => 'Event date is required.',
+            'start_time.required'       => 'Start time is required.',
+            'end_time.required'         => 'End time is required.',
+            'end_time.after'            => 'End time must be after start time.',
+            'location.required'         => 'Location is required.',
+            'type.required'             => 'Event type is required.',
+            'max_participants.required' => 'Maximum participants is required.',
+            'max_participants.min'      => 'Maximum participants must be greater than 0.',
         ]);
 
         // Jika event sudah disetujui dan ada perubahan konten, kembalikan ke pending
@@ -134,8 +134,8 @@ class CompanyEventController extends Controller
         \App\Services\ActivityLogger::log('Memperbarui Event', "Memperbarui event: {$event->title}", 'event');
 
         $msg = isset($validated['moderation_status'])
-            ? 'Event diperbarui dan dikembalikan ke status menunggu persetujuan Admin.'
-            : 'Event Berhasil Diperbarui';
+            ? 'Event updated successfully and returned to pending Admin approval.'
+            : 'Event updated successfully';
 
         return redirect()->route('perusahaan.events.index')->with('success', $msg);
     }
@@ -151,12 +151,12 @@ class CompanyEventController extends Controller
         if ($event->registrations()->exists()) {
             $event->update(['status' => 'completed']); // or draft/cancelled, the schema has draft, published, completed
             \App\Services\ActivityLogger::log('Menutup Event', "Menutup event: {$event->title} (memiliki peserta)", 'event');
-            return redirect()->route('perusahaan.events.index')->with('error', 'Event tidak bisa dihapus karena sudah memiliki peserta. Status diubah menjadi Selesai.');
+            return redirect()->route('perusahaan.events.index')->with('error', 'Event cannot be deleted because it already has participants. Status changed to Completed.');
         }
 
         \App\Services\ActivityLogger::log('Menghapus Event', "Menghapus event: {$event->title}", 'event');
         $event->delete();
 
-        return redirect()->route('perusahaan.events.index')->with('success', 'Event Berhasil Dihapus');
+        return redirect()->route('perusahaan.events.index')->with('success', 'Event deleted successfully');
     }
 }

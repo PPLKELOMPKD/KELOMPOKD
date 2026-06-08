@@ -64,7 +64,7 @@ class CompanyLmsEnrollmentController extends Controller
             );
         }
 
-        return back()->with('success', $enrollment->is_graduated ? 'Peserta berhasil diluluskan.' : 'Status kelulusan peserta dibatalkan.');
+        return back()->with('success', $enrollment->is_graduated ? 'Participant has been marked as graduated.' : 'Participant graduation status has been revoked.');
     }
 
 
@@ -85,7 +85,7 @@ class CompanyLmsEnrollmentController extends Controller
             'moderasi'
         );
 
-        return back()->with('success', 'Progress peserta berhasil direset. Peserta dapat mengulang pelatihan.');
+        return back()->with('success', 'Participant progress has been reset. The participant can retake the training.');
     }
 
     public function destroy(Request $request, LmsCourse $course, LmsEnrollment $enrollment)

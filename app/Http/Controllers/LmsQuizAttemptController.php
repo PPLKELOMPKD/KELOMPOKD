@@ -25,7 +25,7 @@ class LmsQuizAttemptController extends Controller
         $existingAttempts = $enrollment->quizAttempts()->where('quiz_id', $quiz->id)->count();
         if ($existingAttempts >= $quiz->max_attempts) {
             return redirect()->back()->with('flash', [
-                'error' => 'Anda telah mencapai batas maksimum pengerjaan kuis ini (' . $quiz->max_attempts . ' kali).',
+                'error' => 'You have reached the maximum attempt limit for this quiz (' . $quiz->max_attempts . ' times).',
             ]);
         }
 
@@ -56,7 +56,7 @@ class LmsQuizAttemptController extends Controller
         $progressService->refreshChapterCompletion($enrollment, $quiz->chapter);
 
         return redirect()->back()->with('flash', [
-            'message' => $result['passed'] ? 'Selamat, Anda lulus kuis!' : 'Maaf, Anda belum lulus kuis.',
+            'message' => $result['passed'] ? 'Congratulations, you passed the quiz!' : 'Sorry, you did not pass the quiz.',
         ]);
     }
 }

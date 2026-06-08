@@ -63,7 +63,7 @@ class DirectMessageController extends Controller
         $recipient = User::query()->findOrFail($data['recipient_id']);
 
         if ($recipient->is($user)) {
-            return response()->json(['message' => 'Anda tidak dapat mengirim pesan ke diri sendiri.'], 422);
+            return response()->json(['message' => 'You cannot send a message to yourself.'], 422);
         }
 
         abort_unless($this->canStartConversation($user, $recipient), 403);

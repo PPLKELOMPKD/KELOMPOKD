@@ -39,6 +39,6 @@ class LmsEnrollmentController extends Controller
 
         \App\Services\ActivityLogger::log('Batal Kursus', "Membatalkan pendaftaran pada kursus LMS: {$course->title}", 'enrollment');
 
-        return redirect()->route('lms')->with('success', 'Berhasil membatalkan pendaftaran pelatihan.');
+        return redirect()->route('lms')->with('success', 'Successfully unenrolled from the training.');
     }
 }
