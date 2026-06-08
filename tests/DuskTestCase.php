@@ -31,6 +31,9 @@ abstract class DuskTestCase extends BaseTestCase
             $this->shouldStartMaximized() ? '--start-maximized' : '--window-size=1920,1080',
             '--disable-search-engine-choice-screen',
             '--disable-smooth-scrolling',
+            '--no-first-run',
+            '--no-sandbox',
+            '--disable-dev-shm-usage',
         ])->unless($this->hasHeadlessDisabled(), function (Collection $items) {
             return $items->merge([
                 '--disable-gpu',
@@ -44,5 +47,10 @@ abstract class DuskTestCase extends BaseTestCase
                 ChromeOptions::CAPABILITY, $options
             )
         );
+    }
+
+    protected function newBrowser($driver)
+    {
+        return new SlowBrowser($driver);
     }
 }

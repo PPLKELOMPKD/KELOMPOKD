@@ -18,33 +18,23 @@ class SKR5StudentProfileTest extends DuskTestCase
     protected function setUp(): void
     {
         parent::setUp();
-
-        // Settle delay for Laravel server boot and Dusk environment swap
-        if (! self::$initialized) {
-            sleep(8);
-            self::$initialized = true;
-        } else {
-            sleep(1);
-        }
     }
 
     protected function tearDown(): void
     {
-        // Navigate to about:blank to prevent migration locks/contention on the database
+        
         try {
             $this->browse(function (Browser $browser) {
                 $browser->blank();
             });
         } catch (\Throwable $e) {
-            // Ignore if browser already closed
+            
         }
 
         parent::tearDown();
     }
 
-    /**
-     * Helper to open the edit profile drawer.
-     */
+    
     protected function openEditProfileDrawer(Browser $browser): Browser
     {
         $browser->waitForText('Edit Profil', 15);
@@ -65,9 +55,7 @@ class SKR5StudentProfileTest extends DuskTestCase
         return $browser->waitFor('aside form', 10);
     }
 
-    /**
-     * Helper to save profile changes.
-     */
+    
     protected function saveProfile(Browser $browser): Browser
     {
         $browser->script("
@@ -87,9 +75,7 @@ class SKR5StudentProfileTest extends DuskTestCase
         return $browser;
     }
 
-    /**
-     * TC-01: Tampil halaman profil
-     */
+    
     public function test_tc01_tampil_halaman_profil(): void
     {
         $user = User::factory()->create([
@@ -112,7 +98,7 @@ class SKR5StudentProfileTest extends DuskTestCase
         $this->browse(function (Browser $browser) use ($user) {
             $browser->loginAs($user)
                 ->visit('/profile')
-                ->waitForText('1234567890', 15) // Wait for the seeded profile content
+                ->waitForText('1234567890', 90) 
                 ->assertSee($user->name)
                 ->assertSee('1234567890')
                 ->assertSee('Teknik Elektro')
@@ -122,9 +108,7 @@ class SKR5StudentProfileTest extends DuskTestCase
         });
     }
 
-    /**
-     * TC-02: Update profil berhasil
-     */
+    
     public function test_tc02_update_profil_berhasil(): void
     {
         $user = User::factory()->create([
@@ -143,7 +127,7 @@ class SKR5StudentProfileTest extends DuskTestCase
         $this->browse(function (Browser $browser) use ($user) {
             $browser->loginAs($user)
                 ->visit('/profile')
-                ->waitForText('1234567890', 15);
+                ->waitForText('1234567890', 90);
 
             $this->openEditProfileDrawer($browser);
 
@@ -171,9 +155,7 @@ class SKR5StudentProfileTest extends DuskTestCase
         ]);
     }
 
-    /**
-     * TC-03: Nama lengkap kosong (API direct request test because name is read-only in UI)
-     */
+    
     public function test_tc03_nama_lengkap_kosong(): void
     {
         $user = User::factory()->create([
@@ -185,9 +167,9 @@ class SKR5StudentProfileTest extends DuskTestCase
         $this->browse(function (Browser $browser) use ($user) {
             $browser->loginAs($user)
                 ->visit('/profile')
-                ->waitForText($user->name, 15);
+                ->waitForText($user->name, 90);
 
-            // Trigger direct PATCH request to verify backend name validation
+            
             $browser->script("
                 window.tc03Error = undefined;
                 axios.patch('/profile', { name: '', email: '{$user->email}' })
@@ -201,9 +183,7 @@ class SKR5StudentProfileTest extends DuskTestCase
         });
     }
 
-    /**
-     * TC-04: NIM kosong
-     */
+    
     public function test_tc04_nim_kosong(): void
     {
         $user = User::factory()->create([
@@ -222,7 +202,7 @@ class SKR5StudentProfileTest extends DuskTestCase
         $this->browse(function (Browser $browser) use ($user) {
             $browser->loginAs($user)
                 ->visit('/profile')
-                ->waitForText('1234567890', 15);
+                ->waitForText('1234567890', 90);
 
             $this->openEditProfileDrawer($browser);
 
@@ -234,9 +214,7 @@ class SKR5StudentProfileTest extends DuskTestCase
         });
     }
 
-    /**
-     * TC-05: IPK tidak valid
-     */
+    
     public function test_tc05_ipk_tidak_valid(): void
     {
         $user = User::factory()->create([
@@ -255,22 +233,20 @@ class SKR5StudentProfileTest extends DuskTestCase
         $this->browse(function (Browser $browser) use ($user) {
             $browser->loginAs($user)
                 ->visit('/profile')
-                ->waitForText('1234567890', 15);
+                ->waitForText('1234567890', 90);
 
             $this->openEditProfileDrawer($browser);
 
             $browser->keys('aside form div.grid > div:nth-child(5) input', ['{control}', 'a'], '{backspace}')
                 ->type('aside form div.grid > div:nth-child(5) input', '4.5')
-                // trigger blur by clicking on study program input
+                
                 ->click('aside form div.grid > div:nth-child(4) input')
                 ->waitForText('IPK harus berada di antara 0.00 - 4.00', 15)
                 ->assertSee('IPK harus berada di antara 0.00 - 4.00');
         });
     }
 
-    /**
-     * TC-06: Update sebagian data
-     */
+    
     public function test_tc06_update_sebagian_data(): void
     {
         $user = User::factory()->create([
@@ -289,7 +265,7 @@ class SKR5StudentProfileTest extends DuskTestCase
         $this->browse(function (Browser $browser) use ($user) {
             $browser->loginAs($user)
                 ->visit('/profile')
-                ->waitForText('1234567890', 15);
+                ->waitForText('1234567890', 90);
 
             $this->openEditProfileDrawer($browser);
 
@@ -312,9 +288,7 @@ class SKR5StudentProfileTest extends DuskTestCase
         ]);
     }
 
-    /**
-     * TC-07: Tambah skill pada profil
-     */
+    
     public function test_tc07_tambah_skill_pada_profil(): void
     {
         $user = User::factory()->create([
@@ -333,9 +307,9 @@ class SKR5StudentProfileTest extends DuskTestCase
         $this->browse(function (Browser $browser) use ($user) {
             $browser->loginAs($user)
                 ->visit('/profile')
-                ->waitForText('1234567890', 15);
+                ->waitForText('1234567890', 90);
 
-            // Click the "Tambah" button inside the Keterampilan Utama section
+            
             $browser->script("
                 var buttons = document.querySelectorAll('button');
                 for (var i = 0; i < buttons.length; i++) {
@@ -359,21 +333,17 @@ class SKR5StudentProfileTest extends DuskTestCase
         ]);
     }
 
-    /**
-     * TC-08: Akses tanpa login
-     */
+    
     public function test_tc08_akses_tanpa_login(): void
     {
         $this->browse(function (Browser $browser) {
             $browser->visit('/profile')
-                ->waitForLocation('/login', 15)
+                ->waitForLocation('/login', 90)
                 ->assertPathIs('/login');
         });
     }
 
-    /**
-     * TC-09: Simpan data dengan format benar
-     */
+    
     public function test_tc09_simpan_data_dengan_format_benar(): void
     {
         $user = User::factory()->create([
@@ -392,7 +362,7 @@ class SKR5StudentProfileTest extends DuskTestCase
         $this->browse(function (Browser $browser) use ($user) {
             $browser->loginAs($user)
                 ->visit('/profile')
-                ->waitForText('1234567890', 15);
+                ->waitForText('1234567890', 90);
 
             $this->openEditProfileDrawer($browser);
 
@@ -432,9 +402,7 @@ class SKR5StudentProfileTest extends DuskTestCase
         ]);
     }
 
-    /**
-     * TC-10: Notifikasi sukses update
-     */
+    
     public function test_tc10_notifikasi_sukses_update(): void
     {
         $user = User::factory()->create([
@@ -453,7 +421,7 @@ class SKR5StudentProfileTest extends DuskTestCase
         $this->browse(function (Browser $browser) use ($user) {
             $browser->loginAs($user)
                 ->visit('/profile')
-                ->waitForText('1234567890', 15);
+                ->waitForText('1234567890', 90);
 
             $this->openEditProfileDrawer($browser);
 

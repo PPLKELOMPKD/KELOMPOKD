@@ -274,8 +274,9 @@ class CompanyApplicantController extends Controller
             'lamaran',
         );
 
+        $emailSent = false;
         try {
-            $mailService->sendApplicationStatusUpdated($application, $oldStatus, $newStatus);
+            $emailSent = $mailService->sendApplicationStatusUpdated($application, $oldStatus, $newStatus);
         } catch (Throwable $exception) {
             Log::error('Application status email flow failed.', [
                 'application_id' => $application->id,
@@ -288,6 +289,11 @@ class CompanyApplicantController extends Controller
         $redirectRoute = $request->get('redirect', 'index');
 
         $flashMessage = "Applicant status has been updated to \"{$statusLabel}\".";
+        if ($emailSent) {
+            $flashMessage .= ' Notification email sent to student.';
+        } else {
+            $flashMessage .= ' (Notification email failed to send)';
+        }
 
         if ($redirectRoute === 'show') {
             return redirect()

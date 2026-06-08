@@ -21,7 +21,7 @@ class SKR30RealTimeDirectMessagingTest extends DuskTestCase
     {
         parent::setUp();
 
-        // Settle delay for Laravel server boot and Dusk environment swap
+        
         if (! self::$initialized) {
             sleep(8);
             self::$initialized = true;
@@ -32,21 +32,19 @@ class SKR30RealTimeDirectMessagingTest extends DuskTestCase
 
     protected function tearDown(): void
     {
-        // Navigate to about:blank to prevent migration locks/contention on the database
+        
         try {
             $this->browse(function (Browser $browser) {
                 $browser->blank();
             });
         } catch (\Throwable $e) {
-            // Ignore if browser already closed
+            
         }
 
         parent::tearDown();
     }
 
-    /**
-     * Helper to open the floating message widget.
-     */
+    
     protected function openMessageWidget(Browser $browser): Browser
     {
         return $browser->waitFor('button[aria-label="Buka pesan"]', 15)
@@ -54,9 +52,7 @@ class SKR30RealTimeDirectMessagingTest extends DuskTestCase
             ->waitFor('section[aria-label="Pesan SIKARA"]', 10);
     }
 
-    /**
-     * Helper to select a conversation by clicking on the recipient name.
-     */
+    
     protected function clickConversation(Browser $browser, string $recipientName): Browser
     {
         $recipientJson = json_encode($recipientName);
@@ -79,9 +75,7 @@ class SKR30RealTimeDirectMessagingTest extends DuskTestCase
         return $browser->pause(1000);
     }
 
-    /**
-     * TC-01: Menampilkan halaman pesan
-     */
+    
     public function test_tc01_menampilkan_halaman_pesan(): void
     {
         $user = User::factory()->create([
@@ -100,9 +94,7 @@ class SKR30RealTimeDirectMessagingTest extends DuskTestCase
         });
     }
 
-    /**
-     * TC-02: Menampilkan daftar percakapan
-     */
+    
     public function test_tc02_menampilkan_daftar_percakapan(): void
     {
         $user1 = User::factory()->create([
@@ -117,7 +109,7 @@ class SKR30RealTimeDirectMessagingTest extends DuskTestCase
             'email_verified_at' => now(),
         ]);
 
-        // Create conversation between user1 and user2
+        
         Conversation::createBetween($user1, $user2, $user1);
 
         $this->browse(function (Browser $browser) use ($user1, $user2) {
@@ -131,9 +123,7 @@ class SKR30RealTimeDirectMessagingTest extends DuskTestCase
         });
     }
 
-    /**
-     * TC-03: Menampilkan riwayat pesan
-     */
+    
     public function test_tc03_menampilkan_riwayat_pesan(): void
     {
         $user1 = User::factory()->create([
@@ -150,7 +140,7 @@ class SKR30RealTimeDirectMessagingTest extends DuskTestCase
 
         $conversation = Conversation::createBetween($user1, $user2, $user1);
 
-        // Seed some messages
+        
         ConversationMessage::create([
             'conversation_id' => $conversation->id,
             'sender_id' => $user2->id,
@@ -177,9 +167,7 @@ class SKR30RealTimeDirectMessagingTest extends DuskTestCase
         });
     }
 
-    /**
-     * TC-04: Mengirim pesan berhasil
-     */
+    
     public function test_tc04_mengirim_pesan_berhasil(): void
     {
         $user1 = User::factory()->create([
@@ -220,9 +208,7 @@ class SKR30RealTimeDirectMessagingTest extends DuskTestCase
         ]);
     }
 
-    /**
-     * TC-05: Menerima pesan secara real-time
-     */
+    
     public function test_tc05_menerima_pesan_secara_real_time(): void
     {
         $user1 = User::factory()->create([
@@ -245,7 +231,7 @@ class SKR30RealTimeDirectMessagingTest extends DuskTestCase
             $browser->loginAs($user1)
                 ->visit('/dashboard');
 
-            // Inject mock Echo before opening the widget
+            
             $browser->script('
                 window.mockEchoListeners = window.mockEchoListeners || {};
                 window.Echo = {
@@ -266,7 +252,7 @@ class SKR30RealTimeDirectMessagingTest extends DuskTestCase
             $browser->waitForText($user2->name, 15);
             $this->clickConversation($browser, $user2->name);
 
-            // Wait until conversation is open and listeners registered
+            
             $browser->waitFor('textarea[placeholder="Tulis pesan..."]', 15);
 
             $payloadJson = json_encode([
@@ -285,7 +271,7 @@ class SKR30RealTimeDirectMessagingTest extends DuskTestCase
                 ]
             ]);
 
-            // Trigger the listener callback via javascript execution
+            
             $browser->script("
                 var callback = window.mockEchoListeners['conversations.{$conversation->id}'] &&
                                window.mockEchoListeners['conversations.{$conversation->id}']['.direct-message.sent'];
@@ -301,9 +287,7 @@ class SKR30RealTimeDirectMessagingTest extends DuskTestCase
         });
     }
 
-    /**
-     * TC-06: Validasi pesan kosong
-     */
+    
     public function test_tc06_validasi_pesan_kosong(): void
     {
         $user1 = User::factory()->create([
@@ -330,14 +314,12 @@ class SKR30RealTimeDirectMessagingTest extends DuskTestCase
 
             $browser->waitFor('textarea[placeholder="Tulis pesan..."]', 15)
                 ->assertAttribute('button[title="Kirim"]', 'disabled', 'true')
-                ->type('textarea[placeholder="Tulis pesan..."]', '   ') // type spaces
+                ->type('textarea[placeholder="Tulis pesan..."]', '   ') 
                 ->assertAttribute('button[title="Kirim"]', 'disabled', 'true');
         });
     }
 
-    /**
-     * TC-07: Penerima tidak ditemukan
-     */
+    
     public function test_tc07_penerima_tidak_ditemukan(): void
     {
         $user = User::factory()->create([
@@ -359,9 +341,7 @@ class SKR30RealTimeDirectMessagingTest extends DuskTestCase
         });
     }
 
-    /**
-     * TC-08: User tidak berhak mengakses percakapan
-     */
+    
     public function test_tc08_user_tidak_berhak_mengakses_percakapan(): void
     {
         $user1 = User::factory()->create([
@@ -382,7 +362,7 @@ class SKR30RealTimeDirectMessagingTest extends DuskTestCase
             'email_verified_at' => now(),
         ]);
 
-        // Conversation between user2 and user3
+        
         $conversation = Conversation::createBetween($user2, $user3, $user2);
 
         $this->browse(function (Browser $browser) use ($user1, $conversation) {
@@ -392,9 +372,7 @@ class SKR30RealTimeDirectMessagingTest extends DuskTestCase
         });
     }
 
-    /**
-     * TC-09: Koneksi real-time terputus
-     */
+    
     public function test_tc09_koneksi_real_time_terputus(): void
     {
         $user1 = User::factory()->create([
@@ -417,7 +395,7 @@ class SKR30RealTimeDirectMessagingTest extends DuskTestCase
             $browser->loginAs($user1)
                 ->visit('/dashboard');
 
-            // Force Echo to be undefined
+            
             $browser->script('window.Echo = undefined;');
 
             $this->openMessageWidget($browser);
@@ -438,9 +416,7 @@ class SKR30RealTimeDirectMessagingTest extends DuskTestCase
         ]);
     }
 
-    /**
-     * TC-10: Pesan gagal dikirim karena server error
-     */
+    
     public function test_tc10_pesan_gagal_dikirim_karena_server_error(): void
     {
         $user1 = User::factory()->create([
@@ -471,14 +447,14 @@ class SKR30RealTimeDirectMessagingTest extends DuskTestCase
                 $browser->waitFor('textarea[placeholder="Tulis pesan..."]', 15)
                     ->type('textarea[placeholder="Tulis pesan..."]', $errorMessage);
 
-                // Sabotage the table to cause database exception on save
+                
                 Schema::rename('conversation_messages', 'conversation_messages_sabotaged');
 
                 $browser->click('button[title="Kirim"]')
-                    ->pause(3000); // Allow time for request to fail
+                    ->pause(3000); 
             });
         } finally {
-            // Restore database table
+            
             if (Schema::hasTable('conversation_messages_sabotaged')) {
                 Schema::rename('conversation_messages_sabotaged', 'conversation_messages');
             }
