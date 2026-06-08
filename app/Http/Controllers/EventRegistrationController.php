@@ -33,9 +33,17 @@ class EventRegistrationController extends Controller
             return back()->with('error', 'Event tidak tersedia untuk pendaftaran.');
         }
 
-        // Precondition: tanggal event belum terlewati
-        if (Carbon::parse($event->date)->startOfDay()->lt(Carbon::today())) {
-            return back()->with('error', 'Event sudah berakhir dan tidak dapat didaftari.');
+        // Precondition: event belum dimulai (tanggal + start_time belum terlewati)
+        $eventStartDateTime = Carbon::parse($event->date->format('Y-m-d') . ' ' . $event->start_time);
+        $eventEndDateTime   = Carbon::parse($event->date->format('Y-m-d') . ' ' . $event->end_time);
+        $now = Carbon::now();
+
+        if ($now->gte($eventEndDateTime)) {
+            return back()->with('error', 'Event sudah selesai dan tidak dapat didaftari.');
+        }
+
+        if ($now->gte($eventStartDateTime)) {
+            return back()->with('error', 'Event sudah dimulai dan tidak dapat didaftari lagi.');
         }
 
         // TC-05: Cek kuota (jumlah registrasi aktif = max_participants)
@@ -146,8 +154,8 @@ class EventRegistrationController extends Controller
                 if ($event) {
                     $avgRating   = round($event->ratings()->avg('rating'), 2) ?: null;
                     $ratingCount = $event->ratings()->count();
-                    $isCompleted = $event->status === 'completed' ||
-                        Carbon::parse($event->date)->startOfDay()->lt(Carbon::today());
+                    $eventEndDateTime = Carbon::parse($event->date->format('Y-m-d') . ' ' . $event->end_time);
+                    $isCompleted = $event->status === 'completed' || Carbon::now()->gte($eventEndDateTime);
 
                     $ur = $event->ratings()->where('user_id', $user->id)->first();
                     if ($ur) {

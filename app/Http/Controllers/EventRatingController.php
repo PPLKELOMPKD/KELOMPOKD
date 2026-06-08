@@ -22,8 +22,9 @@ class EventRatingController extends Controller
             return back()->with('error', 'Penyelenggara event tidak dapat memberikan rating pada event sendiri.');
         }
 
-        // TC-07 / A3: Event harus sudah selesai
-        $isCompleted = $event->status === 'completed' || Carbon::parse($event->date)->startOfDay()->lt(Carbon::today());
+        // TC-07 / A3: Event harus sudah selesai (tanggal + end_time sudah terlewati)
+        $eventEndDateTime = Carbon::parse($event->date->format('Y-m-d') . ' ' . $event->end_time);
+        $isCompleted = $event->status === 'completed' || Carbon::now()->gte($eventEndDateTime);
         if (!$isCompleted) {
             abort(403, 'Rating hanya dapat diberikan setelah event selesai dilangsungkan.');
         }

@@ -52,13 +52,14 @@ Route::get('/event', function () {
     $user = auth()->user();
     $isAuthenticated = (bool) $user;
     $isMahasiswa = $user && $user->role === 'mahasiswa';
+    $now = \Carbon\Carbon::now();
 
     $events = \App\Models\Event::with(['company', 'company.perusahaanProfile'])
         ->where('status', 'published')
         ->where('moderation_status', 'approved')
         ->latest()
         ->get()
-        ->map(function ($event) use ($user, $isMahasiswa) {
+        ->map(function ($event) use ($user, $isMahasiswa, $now) {
             $activeCount = $event->registrations()
                 ->whereIn('status', ['registered', 'attended'])
                 ->count();
@@ -82,6 +83,12 @@ Route::get('/event', function () {
                 }
             }
 
+            // Cek status waktu event berdasarkan datetime (tanggal + jam)
+            $eventStartDateTime = \Carbon\Carbon::parse($event->date->format('Y-m-d') . ' ' . $event->start_time);
+            $eventEndDateTime   = \Carbon\Carbon::parse($event->date->format('Y-m-d') . ' ' . $event->end_time);
+            $isCompleted = $event->status === 'completed' || $now->gte($eventEndDateTime);
+            $isStarted   = !$isCompleted && $now->gte($eventStartDateTime);
+
             return [
                 'id'               => $event->id,
                 'title'            => $event->title,
@@ -95,6 +102,8 @@ Route::get('/event', function () {
                 'status'           => $event->status,
                 'max_participants'  => $event->max_participants,
                 'active_count'     => $activeCount,
+                'is_completed'     => $isCompleted,
+                'is_started'       => $isStarted,
                 'is_full'          => $event->max_participants !== null && $activeCount >= $event->max_participants,
                 'user_registration' => $userRegistration ? [
                     'id'     => $userRegistration->id,
@@ -116,6 +125,78 @@ Route::get('/event', function () {
         'isMahasiswa'     => $isMahasiswa,
     ]);
 })->name('event');
+
+Route::get('/event-feedback', function () {
+    $user           = auth()->user();
+    $isAuthenticated = (bool) $user;
+    $isMahasiswa    = $user && $user->role === 'mahasiswa';
+    $now            = \Carbon\Carbon::now();
+
+    // Ambil semua event yang sudah selesai:
+    // 1. Status 'completed' ATAU
+    // 2. Status 'published' & moderation 'approved' & datetime (date + end_time) sudah lewat
+    $completedEvents = \App\Models\Event::with(['company', 'company.perusahaanProfile'])
+        ->where('moderation_status', 'approved')
+        ->where(function ($q) use ($now) {
+            $q->where('status', 'completed')
+              ->orWhere(function ($q2) use ($now) {
+                  $q2->where('status', 'published')
+                     ->whereRaw("CONCAT(date, ' ', end_time) < ?", [$now->format('Y-m-d H:i:s')]);
+              });
+        })
+        ->latest()
+        ->get()
+        ->map(function ($event) use ($user, $isMahasiswa) {
+            $avgRating   = round($event->ratings()->avg('rating'), 2) ?: null;
+            $ratingCount = $event->ratings()->count();
+            $activeCount = $event->registrations()
+                ->whereIn('status', ['registered', 'attended'])
+                ->count();
+
+            $userRating = null;
+            if ($isMahasiswa && $user) {
+                $ur = $event->ratings()->where('user_id', $user->id)->first();
+                if ($ur) {
+                    $userRating = ['rating' => $ur->rating, 'comment' => $ur->comment];
+                }
+            }
+
+            // Hitung distribusi bintang
+            $ratingDistribution = [];
+            for ($i = 1; $i <= 5; $i++) {
+                $ratingDistribution[$i] = $event->ratings()->where('rating', $i)->count();
+            }
+
+            return [
+                'id'                  => $event->id,
+                'title'               => $event->title,
+                'category'            => $event->category,
+                'description'         => $event->description,
+                'date'                => $event->date,
+                'start_time'          => $event->start_time,
+                'end_time'            => $event->end_time,
+                'location'            => $event->location,
+                'type'                => $event->type,
+                'status'              => $event->status,
+                'max_participants'    => $event->max_participants,
+                'active_count'        => $activeCount,
+                'avg_rating'          => $avgRating,
+                'rating_count'        => $ratingCount,
+                'rating_distribution' => $ratingDistribution,
+                'user_rating'         => $userRating,
+                'company'             => $event->company ? [
+                    'id'   => $event->company->id,
+                    'name' => $event->company->name,
+                ] : null,
+            ];
+        });
+
+    return Inertia::render('Features/EventFeedback', [
+        'completedEvents' => $completedEvents,
+        'isAuthenticated' => $isAuthenticated,
+        'isMahasiswa'     => $isMahasiswa,
+    ]);
+})->name('event.feedback');
 
 Route::get('/event/{event}', function (\App\Models\Event $event) {
     $user = auth()->user();
@@ -157,8 +238,11 @@ Route::get('/event/{event}', function (\App\Models\Event $event) {
         }
     }
 
-    $isEventCompleted = $event->status === 'completed' ||
-        \Carbon\Carbon::parse($event->date)->startOfDay()->lt(\Carbon\Carbon::today());
+    $now = \Carbon\Carbon::now();
+    $eventStartDateTime = \Carbon\Carbon::parse($event->date->format('Y-m-d') . ' ' . $event->start_time);
+    $eventEndDateTime   = \Carbon\Carbon::parse($event->date->format('Y-m-d') . ' ' . $event->end_time);
+    $isEventCompleted   = $event->status === 'completed' || $now->gte($eventEndDateTime);
+    $isEventStarted     = !$isEventCompleted && $now->gte($eventStartDateTime);
 
     $eventData = [
         'id'               => $event->id,
@@ -174,6 +258,8 @@ Route::get('/event/{event}', function (\App\Models\Event $event) {
         'max_participants'  => $event->max_participants,
         'active_count'     => $activeCount,
         'is_full'          => $event->max_participants !== null && $activeCount >= $event->max_participants,
+        'is_completed'     => $isEventCompleted,
+        'is_started'       => $isEventStarted,
         'user_registration' => $userRegistration ? [
             'id'     => $userRegistration->id,
             'status' => $userRegistration->status,
@@ -182,7 +268,6 @@ Route::get('/event/{event}', function (\App\Models\Event $event) {
         'rating_count'      => $ratingCount,
         'ratings'           => $allRatings,
         'user_rating'       => $userRating,
-        'is_completed'      => $isEventCompleted,
         'company'          => $event->company ? [
             'id'   => $event->company->id,
             'name' => $event->company->name,
