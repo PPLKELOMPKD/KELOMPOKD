@@ -26,6 +26,11 @@ const user = computed(() => page.props.auth?.user ?? null);
 const showUserMenu = ref(false);
 const profilePhotoUrl = computed(() => user.value?.profile_photo_url ?? null);
 
+// Perusahaan pending admin verification
+const isCompanyPending = computed(() =>
+    user.value?.role === 'perusahaan' && user.value?.status !== 'active'
+);
+
 const toggleUserMenu = () => {
     showUserMenu.value = !showUserMenu.value;
 };
@@ -91,36 +96,43 @@ const navItems = computed(() => {
         user.value?.role === "perusahaan" ||
         user.value?.role === "admin"
     ) {
+        const pending = isCompanyPending.value;
         items.push(
             {
                 label: "Dashboard",
                 href: user.value?.role === "perusahaan" ? route("perusahaan.dashboard") : route("dashboard"),
                 active: user.value?.role === "perusahaan" ? route().current("perusahaan.dashboard") : route().current("dashboard"),
+                locked: false,
             },
             {
                 label: "Kelola Pelamar",
-                href: route("perusahaan.applicants.index"),
+                href: pending ? null : route("perusahaan.applicants.index"),
                 active: route().current("perusahaan.applicants.*"),
+                locked: pending,
             },
             {
                 label: "Lowongan",
-                href: route("perusahaan.internships.index"),
+                href: pending ? null : route("perusahaan.internships.index"),
                 active: route().current("perusahaan.internships.*"),
+                locked: pending,
             },
             {
                 label: "Event",
-                href: route("perusahaan.events.index"),
+                href: pending ? null : route("perusahaan.events.index"),
                 active: route().current("perusahaan.events.*"),
+                locked: pending,
             },
             {
                 label: "LMS",
-                href: route("perusahaan.lms.index"),
+                href: pending ? null : route("perusahaan.lms.index"),
                 active: route().current("perusahaan.lms.*"),
+                locked: pending,
             },
             {
                 label: "Laporan",
-                href: route("perusahaan.reports.index"),
+                href: pending ? null : route("perusahaan.reports.index"),
                 active: route().current("perusahaan.reports.*"),
+                locked: pending,
             },
         );
     } else {
@@ -178,21 +190,44 @@ const navItems = computed(() => {
                 </Link>
 
                 <nav
-                    class="hidden flex-1 items-center justify-end gap-8 pr-8 md:flex"
+                    class="hidden flex-1 items-center justify-end gap-6 pr-8 md:flex"
                 >
-                    <Link
-                        v-for="item in navItems"
-                        :key="item.label"
-                        :href="item.href"
-                        class="text-sm font-semibold transition-colors"
-                        :class="
-                            item.active
-                                ? 'text-[#2563EB]'
-                                : 'text-[#64748B] hover:text-[#2563EB]'
-                        "
+                    <!-- Pending verification banner in nav -->
+                    <span
+                        v-if="isCompanyPending"
+                        class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-xs font-bold text-amber-700"
                     >
-                        {{ item.label }}
-                    </Link>
+                        <span class="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                        Pending Verifikasi
+                    </span>
+
+                    <template v-for="item in navItems" :key="item.label">
+                        <!-- Locked nav item (pending company) -->
+                        <span
+                            v-if="item.locked"
+                            class="relative inline-flex items-center gap-1.5 text-sm font-semibold text-slate-300 cursor-not-allowed select-none"
+                            :title="item.label + ' — Tersedia setelah verifikasi admin'"
+                        >
+                            {{ item.label }}
+                            <svg class="h-3 w-3 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <rect x="5" y="11" width="14" height="10" rx="2"/>
+                                <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+                            </svg>
+                        </span>
+                        <!-- Normal nav item -->
+                        <Link
+                            v-else
+                            :href="item.href"
+                            class="text-sm font-semibold transition-colors"
+                            :class="
+                                item.active
+                                    ? 'text-[#2563EB]'
+                                    : 'text-[#64748B] hover:text-[#2563EB]'
+                            "
+                        >
+                            {{ item.label }}
+                        </Link>
+                    </template>
                 </nav>
 
                 <div class="relative">

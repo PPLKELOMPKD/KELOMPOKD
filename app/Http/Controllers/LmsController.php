@@ -14,6 +14,7 @@ class LmsController extends Controller
         $courses = LmsCourse::query()
             ->with(['company'])
             ->where('status', LmsCourse::STATUS_PUBLISHED)
+            ->where('moderation_status', 'approved')
             ->latest()
             ->get()
             ->map(function (LmsCourse $course) use ($request) {
@@ -53,12 +54,19 @@ class LmsController extends Controller
 
     public function show(Request $request, LmsCourse $course): Response
     {
-        abort_if($course->status !== LmsCourse::STATUS_PUBLISHED, 404);
+        abort_if($course->status !== LmsCourse::STATUS_PUBLISHED || $course->moderation_status !== 'approved', 404);
 
         $course->load([
             'company',
-            'chapters.lessons',
-            'chapters.assignments',
+            'chapters.lessons' => function ($query) {
+                $query->where('status', '!=', 'takedown');
+            },
+            'chapters.assignments' => function ($query) {
+                $query->where('status', '!=', 'takedown');
+            },
+            'chapters.quiz' => function ($query) {
+                $query->where('status', '!=', 'takedown');
+            },
             'chapters.quiz.questions.options'
         ]);
 

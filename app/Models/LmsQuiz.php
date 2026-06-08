@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class LmsQuiz extends Model
 {
-    protected $fillable = ['chapter_id', 'title', 'description', 'passing_score', 'time_limit', 'max_attempts'];
+    protected $fillable = ['chapter_id', 'title', 'description', 'passing_score', 'time_limit', 'max_attempts', 'status'];
 
     public function chapter(): BelongsTo { return $this->belongsTo(LmsChapter::class, 'chapter_id'); }
     public function questions(): HasMany { return $this->hasMany(LmsQuizQuestion::class, 'quiz_id')->orderBy('position'); }

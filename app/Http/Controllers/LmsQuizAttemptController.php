@@ -17,6 +17,8 @@ class LmsQuizAttemptController extends Controller
         $quiz->load('chapter.course');
         $course = $quiz->chapter->course;
 
+        abort_if($quiz->status === 'takedown' || $course->moderation_status !== 'approved', 404);
+
         $enrollment = $request->user()->lmsEnrollments()->where('course_id', $course->id)->first();
         abort_if(!$enrollment, 403);
 
@@ -36,6 +38,20 @@ class LmsQuizAttemptController extends Controller
             'answers' => $validated['answers'],
             'submitted_at' => now(),
         ]);
+
+        if ($result['passed']) {
+            \App\Services\ActivityLogger::log(
+                'Lulus Kuis',
+                "Mahasiswa {$request->user()->name} lulus kuis '{$quiz->title}' dengan skor {$result['score']} pada course '{$course->title}'",
+                'quiz'
+            );
+        } else {
+            \App\Services\ActivityLogger::log(
+                'Mengerjakan Kuis',
+                "Mahasiswa {$request->user()->name} mengerjakan kuis '{$quiz->title}' dengan skor {$result['score']} pada course '{$course->title}'",
+                'quiz'
+            );
+        }
 
         $progressService->refreshChapterCompletion($enrollment, $quiz->chapter);
 

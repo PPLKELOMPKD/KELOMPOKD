@@ -20,17 +20,15 @@ class EnsureUserHasRole
             abort(403);
         }
 
-        if ($request->user() && $request->user()->role !== 'admin' && in_array($request->user()->status, ['inactive', 'banned'])) {
-            $status = $request->user()->status;
+        // Hanya banned yang di-logout secara paksa.
+        // Perusahaan inactive (pending verifikasi admin) boleh masuk ke areanya sendiri,
+        // aksesnya dibatasi oleh middleware EnsureCompanyIsVerified di route-route tertentu.
+        if ($request->user() && $request->user()->status === 'banned') {
             Auth::guard('web')->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            $message = $status === 'banned' 
-                ? 'Akun Anda telah diblokir karena pelanggaran. Silakan hubungi administrator.'
-                : 'Akun Anda saat ini dinonaktifkan (pending verifikasi). Silakan hubungi administrator.';
-
-            return redirect('/login')->withErrors(['email' => $message]);
+            return redirect('/login')->withErrors(['email' => 'Akun Anda telah diblokir karena pelanggaran. Silakan hubungi administrator.']);
         }
 
         return $next($request);

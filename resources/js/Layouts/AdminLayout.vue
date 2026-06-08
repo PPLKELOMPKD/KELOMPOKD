@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 
-defineProps({ title: String });
+defineProps({ title: String, pendingActions: Object });
 
 const isSidebarOpen = ref(true);
 const logout = () => router.post(route('logout'));
@@ -54,8 +54,8 @@ const menuManajemen = [
     { name: 'Verifikasi Perusahaan', href: route('admin.verifications.index'), icon: 'building',  active: route().current('admin.verifications.*') },
     { name: 'Moderasi Lowongan',     href: route('admin.internships.index'), icon: 'briefcase', active: route().current('admin.internships.index') || route().current('admin.internships.show') },
     { name: 'Kalender Lowongan',     href: route('admin.internships.calendar'), icon: 'calendar', active: route().current('admin.internships.calendar') },
-    { name: 'Manajemen Event',       href: '#', icon: 'calendar',  active: false },
-    { name: 'Pantau LMS',            href: '#', icon: 'book',      active: false },
+    { name: 'Manajemen Event',       href: route('admin.events.index'), icon: 'event',  active: route().current('admin.events.*') },
+    { name: 'Pantau LMS',            href: route('admin.lms.index'), icon: 'book',      active: route().current('admin.lms.*') },
     { name: 'Data Lamaran',          href: route('admin.applications.index'), icon: 'inbox', active: route().current('admin.applications.*') },
 ];
 
@@ -139,6 +139,7 @@ const menuSistem = [
                                     <svg v-if="item.icon==='building'" class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 20h16"/><path d="M7 20V6l5-2 5 2v14"/><path d="M9 9h.01M9 12h.01M9 15h.01M12 9h.01M12 12h.01M12 15h.01M15 9h.01M15 12h.01M15 15h.01"/></svg>
                                     <svg v-if="item.icon==='briefcase'" class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
                                     <svg v-if="item.icon==='calendar'" class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                                    <svg v-if="item.icon==='event'" class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
                                     <svg v-if="item.icon==='book'" class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                                     <svg v-if="item.icon==='inbox'" class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
                                 </span>
