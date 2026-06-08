@@ -13,6 +13,8 @@ class LmsLessonCompletionController extends Controller
         $lesson->load('chapter.course');
         $course = $lesson->chapter->course;
 
+        abort_if($lesson->status === 'takedown' || $course->moderation_status !== 'approved', 404);
+
         $enrollment = $request->user()->lmsEnrollments()->where('course_id', $course->id)->first();
         abort_if(!$enrollment, 403);
 

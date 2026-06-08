@@ -17,6 +17,8 @@ class LmsQuizAttemptController extends Controller
         $quiz->load('chapter.course');
         $course = $quiz->chapter->course;
 
+        abort_if($quiz->status === 'takedown' || $course->moderation_status !== 'approved', 404);
+
         $enrollment = $request->user()->lmsEnrollments()->where('course_id', $course->id)->first();
         abort_if(!$enrollment, 403);
 

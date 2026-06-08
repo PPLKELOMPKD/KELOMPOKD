@@ -12,6 +12,8 @@ class LmsEnrollmentController extends Controller
     {
         abort_if($request->user()->role !== 'mahasiswa', 403);
 
+        abort_if($course->moderation_status !== 'approved', 404);
+
         LmsEnrollment::query()->firstOrCreate([
             'course_id' => $course->id,
             'student_id' => $request->user()->id,
