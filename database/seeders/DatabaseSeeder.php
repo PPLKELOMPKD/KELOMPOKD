@@ -21,6 +21,12 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(LmsCourseSeeder::class);
 
+        User::factory()->admin()->create([
+            'name' => 'Admin SIKARA',
+            'email' => 'admin@sikara.test',
+            'password' => '12345678',
+        ]);
+
         $student = User::factory()->mahasiswa()->create([
             'name' => 'Budi Santoso',
             'email' => 'mahasiswa@sikara.test',
@@ -143,5 +149,7 @@ class DatabaseSeeder extends Seeder
             'is_published' => true,
         ]);
 
+        $this->call(LmsMonitorSeeder::class);
+        $this->call(LmsActivityLogSeeder::class);
     }
 }

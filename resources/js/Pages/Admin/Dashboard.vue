@@ -114,15 +114,18 @@ const lineOptions = { ...barOptions };
                 <div class="flex flex-col justify-center px-4 py-2 bg-white/5 rounded-xl border border-white/10 relative overflow-hidden group cursor-default" title="Kapasitas Server">
                     <div class="absolute inset-0 bg-gradient-to-r from-teal-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div class="flex items-center gap-2 mb-1">
-                        <div class="h-2 w-2 rounded-full" :class="systemHealth.storage > 85 ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'"></div>
+                        <div class="h-2 w-2 rounded-full" :class="systemHealth.storage >= 90 ? 'bg-red-500 animate-pulse' : systemHealth.storage >= 75 ? 'bg-yellow-400 animate-pulse' : 'bg-emerald-500'"></div>
                         <span class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">System Health</span>
                     </div>
                     <div class="flex items-center gap-3">
                         <div class="w-20 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                            <div class="h-full bg-emerald-400 rounded-full" :style="`width: ${systemHealth.storage}%`"></div>
+                            <div class="h-full rounded-full transition-all duration-700"
+                                :class="systemHealth.storage >= 90 ? 'bg-red-500' : systemHealth.storage >= 75 ? 'bg-yellow-400' : 'bg-emerald-400'"
+                                :style="`width: ${systemHealth.storage}%`"></div>
                         </div>
                         <span class="text-xs font-bold text-white">{{ systemHealth.storage }}%</span>
                     </div>
+                    <p class="mt-1 text-[10px] font-semibold" :class="systemHealth.storage >= 90 ? 'text-red-400' : systemHealth.storage >= 75 ? 'text-yellow-400' : 'text-emerald-400'">{{ systemHealth.status }}</p>
                 </div>
                 <div class="flex flex-col justify-center items-end px-4 py-2 bg-white/5 rounded-xl border border-white/10">
                     <span class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Registrasi Hari Ini</span>
@@ -141,7 +144,7 @@ const lineOptions = { ...barOptions };
                 <h2 class="text-sm font-bold text-slate-900">Tindakan Cepat</h2>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Link href="#" class="group relative overflow-hidden rounded-2xl bg-white p-4 border border-slate-200 shadow-sm transition-all hover:shadow-md hover:border-blue-300 flex items-center gap-4 hover:-translate-y-0.5">
+                <Link :href="route('admin.users.index')" class="group relative overflow-hidden rounded-2xl bg-white p-4 border border-slate-200 shadow-sm transition-all hover:shadow-md hover:border-blue-300 flex items-center gap-4 hover:-translate-y-0.5">
                     <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-transform group-hover:scale-110">
                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     </div>
@@ -151,7 +154,7 @@ const lineOptions = { ...barOptions };
                     </div>
                 </Link>
                 
-                <Link href="#" class="group relative overflow-hidden rounded-2xl bg-white p-4 border border-slate-200 shadow-sm transition-all hover:shadow-md hover:border-emerald-300 flex items-center gap-4 hover:-translate-y-0.5">
+                <Link :href="route('admin.verifications.index')" class="group relative overflow-hidden rounded-2xl bg-white p-4 border border-slate-200 shadow-sm transition-all hover:shadow-md hover:border-emerald-300 flex items-center gap-4 hover:-translate-y-0.5">
                     <div v-if="pendingActions.perusahaan > 0" class="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white animate-pulse">{{ pendingActions.perusahaan }}</div>
                     <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 transition-transform group-hover:scale-110">
                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
@@ -173,14 +176,14 @@ const lineOptions = { ...barOptions };
                     </div>
                 </Link>
 
-                <Link href="#" class="group relative overflow-hidden rounded-2xl bg-white p-4 border border-slate-200 shadow-sm transition-all hover:shadow-md hover:border-teal-300 flex items-center gap-4 hover:-translate-y-0.5">
-                    <div v-if="pendingActions.lms > 0" class="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white animate-pulse">{{ pendingActions.lms }}</div>
-                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-600 transition-transform group-hover:scale-110">
-                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                <Link :href="route('admin.events.index')" class="group relative overflow-hidden rounded-2xl bg-white p-4 border border-slate-200 shadow-sm transition-all hover:shadow-md hover:border-orange-300 flex items-center gap-4 hover:-translate-y-0.5">
+                    <div v-if="pendingActions.events > 0" class="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white animate-pulse">{{ pendingActions.events }}</div>
+                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-orange-50 text-orange-600 transition-transform group-hover:scale-110">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
                     </div>
                     <div>
-                        <h4 class="text-sm font-bold text-slate-800 group-hover:text-teal-600 transition-colors">Pantau Modul LMS</h4>
-                        <p class="text-[10px] text-slate-500 mt-0.5">Monitoring aktivitas belajar</p>
+                        <h4 class="text-sm font-bold text-slate-800 group-hover:text-orange-600 transition-colors">Manajemen Event</h4>
+                        <p class="text-[10px] text-slate-500 mt-0.5">Setujui atau tolak event</p>
                     </div>
                 </Link>
             </div>

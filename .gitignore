@@ -26,3 +26,16 @@ graphify-out/
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Local agent/runtime files
+/AGENTS.md
+/CLAUDE.md
+/RTK.md
+/rtk
+/rtk.exe
+/.rtk
+
+# Test files
+/tests/
+/test_*.php
+/phpunit.xml

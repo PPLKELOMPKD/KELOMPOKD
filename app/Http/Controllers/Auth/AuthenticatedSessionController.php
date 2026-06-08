@@ -48,7 +48,33 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $user = $request->user();
+        $user = tap($request->user(), function ($user) {
+            $user->update(['last_login_at' => now()]);
+        });
+
+        // Cek status akun
+        // Perusahaan dengan status inactive diperbolehkan login, namun hanya bisa
+        // melihat halaman pending verifikasi admin. Status banned tetap diblokir.
+        if ($user->status === 'banned') {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'email' => 'Akun Anda telah diblokir karena pelanggaran. Silakan hubungi administrator.',
+            ]);
+        }
+
+        // Non-perusahaan dengan status inactive tetap diblokir di login
+        if ($user->status === 'inactive' && !$user->isPerusahaan()) {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'email' => 'Akun Anda saat ini dinonaktifkan. Silakan hubungi administrator.',
+            ]);
+        }
 
         // Log the login activity
         ActivityLogger::log(
@@ -56,6 +82,10 @@ class AuthenticatedSessionController extends Controller
             "Pengguna {$user->name} berhasil login ke sistem",
             'auth',
         );
+
+        if (! $user->hasVerifiedEmail()) {
+            return redirect()->intended(route('verification.notice', absolute: false));
+        }
 
         if ($user->isMahasiswa()) {
             return redirect()->intended(route('peserta', absolute: false));

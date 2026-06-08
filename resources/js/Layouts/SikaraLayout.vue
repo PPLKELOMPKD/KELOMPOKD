@@ -11,12 +11,25 @@ defineProps({
         type: String,
         default: "",
     },
+    showHeader: {
+        type: Boolean,
+        default: true,
+    },
+    contentClass: {
+        type: String,
+        default: "mx-auto max-w-7xl px-4 py-6 md:px-8 md:py-8",
+    },
 });
 
 const page = usePage();
 const user = computed(() => page.props.auth?.user ?? null);
 const showUserMenu = ref(false);
 const profilePhotoUrl = computed(() => user.value?.profile_photo_url ?? null);
+
+// Perusahaan pending admin verification
+const isCompanyPending = computed(() =>
+    user.value?.role === 'perusahaan' && user.value?.status !== 'active'
+);
 
 const toggleUserMenu = () => {
     showUserMenu.value = !showUserMenu.value;
@@ -36,6 +49,18 @@ const homeRoute = computed(() => {
     return route('peserta');
 });
 
+const profileRoute = computed(() => {
+    if (user.value?.role === 'perusahaan') return route('perusahaan.profile.show');
+    if (user.value?.role === 'admin') return route('dashboard');
+    return route('profile.show');
+});
+
+const profileLabel = computed(() => {
+    if (user.value?.role === 'perusahaan') return 'Profil Perusahaan';
+    if (user.value?.role === 'admin') return 'Dashboard Admin';
+    return 'Profil Saya';
+});
+
 const navItems = computed(() => {
     const items = [];
 
@@ -43,52 +68,71 @@ const navItems = computed(() => {
         items.push(
             {
                 label: "Cari Lowongan",
-                href: "/lowongan",
+                href: route("lowongan"),
                 active: route().current("lowongan"),
             },
-            { label: "List Perusahaan", href: "/perusahaan-list", active: false },
+            {
+                label: "List Perusahaan",
+                href: route("perusahaan-list"),
+                active: route().current("perusahaan-list"),
+            },
             {
                 label: "LMS",
                 href: route("lms"),
                 active: route().current("lms"),
             },
-            { label: "Event", href: "/event", active: route().current("/event") },
-            { label: "Buat CV", href: "#", active: false },
+            {
+                label: "Event",
+                href: route("event"),
+                active: route().current("event"),
+            },
+            {
+                label: "Buat CV",
+                href: route("generate-cv"),
+                active: route().current("generate-cv"),
+            },
         );
     } else if (
         user.value?.role === "perusahaan" ||
         user.value?.role === "admin"
     ) {
+        const pending = isCompanyPending.value;
         items.push(
             {
                 label: "Dashboard",
                 href: user.value?.role === "perusahaan" ? route("perusahaan.dashboard") : route("dashboard"),
                 active: user.value?.role === "perusahaan" ? route().current("perusahaan.dashboard") : route().current("dashboard"),
+                locked: false,
             },
             {
                 label: "Kelola Pelamar",
-                href: route("perusahaan.applicants.index"),
+                href: pending ? null : route("perusahaan.applicants.index"),
                 active: route().current("perusahaan.applicants.*"),
+                locked: pending,
             },
             {
                 label: "Lowongan",
-                href: route("perusahaan.internships.index"),
+                href: pending ? null : route("perusahaan.internships.index"),
                 active: route().current("perusahaan.internships.*"),
+                locked: pending,
             },
             {
                 label: "Event",
-                href: route("perusahaan.events.index"),
+                href: pending ? null : route("perusahaan.events.index"),
                 active: route().current("perusahaan.events.*"),
+                locked: pending,
             },
             {
                 label: "LMS",
-                href: route("perusahaan.lms.index"),
+                href: pending ? null : route("perusahaan.lms.index"),
                 active: route().current("perusahaan.lms.*"),
+                locked: pending,
             },
             {
                 label: "Laporan",
-                href: route("perusahaan.reports.index"),
+                href: pending ? null : route("perusahaan.reports.index"),
                 active: route().current("perusahaan.reports.*"),
+                locked: pending,
             },
         );
     } else {
@@ -146,21 +190,44 @@ const navItems = computed(() => {
                 </Link>
 
                 <nav
-                    class="hidden flex-1 items-center justify-end gap-8 pr-8 md:flex"
+                    class="hidden flex-1 items-center justify-end gap-6 pr-8 md:flex"
                 >
-                    <Link
-                        v-for="item in navItems"
-                        :key="item.label"
-                        :href="item.href"
-                        class="text-sm font-semibold transition-colors"
-                        :class="
-                            item.active
-                                ? 'text-[#2563EB]'
-                                : 'text-[#64748B] hover:text-[#2563EB]'
-                        "
+                    <!-- Pending verification banner in nav -->
+                    <span
+                        v-if="isCompanyPending"
+                        class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-xs font-bold text-amber-700"
                     >
-                        {{ item.label }}
-                    </Link>
+                        <span class="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                        Pending Verifikasi
+                    </span>
+
+                    <template v-for="item in navItems" :key="item.label">
+                        <!-- Locked nav item (pending company) -->
+                        <span
+                            v-if="item.locked"
+                            class="relative inline-flex items-center gap-1.5 text-sm font-semibold text-slate-300 cursor-not-allowed select-none"
+                            :title="item.label + ' — Tersedia setelah verifikasi admin'"
+                        >
+                            {{ item.label }}
+                            <svg class="h-3 w-3 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <rect x="5" y="11" width="14" height="10" rx="2"/>
+                                <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+                            </svg>
+                        </span>
+                        <!-- Normal nav item -->
+                        <Link
+                            v-else
+                            :href="item.href"
+                            class="text-sm font-semibold transition-colors"
+                            :class="
+                                item.active
+                                    ? 'text-[#2563EB]'
+                                    : 'text-[#64748B] hover:text-[#2563EB]'
+                            "
+                        >
+                            {{ item.label }}
+                        </Link>
+                    </template>
                 </nav>
 
                 <div class="relative">
@@ -222,7 +289,7 @@ const navItems = computed(() => {
                             </div>
 
                             <Link
-                                :href="route('profile.show')"
+                                :href="profileRoute"
                                 class="flex items-center gap-3 px-4 py-2.5 text-sm text-[#344054] transition-colors hover:bg-[#F8FAFC]"
                             >
                                 <svg
@@ -235,7 +302,7 @@ const navItems = computed(() => {
                                     <circle cx="12" cy="8" r="4" />
                                     <path d="M4 20a8 8 0 0 1 16 0" />
                                 </svg>
-                                Profil Saya
+                                {{ profileLabel }}
                             </Link>
 
                             <!-- Menu Mahasiswa -->
@@ -307,7 +374,7 @@ const navItems = computed(() => {
                                 "
                             >
                                 <Link
-                                    href="#"
+                                    :href="user?.role === 'perusahaan' ? route('perusahaan.profile.show') : route('admin.settings.index')"
                                     class="flex items-center gap-3 px-4 py-2.5 text-sm text-[#344054] transition-colors hover:bg-[#F8FAFC]"
                                 >
                                     <svg
@@ -325,6 +392,25 @@ const navItems = computed(() => {
                                         />
                                     </svg>
                                     Pengaturan
+                                </Link>
+                                <Link
+                                    v-if="user?.role === 'perusahaan'"
+                                    :href="route('notifications.index')"
+                                    class="flex items-center gap-3 px-4 py-2.5 text-sm text-[#344054] transition-colors hover:bg-[#F8FAFC]"
+                                >
+                                    <svg
+                                        class="h-4 w-4 text-[#94A3B8]"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                    >
+                                        <path
+                                            d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"
+                                        />
+                                        <path d="M10 21h4" />
+                                    </svg>
+                                    Notifikasi
                                 </Link>
                                 <Link
                                     v-if="user?.role === 'perusahaan'"
@@ -378,8 +464,9 @@ const navItems = computed(() => {
             </div>
         </header>
 
-        <main class="mx-auto max-w-7xl px-4 py-6 md:px-8 md:py-8">
+        <main :class="contentClass">
             <header
+                v-if="showHeader"
                 class="mb-6 flex flex-col gap-4 rounded-[20px] border border-slate-200 bg-white px-6 py-5 shadow-[0_16px_40px_rgba(15,23,42,0.04)] sm:flex-row sm:items-center sm:justify-between"
             >
                 <div>

@@ -122,7 +122,12 @@ class DashboardController extends Controller
             ];
 
             // ── Recent applicants (5 latest) ─────────────────────────────────
-            $recentApplicants = (clone $applicationsQuery)
+            $recentAppsQuery = clone $applicationsQuery;
+            if (request()->filled('status') && request('status') !== 'all') {
+                $recentAppsQuery->where('status', strtolower(request('status')));
+            }
+
+            $recentApplicants = $recentAppsQuery
                 ->with(['user.mahasiswaProfile', 'internship'])
                 ->latest()
                 ->limit(5)
@@ -177,10 +182,54 @@ class DashboardController extends Controller
                     'status'       => ucfirst($event->status),
                 ]);
 
+            // ── Notifications (terbaru 3-5) ──────────────────────────────────
+            $companyNotifications = \App\Models\Notification::where('user_id', $user->id)
+                ->latest()
+                ->limit(4)
+                ->get()
+                ->map(fn ($notif) => [
+                    'id'      => $notif->id,
+                    'title'   => $notif->title,
+                    'message' => $notif->message,
+                    'type'    => $notif->type,
+                    'read_at' => $notif->read_at,
+                    'time'    => $notif->created_at->diffForHumans(),
+                    'link'    => $notif->link,
+                ]);
+
+            $unreadCount = \App\Models\Notification::where('user_id', $user->id)
+                ->whereNull('read_at')
+                ->count();
+
+            // ── Trend status counts (last 6 months) ─────────────────────────
+            $trendData = [];
+            $trendLabels = [];
+            for ($i = 5; $i >= 0; $i--) {
+                $date = now()->subMonths($i);
+                $monthName = $date->translatedFormat('M');
+                $count = (clone $applicationsQuery)
+                    ->whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->count();
+                $trendData[] = $count;
+                $trendLabels[] = substr($monthName, 0, 3);
+            }
+            
+            $maxTrend = max($trendData) ?: 1;
+            $trendPercentages = array_map(fn($v) => round(($v / $maxTrend) * 100), $trendData);
+            
+            $recruitmentTrend = [
+                'labels' => $trendLabels,
+                'data' => $trendPercentages,
+                'raw_data' => $trendData,
+            ];
+
             return Inertia::render('Dashboard', [
                 'title'    => 'Dashboard Perusahaan',
                 'subtitle' => 'Ringkasan performa rekrutmen dan manajemen event Anda.',
                 'role'     => 'perusahaan',
+                'companyStatus'          => $user->status,
+                'isPendingVerification'  => $user->status === 'inactive',
                 'stats'    => [
                     ['label' => 'LOWONGAN AKTIF',    'value' => (string) $activeInternships,  'icon' => 'briefcase',  'color' => 'blue'],
                     ['label' => 'TOTAL PELAMAR',     'value' => (string) $totalApplicants,    'trend' => 'dari semua lowongan', 'trendUp' => true, 'icon' => 'users', 'color' => 'green'],
@@ -190,14 +239,19 @@ class DashboardController extends Controller
                     ['label' => 'PESERTA EVENT',      'value' => (string) $totalEventParticipants, 'icon' => 'ticket', 'color' => 'orange'],
                 ],
                 'pipeline'         => $pipeline,
+                'recruitmentTrend' => $recruitmentTrend,
                 'recentApplicants' => $recentApplicants,
                 'upcomingEvents'   => $upcomingEvents,
-                'notifications'    => [],
+                'notifications'    => $companyNotifications,
+                'unreadCount'      => $unreadCount,
                 'profileSummary'   => [
                     'name'   => $user->name,
                     'email'  => $user->email,
-                    'status' => 'Terverifikasi (Mitra Resmi)',
-                    'bio'    => 'Portal manajemen rekrutmen B2B SIKARA.',
+                    'status' => $user->status === 'active' ? 'Terverifikasi (Mitra Resmi)' : ($user->status === 'inactive' ? 'Pending Verifikasi' : 'Akun Diblokir'),
+                    'bio'    => $user->perusahaanProfile?->description ?? 'Portal manajemen rekrutmen B2B SIKARA.',
+                ],
+                'filters' => [
+                    'status' => request('status', 'all')
                 ],
                 'stubMessage' => null,
             ]);

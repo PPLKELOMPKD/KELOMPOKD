@@ -17,6 +17,7 @@ class CompanyLmsContentController extends Controller
     public function builder(Request $request, LmsCourse $course)
     {
         abort_if($course->company_id !== $request->user()->id, 403);
+        abort_if($course->moderation_status === 'takedown', 403, 'Modul ini telah dinonaktifkan (takedown) oleh Admin.');
 
         $course->load('chapters.lessons', 'chapters.assignments', 'chapters.quiz.questions.options');
 
@@ -35,7 +36,13 @@ class CompanyLmsContentController extends Controller
         ]);
 
         $position = $course->chapters()->max('position') + 1;
-        $course->chapters()->create(array_merge($validated, ['position' => $position]));
+        $chapter = $course->chapters()->create(array_merge($validated, ['position' => $position]));
+
+        \App\Services\ActivityLogger::log(
+            'Mengubah Materi',
+            "Perusahaan {$request->user()->name} menambahkan bab baru '{$chapter->title}' pada course '{$course->title}'",
+            'course'
+        );
 
         return back();
     }
@@ -53,7 +60,13 @@ class CompanyLmsContentController extends Controller
         ]);
 
         $position = $chapter->lessons()->max('position') + 1;
-        $chapter->lessons()->create(array_merge($validated, ['position' => $position]));
+        $lesson = $chapter->lessons()->create(array_merge($validated, ['position' => $position]));
+
+        \App\Services\ActivityLogger::log(
+            'Mengubah Materi',
+            "Perusahaan {$request->user()->name} menambahkan lesson baru '{$lesson->title}' pada bab '{$chapter->title}'",
+            'lesson'
+        );
 
         return back();
     }
@@ -75,6 +88,12 @@ class CompanyLmsContentController extends Controller
         } else {
             $chapter->quiz()->create($validated);
         }
+
+        \App\Services\ActivityLogger::log(
+            'Membuat Kuis',
+            "Perusahaan {$request->user()->name} mengonfigurasi kuis pada chapter '{$chapter->title}'",
+            'quiz'
+        );
 
         return back();
     }
@@ -119,6 +138,12 @@ class CompanyLmsContentController extends Controller
 
         $chapter->update($validated);
 
+        \App\Services\ActivityLogger::log(
+            'Mengubah Materi',
+            "Perusahaan {$request->user()->name} memperbarui bab '{$chapter->title}'",
+            'course'
+        );
+
         return back();
     }
 
@@ -143,6 +168,12 @@ class CompanyLmsContentController extends Controller
 
         $lesson->update($validated);
 
+        \App\Services\ActivityLogger::log(
+            'Mengubah Materi',
+            "Perusahaan {$request->user()->name} memperbarui lesson '{$lesson->title}'",
+            'lesson'
+        );
+
         return back();
     }
 
@@ -166,6 +197,12 @@ class CompanyLmsContentController extends Controller
         ]);
 
         $quiz->update($validated);
+
+        \App\Services\ActivityLogger::log(
+            'Membuat Kuis',
+            "Perusahaan {$request->user()->name} memperbarui kuis '{$quiz->title}'",
+            'quiz'
+        );
 
         return back();
     }
@@ -242,7 +279,13 @@ class CompanyLmsContentController extends Controller
             $data['file_url'] = '/storage/' . $request->file('file')->store('lms/assignments', 'public');
         }
 
-        $chapter->assignments()->create($data);
+        $assignment = $chapter->assignments()->create($data);
+
+        \App\Services\ActivityLogger::log(
+            'Mengubah Materi',
+            "Perusahaan {$request->user()->name} menambahkan tugas baru '{$assignment->title}' pada bab '{$chapter->title}'",
+            'assignment'
+        );
 
         return back()->with('success', 'Tugas berhasil ditambahkan.');
     }
@@ -271,6 +314,12 @@ class CompanyLmsContentController extends Controller
         }
 
         $assignment->update($data);
+
+        \App\Services\ActivityLogger::log(
+            'Mengubah Materi',
+            "Perusahaan {$request->user()->name} memperbarui tugas '{$assignment->title}'",
+            'assignment'
+        );
 
         return back()->with('success', 'Tugas berhasil diperbarui.');
     }

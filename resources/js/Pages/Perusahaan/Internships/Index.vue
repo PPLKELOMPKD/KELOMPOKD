@@ -38,6 +38,11 @@ const closeRejectionModal = () => {
     showRejectionModal.value = false;
     selectedRejectedInternship.value = null;
 };
+
+// Apakah status adalah takedown (closed)?
+const isClosed = (internship) => internship?.moderation_status === 'closed';
+const isCompanyClosed = (internship) => internship?.moderation_status === 'approved' && !internship?.is_published;
+const isRejected = (internship) => internship?.moderation_status === 'rejected';
 </script>
 
 <template>
@@ -87,31 +92,68 @@ const closeRejectionModal = () => {
                             <td class="whitespace-nowrap px-3 py-4 text-sm text-[#475467]">{{ formatDate(internship.deadline_at) }}</td>
                             <td class="whitespace-nowrap px-3 py-4 text-sm text-[#475467] text-center font-medium">{{ internship.quota }}</td>
                             <td class="whitespace-nowrap px-3 py-4 text-sm text-center">
+                                <!-- Pending -->
                                 <span v-if="internship.moderation_status === 'pending'" class="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">Menunggu Review</span>
+                                <!-- Approved / Aktif -->
                                 <span v-else-if="internship.moderation_status === 'approved' && internship.is_published" class="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Aktif</span>
+                                <!-- Rejected — bisa diedit & resubmit -->
                                 <span v-else-if="internship.moderation_status === 'rejected'" class="inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
                                     <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>
                                     Ditolak
                                 </span>
-                                <span v-else class="inline-flex items-center rounded-full bg-gray-50 px-2.5 py-0.5 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">Ditutup</span>
+                                <!-- Closed / Ditutup (takedown) — tidak bisa edit -->
+                                <span v-else-if="internship.moderation_status === 'closed'" class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/20">
+                                    Ditutup
+                                </span>
+                                <span v-else class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/20">Ditutup</span>
                             </td>
                             <td class="relative whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm font-medium">
                                 <div class="flex justify-end gap-3">
-                                    <!-- Tombol Info Alasan Penolakan -->
-                                    <button
-                                        v-if="internship.moderation_status === 'rejected' && internship.rejection_reason"
-                                        @click="openRejectionModal(internship)"
-                                        title="Lihat alasan penolakan dari admin"
-                                        class="rounded-lg text-amber-600 hover:text-amber-800 p-1 hover:bg-amber-50 transition-colors"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                                    </button>
-                                    <Link :href="route('perusahaan.internships.edit', internship.id)" class="rounded-lg text-[#2563EB] hover:text-blue-900 p-1 hover:bg-blue-50 transition-colors">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
-                                    </Link>
-                                    <button @click="deleteInternship(internship.id)" class="rounded-lg text-red-600 hover:text-red-900 p-1 hover:bg-red-50 transition-colors">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                                    </button>
+
+                                    <!-- ❶ CLOSED (takedown admin ATAU ditutup mandiri perusahaan): hanya tombol info alasan -->
+                                    <template v-if="isClosed(internship) || isCompanyClosed(internship)">
+                                        <button
+                                            @click="openRejectionModal(internship)"
+                                            :title="isClosed(internship) ? 'Lihat alasan pencabutan dari admin' : 'Lihat info penutupan'"
+                                            class="rounded-lg text-slate-500 hover:text-slate-800 p-1 hover:bg-slate-100 transition-colors"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                        </button>
+                                        <!-- Tidak ada tombol edit/hapus untuk lowongan yang sudah ditutup -->
+                                    </template>
+
+                                    <!-- ❷ REJECTED: info alasan + tombol edit (resubmit) + hapus -->
+                                    <template v-else-if="isRejected(internship)">
+                                        <button
+                                            v-if="internship.rejection_reason"
+                                            @click="openRejectionModal(internship)"
+                                            title="Lihat alasan penolakan dari admin"
+                                            class="rounded-lg text-amber-600 hover:text-amber-800 p-1 hover:bg-amber-50 transition-colors"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                        </button>
+                                        <Link
+                                            :href="route('perusahaan.internships.edit', internship.id)"
+                                            title="Edit & Ajukan Ulang"
+                                            class="rounded-lg text-[#2563EB] hover:text-blue-900 p-1 hover:bg-blue-50 transition-colors"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                                        </Link>
+                                        <button @click="deleteInternship(internship.id)" title="Hapus lowongan" class="rounded-lg text-red-600 hover:text-red-900 p-1 hover:bg-red-50 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                        </button>
+                                    </template>
+
+                                    <!-- ❸ Lainnya (pending / approved): tombol normal -->
+                                    <template v-else>
+                                        <Link :href="route('perusahaan.internships.edit', internship.id)" class="rounded-lg text-[#2563EB] hover:text-blue-900 p-1 hover:bg-blue-50 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                                        </Link>
+                                        <button @click="deleteInternship(internship.id)" class="rounded-lg text-red-600 hover:text-red-900 p-1 hover:bg-red-50 transition-colors">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                        </button>
+                                    </template>
+
                                 </div>
                             </td>
                         </tr>
@@ -164,7 +206,11 @@ const closeRejectionModal = () => {
                                         </svg>
                                     </div>
                                     <div>
-                                        <h3 class="text-sm font-black text-slate-900">Alasan Penolakan / Takedown</h3>
+                                        <h3 class="text-sm font-black text-slate-900">
+                                            <template v-if="isClosed(selectedRejectedInternship)">Alasan Pencabutan (Takedown)</template>
+                                            <template v-else-if="isCompanyClosed(selectedRejectedInternship)">Info Penutupan Lowongan</template>
+                                            <template v-else>Alasan Penolakan</template>
+                                        </h3>
                                         <p class="text-[11px] text-slate-500 mt-0.5 truncate max-w-[260px]">{{ selectedRejectedInternship?.title }}</p>
                                     </div>
                                 </div>
@@ -175,16 +221,27 @@ const closeRejectionModal = () => {
 
                             <!-- Body -->
                             <div class="px-6 py-5">
-                                <!-- Info Box -->
-                                <div class="mb-4 flex items-start gap-3 rounded-xl p-3.5 bg-red-50 border border-red-200">
-                                    <svg class="h-4 w-4 mt-0.5 shrink-0 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                <!-- Info Box — beda warna untuk closed vs rejected -->
+                                <div
+                                    class="mb-4 flex items-start gap-3 rounded-xl p-3.5 border"
+                                    :class="(isClosed(selectedRejectedInternship) || isCompanyClosed(selectedRejectedInternship)) ? 'bg-slate-50 border-slate-200' : 'bg-red-50 border-red-200'"
+                                >
+                                    <svg class="h-4 w-4 mt-0.5 shrink-0" :class="(isClosed(selectedRejectedInternship) || isCompanyClosed(selectedRejectedInternship)) ? 'text-slate-500' : 'text-red-500'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                                     <p class="text-xs text-slate-700 leading-relaxed">
-                                        Lowongan Anda telah <strong>ditolak atau dicabut</strong> oleh admin. Berikut adalah alasan yang diberikan. Silakan perbaiki lowongan dan ajukan kembali.
+                                        <span v-if="isClosed(selectedRejectedInternship)">
+                                            Lowongan Anda telah <strong>dicabut (takedown)</strong> oleh admin. Lowongan ini <strong>tidak dapat diedit</strong>. Jika ingin mengajukan kembali, silakan buat lowongan baru.
+                                        </span>
+                                        <span v-else-if="isCompanyClosed(selectedRejectedInternship)">
+                                            Lowongan ini telah <strong>ditutup secara mandiri</strong>. Lowongan yang sudah ditutup tidak dapat diubah atau dihapus sepenuhnya guna mempertahankan riwayat pelamaran mahasiswa yang sudah masuk.
+                                        </span>
+                                        <span v-else>
+                                            Lowongan Anda telah <strong>ditolak</strong> oleh admin. Silakan perbaiki dan ajukan ulang dengan menekan tombol Edit.
+                                        </span>
                                     </p>
                                 </div>
 
                                 <!-- Rejection Reason -->
-                                <div class="rounded-xl bg-slate-50 border border-slate-200 px-4 py-4">
+                                <div v-if="selectedRejectedInternship?.rejection_reason" class="rounded-xl bg-slate-50 border border-slate-200 px-4 py-4">
                                     <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Catatan dari Admin</p>
                                     <p class="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap">{{ selectedRejectedInternship?.rejection_reason }}</p>
                                 </div>
@@ -203,6 +260,15 @@ const closeRejectionModal = () => {
                                 >
                                     Tutup
                                 </button>
+                                <!-- Tombol Edit hanya untuk rejected, bukan closed -->
+                                <Link
+                                    v-if="isRejected(selectedRejectedInternship)"
+                                    :href="route('perusahaan.internships.edit', selectedRejectedInternship?.id)"
+                                    class="rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 transition"
+                                    @click="closeRejectionModal"
+                                >
+                                    Edit & Ajukan Ulang
+                                </Link>
                             </div>
                         </div>
                     </Transition>

@@ -40,7 +40,17 @@ class LmsProgressService
 
     public function refreshChapterCompletion(LmsEnrollment $enrollment, LmsChapter $chapter): bool
     {
-        $chapter->loadMissing(['lessons', 'quiz', 'assignments']);
+        $chapter->load([
+            'lessons' => function ($query) {
+                $query->where('status', '!=', 'takedown');
+            },
+            'quiz' => function ($query) {
+                $query->where('status', '!=', 'takedown');
+            },
+            'assignments' => function ($query) {
+                $query->where('status', '!=', 'takedown');
+            }
+        ]);
 
         $allLessonsCompleted = true;
         foreach ($chapter->lessons as $lesson) {
@@ -82,25 +92,43 @@ class LmsProgressService
 
     public function courseProgress(LmsEnrollment $enrollment): int
     {
-        $enrollment->loadMissing('course.chapters.lessons', 'course.chapters.quiz', 'course.chapters.assignments');
+        $enrollment->load([
+            'course.chapters.lessons' => function ($query) {
+                $query->where('status', '!=', 'takedown');
+            },
+            'course.chapters.quiz' => function ($query) {
+                $query->where('status', '!=', 'takedown');
+            },
+            'course.chapters.assignments' => function ($query) {
+                $query->where('status', '!=', 'takedown');
+            }
+        ]);
         
-        $totalItems = 0;
+        $lessonIds = [];
+        $assignmentIds = [];
+        $quizIds = [];
         
         foreach ($enrollment->course->chapters as $chapter) {
-            $totalItems += $chapter->lessons->count();
-            $totalItems += $chapter->assignments->count();
+            foreach ($chapter->lessons as $lesson) {
+                $lessonIds[] = $lesson->id;
+            }
+            foreach ($chapter->assignments as $assignment) {
+                $assignmentIds[] = $assignment->id;
+            }
             if ($chapter->quiz) {
-                $totalItems += 1;
+                $quizIds[] = $chapter->quiz->id;
             }
         }
+        
+        $totalItems = count($lessonIds) + count($assignmentIds) + count($quizIds);
 
         if ($totalItems === 0) {
             return 0;
         }
 
-        $completedLessons = $enrollment->lessonCompletions()->count();
-        $submittedAssignments = $enrollment->assignmentSubmissions()->count();
-        $passedQuizzes = $enrollment->quizAttempts()->where('passed', true)->distinct('quiz_id')->count();
+        $completedLessons = $enrollment->lessonCompletions()->whereIn('lesson_id', $lessonIds)->count();
+        $submittedAssignments = $enrollment->assignmentSubmissions()->whereIn('assignment_id', $assignmentIds)->count();
+        $passedQuizzes = $enrollment->quizAttempts()->where('passed', true)->whereIn('quiz_id', $quizIds)->distinct('quiz_id')->count();
         
         $completedItems = $completedLessons + $submittedAssignments + $passedQuizzes;
 
@@ -109,7 +137,16 @@ class LmsProgressService
 
     public function calculateFinalGrade(LmsEnrollment $enrollment): int
     {
-        $enrollment->loadMissing(['course.chapters.quiz', 'course.chapters.assignments', 'assignmentSubmissions', 'quizAttempts']);
+        $enrollment->load([
+            'course.chapters.quiz' => function ($query) {
+                $query->where('status', '!=', 'takedown');
+            },
+            'course.chapters.assignments' => function ($query) {
+                $query->where('status', '!=', 'takedown');
+            },
+            'assignmentSubmissions',
+            'quizAttempts'
+        ]);
         
         $scores = [];
 
