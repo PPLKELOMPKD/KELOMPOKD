@@ -252,7 +252,7 @@ const daysLeft = (d) => {
                         Rekomendasi Teratas Untukmu
                     </h2>
                     
-                    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <div dusk="recommendation-grid" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         <div v-for="internship in filteredRecommendations" :key="'rec-'+internship.id"
                             class="group relative flex flex-col justify-between rounded-2xl border border-[#E2E8F0] bg-white p-0 overflow-hidden transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10 "
                         >
