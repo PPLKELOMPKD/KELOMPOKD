@@ -46,7 +46,7 @@ const getTypeColor = (type) => typeColors[type] || typeColors['Magang'];
 
 // Filtered + sorted internships
 const filteredInternships = computed(() => {
-    let result = [...props.internships];
+    let result = [...props.internships].filter(i => i.is_published == true && !i.is_expired);
 
     // Tab filter
     if (activeTab.value === 'Lowongan Magang') {
@@ -107,7 +107,7 @@ const filteredInternships = computed(() => {
 });
 
 const filteredRecommendations = computed(() => {
-    let result = [...props.recommendedInternships];
+    let result = [...props.recommendedInternships].filter(i => i.is_published == true && !i.is_expired);
 
     // Jika ada variabel activeTab di kodingan Anda, ikut sertakan juga filter tab-nya
     if (typeof activeTab !== 'undefined') {
