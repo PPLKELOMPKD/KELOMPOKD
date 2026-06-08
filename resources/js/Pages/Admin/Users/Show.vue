@@ -41,7 +41,10 @@ const statusCfg  = {
                 <!-- User Basic Info -->
                 <div class="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden group relative">
                     <!-- Cover/Header area -->
-                    <div class="h-32 relative w-full" :class="user.role === 'mahasiswa' ? 'bg-gradient-to-r from-blue-600 to-indigo-500' : 'bg-gradient-to-r from-emerald-600 to-teal-500'">
+                    <div class="h-32 relative w-full overflow-hidden" 
+                        :class="user.role === 'mahasiswa' ? 'bg-gradient-to-r from-blue-600 to-indigo-500' : 'bg-gradient-to-r from-emerald-600 to-teal-500'"
+                        :style="profile?.cover_path ? `background-image: url('/storage/${profile.cover_path}'); background-size: cover; background-position: center;` : ''"
+                    >
                         <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     </div>
                     
@@ -126,10 +129,16 @@ const statusCfg  = {
 
                 <!-- Info Perusahaan -->
                 <div v-else-if="user.role === 'perusahaan'" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <h3 class="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
-                        <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16"/><path d="M7 20V6l5-2 5 2v14"/><path d="M9 9h.01M9 12h.01M9 15h.01M12 9h.01M12 12h.01M12 15h.01M15 9h.01M15 12h.01M15 15h.01"/></svg>
-                        Identitas Perusahaan
-                    </h3>
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                            <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16"/><path d="M7 20V6l5-2 5 2v14"/><path d="M9 9h.01M9 12h.01M9 15h.01M12 9h.01M12 12h.01M12 15h.01M15 9h.01M15 12h.01M15 15h.01"/></svg>
+                            Identitas Perusahaan
+                        </h3>
+                        <Link :href="route('admin.verifications.show', user.id)" class="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-600 hover:bg-blue-100 transition-colors ring-1 ring-blue-200">
+                            <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                            Lihat Verifikasi
+                        </Link>
+                    </div>
                     
                     <div class="space-y-4 text-sm" v-if="profile">
                         <div>
@@ -157,6 +166,33 @@ const statusCfg  = {
                         <div class="pt-4 border-t border-slate-100">
                             <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Kantor Pusat</p>
                             <p class="font-medium text-slate-800 flex items-start gap-2"><svg class="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> <span class="flex-1">{{ profile.office_address || profile.location || '-' }}</span></p>
+                        </div>
+                        <!-- Vision & Mission -->
+                        <div v-if="profile.vision" class="pt-3 border-t border-slate-100">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Visi</p>
+                            <p class="text-sm text-slate-700 leading-relaxed">{{ profile.vision }}</p>
+                        </div>
+                        <div v-if="profile.mission">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Misi</p>
+                            <p class="text-sm text-slate-700 leading-relaxed">{{ profile.mission }}</p>
+                        </div>
+                        <!-- Specializations -->
+                        <div v-if="profile.specializations?.length" class="pt-3 border-t border-slate-100">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Spesialisasi</p>
+                            <div class="flex flex-wrap gap-1.5">
+                                <span v-for="spec in profile.specializations" :key="spec" class="inline-flex rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200">
+                                    {{ spec }}
+                                </span>
+                            </div>
+                        </div>
+                        <!-- Legal Document -->
+                        <div class="pt-3 border-t border-slate-100">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Dokumen Legalitas</p>
+                            <a v-if="profile.legal_document_path" :href="'/storage/' + profile.legal_document_path" target="_blank" class="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition-all">
+                                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                Lihat Dokumen PDF
+                            </a>
+                            <span v-else class="text-xs text-slate-500 italic">Belum diunggah</span>
                         </div>
                     </div>
                     <div v-else class="py-4 text-center text-sm text-slate-500 italic">

@@ -39,7 +39,7 @@ class RegisteredUserController extends Controller
     {
         $settings = \Illuminate\Support\Facades\Cache::get('global_settings', []);
         if (isset($settings['registration_enabled']) && $settings['registration_enabled'] === 'false') {
-            abort(403, 'Pendaftaran akun baru saat ini sedang ditutup oleh Administrator.');
+            abort(403, 'New account registration is currently closed by the Administrator.');
         }
 
         $request->validate([
@@ -104,6 +104,6 @@ class RegisteredUserController extends Controller
         }
 
         // Mahasiswa: langsung ke login
-        return redirect(route('login'))->with('status', 'Registrasi berhasil! Silakan masuk dengan akun Anda.');
+        return redirect(route('login'))->with('status', 'Registration successful! Please log in with your account.');
     }
 }

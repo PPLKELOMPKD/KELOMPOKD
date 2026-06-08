@@ -156,11 +156,13 @@ const categoryColor = (cat) => {
 };
 
 // Apakah event sudah selesai (bisa diberi rating)
+// Gunakan field is_completed dari server yang sudah mempertimbangkan date + end_time
 const isEventCompleted = (event) => {
     if (!event) return false;
-    if (event.is_completed) return true;
+    // Server sudah menghitung ini dengan tepat berdasarkan date + end_time + timezone
+    if (event.is_completed === true) return true;
     if (event.status === 'completed') return true;
-    return new Date(event.date) < new Date(new Date().toDateString());
+    return false;
 };
 
 // Tampilkan bintang (readonly)

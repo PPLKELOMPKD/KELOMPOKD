@@ -60,6 +60,10 @@ const sisa = computed(() => {
 
 // Button state
 const buttonState = computed(() => {
+    // Event sudah selesai
+    if (props.event.is_completed) return 'completed';
+    // Event sedang berlangsung (sudah mulai tapi belum selesai)
+    if (props.event.is_started) return 'started';
     if (!props.isAuthenticated) return 'guest';
     if (!props.isMahasiswa) return 'non-mahasiswa';
     const reg = props.event.user_registration;
@@ -381,8 +385,30 @@ const visibleRatings = computed(() => {
                                 <p v-else class="text-xs text-[#DC2626] font-bold mt-1.5">Kuota penuh</p>
                             </div>
 
+                            <!-- Event Selesai → ke halaman Feedback -->
+                            <Link v-if="buttonState === 'completed'"
+                                :href="route('event.feedback')"
+                                id="btn-detail-event-selesai"
+                                class="block w-full text-center rounded-xl border border-[#FDE68A] bg-[#FFFBEB] py-3.5 text-sm font-bold text-[#92400E] hover:bg-[#FEF3C7] hover:border-[#F59E0B] transition-all flex items-center justify-center gap-2 mb-3"
+                            >
+                                <svg class="h-4 w-4 text-[#F59E0B]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                Event Selesai — Lihat Feedback
+                            </Link>
+
+                            <!-- Event Sedang Berlangsung → tidak bisa daftar -->
+                            <button v-else-if="buttonState === 'started'" type="button" disabled
+                                id="btn-detail-sedang-berlangsung"
+                                class="w-full flex items-center justify-center gap-2 rounded-xl bg-[#ECFDF5] py-3.5 text-sm font-bold text-[#059669] cursor-not-allowed border border-[#A7F3D0] mb-3"
+                            >
+                                <span class="relative flex h-2 w-2">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-[#10B981]"></span>
+                                </span>
+                                Sedang Berlangsung
+                            </button>
+
                             <!-- TC-01: Tamu -->
-                            <Link v-if="buttonState === 'guest'"
+                            <Link v-else-if="buttonState === 'guest'"
                                 :href="route('login', { role: 'mahasiswa' })"
                                 id="btn-detail-login"
                                 class="block w-full text-center rounded-xl bg-[#2563EB] py-3.5 text-sm font-bold text-white transition-all hover:bg-[#1D4ED8] hover:shadow-lg hover:shadow-[#2563EB]/20 mb-3"
@@ -436,8 +462,17 @@ const visibleRatings = computed(() => {
                             </button>
 
                             <!-- Link Event Saya -->
-                            <Link v-if="isMahasiswa" :href="route('my-events')" class="block w-full text-center rounded-xl border border-[#E2E8F0] py-2.5 text-sm font-semibold text-[#475569] hover:bg-[#F8FAFC] transition-colors">
+                            <Link v-if="isMahasiswa" :href="route('my-events')" class="block w-full text-center rounded-xl border border-[#E2E8F0] py-2.5 text-sm font-semibold text-[#475569] hover:bg-[#F8FAFC] transition-colors mb-2">
                                 Lihat Event Saya
+                            </Link>
+
+                            <!-- Link Feedback Event -->
+                            <Link :href="route('event.feedback')" id="btn-detail-feedback"
+                                class="block w-full text-center rounded-xl border border-[#FDE68A] bg-[#FFFBEB] py-2.5 text-sm font-semibold text-[#92400E] hover:bg-[#FEF3C7] hover:border-[#F59E0B] transition-all flex items-center justify-center gap-1.5">
+                                <svg class="h-3.5 w-3.5 text-[#F59E0B]" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                                Feedback Event
                             </Link>
 
                             <!-- Rating info di sidebar -->

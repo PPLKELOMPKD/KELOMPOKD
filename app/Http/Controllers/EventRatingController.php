@@ -19,13 +19,14 @@ class EventRatingController extends Controller
 
         // Guard: hanya mahasiswa
         if ($user->role !== 'mahasiswa') {
-            return back()->with('error', 'Penyelenggara event tidak dapat memberikan rating pada event sendiri.');
+            return back()->with('error', 'Event organizers cannot rate their own events.');
         }
 
-        // TC-07 / A3: Event harus sudah selesai
-        $isCompleted = $event->status === 'completed' || Carbon::parse($event->date)->startOfDay()->lt(Carbon::today());
+        // TC-07 / A3: Event harus sudah selesai (tanggal + end_time sudah terlewati)
+        $eventEndDateTime = Carbon::parse($event->date->format('Y-m-d') . ' ' . $event->end_time);
+        $isCompleted = $event->status === 'completed' || Carbon::now()->gte($eventEndDateTime);
         if (!$isCompleted) {
-            abort(403, 'Rating hanya dapat diberikan setelah event selesai dilangsungkan.');
+            abort(403, 'Ratings can only be given after the event has completed.');
         }
 
         // TC-08: Mahasiswa harus terdaftar sebagai peserta
@@ -35,7 +36,7 @@ class EventRatingController extends Controller
             ->exists();
 
         if (!$registered) {
-            abort(403, 'Anda tidak terdaftar sebagai peserta event ini.');
+            abort(403, 'You are not registered as a participant of this event.');
         }
 
         // TC-09: Cek duplikat
@@ -44,7 +45,7 @@ class EventRatingController extends Controller
             ->first();
 
         if ($existing) {
-            abort(422, 'Anda sudah pernah memberikan rating untuk event ini.');
+            abort(422, 'You have already rated this event.');
         }
 
         // Validasi input
@@ -52,10 +53,10 @@ class EventRatingController extends Controller
             'rating'  => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string|max:500',
         ], [
-            'rating.required' => 'Rating bintang wajib dipilih (1–5).',
-            'rating.min'      => 'Rating bintang wajib dipilih (1–5).',
-            'rating.max'      => 'Rating bintang wajib dipilih (1–5).',
-            'comment.max'     => 'Komentar tidak boleh melebihi 500 karakter.',
+            'rating.required' => 'Star rating is required (1-5).',
+            'rating.min'      => 'Star rating is required (1-5).',
+            'rating.max'      => 'Star rating is required (1-5).',
+            'comment.max'     => 'Comment cannot exceed 500 characters.',
         ]);
 
         EventRating::create([
@@ -71,7 +72,7 @@ class EventRatingController extends Controller
             'event'
         );
 
-        return back()->with('success', 'Rating berhasil dikirim! Terima kasih atas umpan balik Anda.');
+        return back()->with('success', 'Rating submitted successfully! Thank you for your feedback.');
     }
 
     /**
@@ -82,7 +83,7 @@ class EventRatingController extends Controller
         $user = $request->user();
 
         if ($user->role !== 'mahasiswa') {
-            return back()->with('error', 'Aksi tidak diizinkan.');
+            return back()->with('error', 'Action not authorized.');
         }
 
         $rating = EventRating::where('event_id', $event->id)
@@ -93,10 +94,10 @@ class EventRatingController extends Controller
             'rating'  => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string|max:500',
         ], [
-            'rating.required' => 'Rating bintang wajib dipilih (1–5).',
-            'rating.min'      => 'Rating bintang wajib dipilih (1–5).',
-            'rating.max'      => 'Rating bintang wajib dipilih (1–5).',
-            'comment.max'     => 'Komentar tidak boleh melebihi 500 karakter.',
+            'rating.required' => 'Star rating is required (1-5).',
+            'rating.min'      => 'Star rating is required (1-5).',
+            'rating.max'      => 'Star rating is required (1-5).',
+            'comment.max'     => 'Comment cannot exceed 500 characters.',
         ]);
 
         $rating->update([
@@ -110,6 +111,6 @@ class EventRatingController extends Controller
             'event'
         );
 
-        return back()->with('success', 'Rating berhasil diperbarui.');
+        return back()->with('success', 'Rating updated successfully.');
     }
 }

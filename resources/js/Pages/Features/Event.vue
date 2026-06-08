@@ -101,6 +101,10 @@ const batalkan = (event) => {
 
 // Button state helper
 const buttonState = (event) => {
+    // Event sudah selesai (berdasarkan tanggal + end_time)
+    if (event.is_completed) return 'completed';
+    // Event sudah dimulai tapi belum selesai
+    if (event.is_started) return 'started';
     // Tamu
     if (!props.isAuthenticated) return 'guest';
     // Non-mahasiswa
@@ -163,10 +167,22 @@ const buttonState = (event) => {
                         </Link>
                         <h1 class="text-3xl font-extrabold text-[#0F172A]">Eksplorasi <span class="text-[#2563EB]">Event</span></h1>
                     </div>
-                    <Link v-if="isMahasiswa" :href="route('my-events')" class="inline-flex items-center gap-2 rounded-xl border border-[#2563EB] text-[#2563EB] px-5 py-2.5 text-sm font-bold hover:bg-[#EFF6FF] transition-all whitespace-nowrap">
-                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1"/><path d="M4 7h16v12H4z"/><path d="M4 12h16"/></svg>
-                        Event Saya
-                    </Link>
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <!-- Button Feedback - dapat dilihat semua user -->
+                        <Link :href="route('event.feedback')" id="btn-feedback-event"
+                            class="inline-flex items-center gap-2 rounded-xl border border-[#FDE68A] bg-[#FFFBEB] text-[#92400E] px-5 py-2.5 text-sm font-bold hover:bg-[#FEF3C7] hover:border-[#F59E0B] transition-all whitespace-nowrap shadow-sm">
+                            <svg class="h-4 w-4 text-[#F59E0B]" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            Feedback
+                        </Link>
+                        <!-- Button Event Saya - hanya mahasiswa -->
+                        <Link v-if="isMahasiswa" :href="route('my-events')" id="btn-event-saya"
+                            class="inline-flex items-center gap-2 rounded-xl border border-[#2563EB] text-[#2563EB] px-5 py-2.5 text-sm font-bold hover:bg-[#EFF6FF] transition-all whitespace-nowrap">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1"/><path d="M4 7h16v12H4z"/><path d="M4 12h16"/></svg>
+                            Event Saya
+                        </Link>
+                    </div>
                 </div>
 
                 <!-- Search Card -->
@@ -212,11 +228,22 @@ const buttonState = (event) => {
                 <!-- Event Grid -->
                 <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     <div v-for="event in filteredEvents" :key="event.id"
-                        class="group flex flex-col justify-between rounded-2xl border border-[#E2E8F0] bg-white overflow-hidden transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-[#2563EB]/10 hover:border-[#CBD5E1]"
+                        class="group flex flex-col justify-between rounded-2xl border overflow-hidden transition-all hover:-translate-y-1"
+                        :class="event.is_completed
+                            ? 'border-[#FDE68A] bg-[#FFFBEB]/40 hover:shadow-xl hover:shadow-[#F59E0B]/10 hover:border-[#F59E0B]'
+                            : event.is_started
+                                ? 'border-[#A7F3D0] bg-[#ECFDF5]/40 hover:shadow-xl hover:shadow-[#10B981]/10 hover:border-[#10B981]'
+                                : 'border-[#E2E8F0] bg-white hover:shadow-xl hover:shadow-[#2563EB]/10 hover:border-[#CBD5E1]'"
                     >
                         <!-- Card Header -->
                         <div class="relative p-6 pb-4">
-                            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#10B981] to-[#34D399] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <div class="absolute top-0 left-0 right-0 h-1 transition-opacity"
+                                :class="event.is_completed
+                                    ? 'bg-gradient-to-r from-[#F59E0B] to-[#FCD34D] opacity-100'
+                                    : event.is_started
+                                        ? 'bg-gradient-to-r from-[#10B981] to-[#34D399] opacity-100'
+                                        : 'bg-gradient-to-r from-[#10B981] to-[#34D399] opacity-0 group-hover:opacity-100'"
+                            ></div>
 
                             <div class="flex items-start justify-between mb-4">
                                 <div class="flex flex-col gap-1">
@@ -226,9 +253,21 @@ const buttonState = (event) => {
                                         </div>
                                         <p class="text-xs font-bold text-[#64748B] uppercase tracking-wider">{{ event.company?.name || 'Perusahaan' }}</p>
                                     </div>
-                                    <div v-if="event.category" class="mt-1">
-                                        <span class="text-[10px] font-extrabold uppercase bg-[#F1F5F9] text-[#475569] px-2 py-0.5 rounded-md border border-[#E2E8F0]">
+                                    <div class="flex items-center gap-1 mt-1">
+                                        <span v-if="event.category" class="text-[10px] font-extrabold uppercase bg-[#F1F5F9] text-[#475569] px-2 py-0.5 rounded-md border border-[#E2E8F0]">
                                             {{ event.category }}
+                                        </span>
+                                        <!-- Badge Selesai -->
+                                        <span v-if="event.is_completed" class="text-[10px] font-extrabold uppercase bg-[#FFFBEB] text-[#92400E] px-2 py-0.5 rounded-md border border-[#FDE68A]">
+                                            Selesai
+                                        </span>
+                                        <!-- Badge Sedang Berlangsung -->
+                                        <span v-else-if="event.is_started" class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase bg-[#ECFDF5] text-[#059669] px-2 py-0.5 rounded-md border border-[#A7F3D0]">
+                                            <span class="relative flex h-1.5 w-1.5">
+                                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-75"></span>
+                                                <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#10B981]"></span>
+                                            </span>
+                                            Sedang Berlangsung
                                         </span>
                                     </div>
                                 </div>
@@ -276,6 +315,16 @@ const buttonState = (event) => {
                                         <span v-else>Kuota: Tidak Terbatas</span>
                                     </div>
                                 </div>
+                                <!-- Rating jika ada -->
+                                <div v-if="event.avg_rating" class="flex items-center gap-2">
+                                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white shadow-sm border border-[#E2E8F0]">
+                                        <svg class="h-4 w-4 text-[#F59E0B]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                    </div>
+                                    <div class="font-medium text-sm text-[#475569]">
+                                        <span class="font-bold text-[#0F172A]">{{ Number(event.avg_rating).toFixed(1) }}</span>
+                                        <span class="text-xs text-[#94A3B8] ml-1">({{ event.rating_count }} ulasan)</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -287,8 +336,31 @@ const buttonState = (event) => {
                                 Lihat Detail
                             </Link>
 
+                            <!-- Event sudah selesai → arahkan ke Feedback -->
+                            <Link v-if="buttonState(event) === 'completed'"
+                                :href="route('event.feedback')"
+                                :id="`btn-event-selesai-${event.id}`"
+                                class="w-full flex items-center justify-center gap-2 rounded-xl border border-[#FDE68A] bg-[#FFFBEB] py-3 text-center text-sm font-bold text-[#92400E] transition-all hover:bg-[#FEF3C7] hover:border-[#F59E0B]"
+                            >
+                                <svg class="h-4 w-4 text-[#F59E0B]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                Event Selesai — Lihat Feedback
+                            </Link>
+
+                            <!-- Event sedang berlangsung → tidak bisa daftar -->
+                            <button v-else-if="buttonState(event) === 'started'"
+                                type="button" disabled
+                                :id="`btn-sedang-berlangsung-${event.id}`"
+                                class="w-full flex items-center justify-center gap-2 rounded-xl bg-[#ECFDF5] py-3 text-sm font-bold text-[#059669] cursor-not-allowed border border-[#A7F3D0]"
+                            >
+                                <span class="relative flex h-2 w-2">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-[#10B981]"></span>
+                                </span>
+                                Sedang Berlangsung
+                            </button>
+
                             <!-- TC-01: Tamu → Login untuk Mendaftar -->
-                            <Link v-if="buttonState(event) === 'guest'"
+                            <Link v-else-if="buttonState(event) === 'guest'"
                                 :href="route('login', { role: 'mahasiswa' })"
                                 id="btn-login-daftar"
                                 class="w-full flex items-center justify-center gap-2 rounded-xl bg-[#2563EB] py-3 text-center text-sm font-bold text-white transition-all hover:bg-[#1D4ED8] hover:shadow-lg hover:shadow-[#2563EB]/20"

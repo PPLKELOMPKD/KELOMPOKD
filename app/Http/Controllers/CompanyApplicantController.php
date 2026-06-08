@@ -247,17 +247,17 @@ class CompanyApplicantController extends Controller
 
         // Determine notification title and message
         $notifTitle = match ($newStatus) {
-            'lolos'       => '🎉 Selamat! Anda Diterima',
-            'tidak lolos' => 'Update Status Lamaran',
-            'wawancara'   => '📋 Undangan Wawancara',
-            default       => 'Update Status Lamaran',
+            'lolos'       => '🎉 Congratulations! You Have Been Accepted',
+            'tidak lolos' => 'Application Status Update',
+            'wawancara'   => '📋 Interview Invitation',
+            default       => 'Application Status Update',
         };
 
         $notifMessage = match ($newStatus) {
-            'lolos'       => "Selamat! Lamaran Anda untuk posisi {$internshipTitle} di {$companyName} telah diterima. Silakan cek email Anda untuk informasi lebih lanjut.",
-            'tidak lolos' => "Mohon maaf, lamaran Anda untuk posisi {$internshipTitle} di {$companyName} belum dapat kami terima saat ini. Tetap semangat dan jangan ragu untuk melamar posisi lainnya!",
-            'wawancara'   => "Anda diundang untuk wawancara pada posisi {$internshipTitle} di {$companyName}. Silakan periksa email Anda untuk detail jadwal wawancara.",
-            default       => "Status lamaran Anda untuk posisi {$internshipTitle} di {$companyName} telah diperbarui menjadi {$statusLabel}.",
+            'lolos'       => "Congratulations! Your application for the {$internshipTitle} position at {$companyName} has been accepted. Please check your email for further information.",
+            'tidak lolos' => "We regret to inform you that your application for the {$internshipTitle} position at {$companyName} was not successful at this time. Keep it up and don't hesitate to apply for other positions!",
+            'wawancara'   => "You are invited for an interview for the {$internshipTitle} position at {$companyName}. Please check your email for interview schedule details.",
+            default       => "Your application status for the {$internshipTitle} position at {$companyName} has been updated to {$statusLabel}.",
         };
 
         Notification::create([
@@ -287,7 +287,7 @@ class CompanyApplicantController extends Controller
 
         $redirectRoute = $request->get('redirect', 'index');
 
-        $flashMessage = "Status pelamar berhasil diubah menjadi \"{$statusLabel}\".";
+        $flashMessage = "Applicant status has been updated to \"{$statusLabel}\".";
 
         if ($redirectRoute === 'show') {
             return redirect()
