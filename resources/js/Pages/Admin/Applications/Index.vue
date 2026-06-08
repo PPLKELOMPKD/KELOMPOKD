@@ -169,6 +169,7 @@ const initials = (name) => {
                 <input
                     v-model="searchQuery"
                     type="text"
+                    dusk="search-input"
                     placeholder="Cari nama mahasiswa, email, posisi, atau perusahaan..."
                     class="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition"
                 />
