@@ -57,6 +57,12 @@ const selectLocation = (loc) => {
     form.location = loc;
     showLocationOptions.value = false;
 };
+
+const closeLocationOptionsWithDelay = () => {
+    setTimeout(() => {
+        showLocationOptions.value = false;
+    }, 200);
+};
 </script>
 
 <template>
@@ -191,7 +197,7 @@ const selectLocation = (loc) => {
                                 v-model="form.location" 
                                 @input="filterLocations"
                                 @focus="filterLocations"
-                                @blur="setTimeout(() => showLocationOptions = false, 200)"
+                                @blur="closeLocationOptionsWithDelay"
                                 class="block w-full rounded-lg border-0 py-2.5 px-3 text-[#101828] shadow-sm ring-1 ring-inset ring-[#d0d5dd] placeholder:text-[#98a2b3] focus:ring-2 focus:ring-inset focus:ring-[#10B981] sm:text-sm sm:leading-6" 
                                 placeholder="Misal: Jakarta Selatan / WFA"
                                 autocomplete="off"
