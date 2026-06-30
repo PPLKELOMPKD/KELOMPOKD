@@ -241,7 +241,11 @@ const daysLeft = (d) => {
                         </h4>
                         <p class="text-sm text-[#64748B] mt-1">Lengkapi profil skill Anda agar sistem dapat merekomendasikan lowongan yang paling cocok dengan keahlian Anda.</p>
                     </div>
-                    <Link class="shrink-0 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-700 transition-colors shadow-md shadow-blue-600/20">
+                    <Link
+                        :href="route('profile.show')"
+                        dusk="lengkapi-skill-button"
+                        class="shrink-0 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-700 transition-colors shadow-md shadow-blue-600/20"
+                    >
                         Lengkapi Skill
                     </Link>
                 </div>
@@ -320,6 +324,7 @@ const daysLeft = (d) => {
                             <div class="px-6 pb-5 mt-auto">
                         <div class="flex items-center gap-2">
                             <Link 
+                                :dusk="'rec-detail-' + internship.id"
                                 :href="$page.props.auth.user ? route('internships.show', internship.id) : route('login', { role: 'mahasiswa' })" 
                                 class="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#0F172A] py-2.5 text-center text-sm font-bold text-white transition-all hover:bg-[#2563EB] hover:shadow-lg hover:shadow-[#2563EB]/20"
                             >

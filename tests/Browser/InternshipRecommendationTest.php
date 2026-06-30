@@ -4,6 +4,7 @@ namespace Tests\Browser;
 
 use App\Models\User;
 use App\Models\Internship;
+use App\Models\Application;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
@@ -147,6 +148,162 @@ class InternshipRecommendationTest extends DuskTestCase
                     ->assertSeeIn('[dusk="recommendation-grid"] > div:nth-child(1) h3', 'Fullstack Developer Web (Vue.js, Laravel, PHP)')
                     // Asersi Lowongan Y (kecocokan 1 skill) berada di urutan kedua (anak kedua dari grid)
                     ->assertSeeIn('[dusk="recommendation-grid"] > div:nth-child(2) h3', 'Frontend Junior (Vue.js)');
+        });
+    }
+
+    /**
+     * TC-04: Sembunyikan Lowongan yang Sudah Dilamar
+     */
+    public function test_tc04_recommendations_exclude_applied()
+    {
+        $student = User::factory()->create([
+            'role' => 'mahasiswa',
+            'name' => 'Budi Santoso',
+        ]);
+
+        $student->skills()->create(['name' => 'PHP', 'proficiency' => 4]);
+
+        $internshipA = Internship::query()->create([
+            'company_id' => null,
+            'title' => 'Backend Developer PHP A',
+            'company_name' => 'PT A',
+            'location' => 'Jakarta',
+            'description' => 'Membangun REST API.',
+            'requirements' => 'Keahlian: PHP.',
+            'work_type' => 'Magang',
+            'deadline_at' => now()->addDays(5),
+            'quota' => 2,
+            'is_published' => true,
+            'moderation_status' => 'approved',
+        ]);
+
+        $internshipB = Internship::query()->create([
+            'company_id' => null,
+            'title' => 'Backend Developer PHP B',
+            'company_name' => 'PT B',
+            'location' => 'Jakarta',
+            'description' => 'Membangun REST API.',
+            'requirements' => 'Keahlian: PHP.',
+            'work_type' => 'Magang',
+            'deadline_at' => now()->addDays(5),
+            'quota' => 2,
+            'is_published' => true,
+            'moderation_status' => 'approved',
+        ]);
+
+        // Student has already applied for Internship A
+        Application::query()->create([
+            'user_id' => $student->id,
+            'internship_id' => $internshipA->id,
+            'status' => 'submitted',
+        ]);
+
+        $this->browse(function (Browser $browser) use ($student) {
+            $browser->loginAs($student)
+                    ->visit('/lowongan')
+                    ->waitForText('Rekomendasi Teratas Untukmu')
+                    // Backend PHP B should appear in recommendations (not applied)
+                    ->assertSeeIn('[dusk="recommendation-grid"]', 'Backend Developer PHP B')
+                    // Backend PHP A should NOT appear in recommendations (already applied)
+                    ->assertDontSeeIn('[dusk="recommendation-grid"]', 'Backend Developer PHP A');
+        });
+    }
+
+    /**
+     * TC-05: Sembunyikan Rekomendasi dari Role Non-Mahasiswa
+     */
+    public function test_tc05_recommendations_hidden_for_non_mahasiswa()
+    {
+        $perusahaan = User::factory()->create([
+            'role' => 'perusahaan',
+            'name' => 'PT Makmur',
+        ]);
+
+        // Add an internship so catalog shows
+        Internship::query()->create([
+            'company_id' => null,
+            'title' => 'PHP Developer Intern',
+            'company_name' => 'PT Nusantara',
+            'location' => 'Jakarta',
+            'description' => 'Membangun REST API.',
+            'requirements' => 'PHP.',
+            'work_type' => 'Magang',
+            'deadline_at' => now()->addDays(5),
+            'quota' => 2,
+            'is_published' => true,
+            'moderation_status' => 'approved',
+        ]);
+
+        $this->browse(function (Browser $browser) use ($perusahaan) {
+            $browser->loginAs($perusahaan)
+                    ->visit('/lowongan')
+                    ->waitForText('Temukan Pekerjaan Impianmu') // Main page heading always visible
+                    // For non-mahasiswa, the recommendations results section ('Rekomendasi Teratas Untukmu')
+                    // should NOT appear since backend only builds recommendations for mahasiswa role
+                    ->assertDontSee('Rekomendasi Teratas Untukmu');
+        });
+    }
+
+    /**
+     * TC-06: Klik Kartu Rekomendasi Mengarah ke Detail Lowongan
+     */
+    public function test_tc06_recommendation_click_redirects_to_detail()
+    {
+        $student = User::factory()->create([
+            'role' => 'mahasiswa',
+            'name' => 'Budi Santoso',
+        ]);
+
+        $student->skills()->create(['name' => 'PHP', 'proficiency' => 4]);
+
+        $internship = Internship::query()->create([
+            'company_id' => null,
+            'title' => 'Backend Developer PHP',
+            'company_name' => 'PT SIKARA',
+            'location' => 'Jakarta',
+            'description' => 'Membangun REST API.',
+            'requirements' => 'PHP.',
+            'work_type' => 'Magang',
+            'deadline_at' => now()->addDays(5),
+            'quota' => 2,
+            'is_published' => true,
+            'moderation_status' => 'approved',
+        ]);
+
+        $this->browse(function (Browser $browser) use ($student, $internship) {
+            $browser->loginAs($student)
+                    ->visit('/lowongan')
+                    ->waitForText('Rekomendasi Teratas Untukmu')
+                    ->click('@rec-detail-' . $internship->id)
+                    ->waitForText('Deskripsi Pekerjaan')
+                    ->assertPathIs('/internships/' . $internship->id)
+                    ->assertSee('Backend Developer PHP');
+        });
+    }
+
+    /**
+     * TC-07: Redirect Button Lengkapi Skill ke Halaman Profil
+     */
+    public function test_tc07_empty_skills_banner_redirects_to_profile()
+    {
+        $student = User::factory()->create([
+            'role' => 'mahasiswa',
+            'name' => 'Budi Santoso',
+        ]);
+
+        $this->browse(function (Browser $browser) use ($student) {
+            $browser->loginAs($student)
+                    ->visit('/lowongan')
+                    ->waitForText('Dapatkan Rekomendasi Akurat!')
+                    ->assertPresent('[dusk="lengkapi-skill-button"]')
+                    ->scrollTo('[dusk="lengkapi-skill-button"]')
+                    ->waitFor('[dusk="lengkapi-skill-button"]')
+                    // Use tap() to run JS click inline without breaking chain
+                    ->tap(function ($browser) {
+                        $browser->script('document.querySelector("[dusk=\'lengkapi-skill-button\']").click()');
+                    })
+                    ->waitForLocation('/profile')
+                    ->assertPathIs('/profile');
         });
     }
 }

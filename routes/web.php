@@ -132,9 +132,6 @@ Route::get('/event-feedback', function () {
     $isMahasiswa    = $user && $user->role === 'mahasiswa';
     $now            = \Carbon\Carbon::now();
 
-    // Ambil semua event yang sudah selesai:
-    // 1. Status 'completed' ATAU
-    // 2. Status 'published' & moderation 'approved' & datetime (date + end_time) sudah lewat
     $completedEvents = \App\Models\Event::with(['company', 'company.perusahaanProfile'])
         ->where('moderation_status', 'approved')
         ->where(function ($q) use ($now) {

@@ -29,6 +29,7 @@ defineProps({
 
                     <Link
                         v-if="!item.read_at"
+                        dusk="mark-read-button"
                         :href="route('notifications.read', item.id)"
                         method="post"
                         as="button"

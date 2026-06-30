@@ -114,6 +114,7 @@ const apply = (id) => {
                         </button>
 
                         <Link
+                            :dusk="'detail-' + internship.id"
                             :href="route('internships.show', internship.id)"
                             class="flex h-11 items-center justify-center rounded-xl border border-[#d0d5dd] bg-white px-4 text-sm font-medium text-[#344054] hover:bg-gray-50 transition-colors cursor-pointer"
                         >
