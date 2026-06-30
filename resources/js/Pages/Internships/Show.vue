@@ -218,6 +218,7 @@ const getTypeColor = (type) => typeColors[type] || typeColors['Magang'];
 
                         <!-- Apply Button -->
                         <button
+                            dusk="apply-button"
                             :disabled="props.hasApplied || props.isExpired || form.processing"
                             :class="[
                                 'flex w-full h-14 items-center justify-center rounded-xl px-6 text-base font-bold text-white transition-all',

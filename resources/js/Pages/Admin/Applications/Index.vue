@@ -147,6 +147,7 @@ const initials = (name) => {
                 <button
                     v-for="tab in tabs"
                     :key="tab.key"
+                    :dusk="'app-tab-' + tab.key"
                     @click="changeFilter(tab.key)"
                     class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold transition-all duration-200 whitespace-nowrap"
                     :class="activeTab === tab.key

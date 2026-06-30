@@ -70,6 +70,7 @@ const roleMeta = {
                             v-for="roleOption in roles"
                             :key="roleOption.value"
                             type="button"
+                            :dusk="'role-' + roleOption.value"
                             class="group relative flex flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border p-3 transition-all duration-300 ease-out hover:-translate-y-1 focus:outline-none"
                             :class="form.role === roleOption.value 
                                 ? 'border-indigo-600 bg-indigo-50/50 shadow-md shadow-indigo-100 ring-1 ring-indigo-600' 

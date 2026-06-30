@@ -140,6 +140,7 @@ const getAvatarColor = (name) => {
 
                         <!-- Detail Button -->
                         <Link
+                            :dusk="'track-detail-' + app.internship.id"
                             :href="route('internships.show', app.internship.id)"
                             class="inline-flex h-9 items-center justify-center rounded-lg bg-[#2563EB] px-5 text-sm font-semibold text-white transition-all hover:bg-[#1d4ed8] hover:shadow-md hover:shadow-blue-500/20"
                         >

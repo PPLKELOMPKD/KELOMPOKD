@@ -167,6 +167,7 @@ const isExpired = (dateStr) => {
                 <button
                     v-for="tab in tabs"
                     :key="tab.key"
+                    :dusk="'moderation-tab-' + tab.key"
                     @click="changeFilter(tab.key)"
                     class="flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition-all duration-200 whitespace-nowrap"
                     :class="activeTab === tab.key
