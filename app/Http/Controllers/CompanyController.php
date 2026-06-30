@@ -66,6 +66,13 @@ class CompanyController extends Controller
             'office_address' => ['required', 'string', 'max:1000'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
             'cover' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:4096'],
+            'contact_email' => ['nullable', 'email', 'max:255'],
+            'instagram' => ['nullable', 'string', 'max:255'],
+            'linkedin' => ['nullable', 'string', 'max:255'],
+            'gallery_files' => ['nullable', 'array'],
+            'gallery_files.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'deleted_gallery_photos' => ['nullable', 'array'],
+            'deleted_gallery_photos.*' => ['string'],
         ]);
 
         $company = $request->user();
@@ -85,6 +92,24 @@ class CompanyController extends Controller
             $validated['cover_path'] = '/storage/' . $request->file('cover')->store('company-profiles/covers', 'public');
         }
 
+        // Handle gallery deletions and additions
+        $gallery = $profile->gallery_photos ?? [];
+
+        if ($request->has('deleted_gallery_photos')) {
+            $toDelete = $request->input('deleted_gallery_photos');
+            foreach ($toDelete as $photoPath) {
+                $this->deleteLocalProfileImage($photoPath);
+                $gallery = array_values(array_diff($gallery, [$photoPath]));
+            }
+        }
+
+        if ($request->hasFile('gallery_files')) {
+            foreach ($request->file('gallery_files') as $file) {
+                $path = '/storage/' . $file->store('company-profiles/gallery', 'public');
+                $gallery[] = $path;
+            }
+        }
+
         $profile->fill([
             'industry' => $validated['industry'] ?? null,
             'location' => $validated['location'] ?? null,
@@ -98,6 +123,10 @@ class CompanyController extends Controller
             'office_address' => $validated['office_address'],
             'logo_path' => $validated['logo_path'] ?? $profile->logo_path,
             'cover_path' => $validated['cover_path'] ?? $profile->cover_path,
+            'contact_email' => $validated['contact_email'] ?? null,
+            'instagram' => $validated['instagram'] ?? null,
+            'linkedin' => $validated['linkedin'] ?? null,
+            'gallery_photos' => $gallery,
         ]);
 
         $company->perusahaanProfile()->save($profile);

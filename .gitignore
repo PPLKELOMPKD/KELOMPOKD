@@ -39,3 +39,10 @@ Thumbs.db
 # Test files
 /test_*.php
 /phpunit.xml
+
+# Debug/temporary files
+dusk_debug_*.txt
+dusk_debug_*.json
+tc_usermgmt_*.html
+/list_dbs.php
+/tmp/

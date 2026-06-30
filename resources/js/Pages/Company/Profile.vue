@@ -28,11 +28,15 @@ const editSections = {
     },
     companyInfo: {
         title: 'Edit Informasi Perusahaan',
-        description: 'Perbarui tahun berdiri, jumlah karyawan, dan spesialisasi.',
+        description: 'Perbarui tahun berdiri, jumlah karyawan, and spesialisasi.',
     },
     contact: {
         title: 'Edit Kontak & Lokasi',
-        description: 'Perbarui alamat kantor perusahaan.',
+        description: 'Perbarui alamat kantor, email kontak, dan media sosial.',
+    },
+    gallery: {
+        title: 'Edit Galeri Kantor',
+        description: 'Tambah atau hapus foto galeri kantor perusahaan.',
     },
 };
 
@@ -67,6 +71,11 @@ const form = useForm({
     employee_count: props.company.profile?.employee_count || '',
     specializations: specializationsToText(props.company.profile?.specializations),
     office_address: props.company.profile?.office_address || '',
+    contact_email: props.company.profile?.contact_email || '',
+    instagram: props.company.profile?.instagram || '',
+    linkedin: props.company.profile?.linkedin || '',
+    gallery_files: [],
+    deleted_gallery_photos: [],
     logo: null,
     cover: null,
 });
@@ -80,11 +89,52 @@ const openEditModal = (section = 'identity') => {
     showEditModal.value = true;
 };
 
+const newGalleryPreviews = ref([]);
+
 const closeEditModal = () => {
     showEditModal.value = false;
     form.clearErrors();
     form.logo = null;
     form.cover = null;
+    form.gallery_files = [];
+    form.deleted_gallery_photos = [];
+    newGalleryPreviews.value.forEach(p => URL.revokeObjectURL(p.url));
+    newGalleryPreviews.value = [];
+};
+
+const handleGalleryUploads = (event) => {
+    const files = Array.from(event.target.files || []);
+    form.gallery_files = [...form.gallery_files, ...files];
+    
+    files.forEach(file => {
+        newGalleryPreviews.value.push({
+            file,
+            url: URL.createObjectURL(file)
+        });
+    });
+};
+
+const removeExistingPhoto = (photoPath) => {
+    if (!form.deleted_gallery_photos.includes(photoPath)) {
+        form.deleted_gallery_photos.push(photoPath);
+    }
+};
+
+const cancelRemoveExistingPhoto = (photoPath) => {
+    form.deleted_gallery_photos = form.deleted_gallery_photos.filter(p => p !== photoPath);
+};
+
+const isPhotoDeleted = (photoPath) => {
+    return form.deleted_gallery_photos.includes(photoPath);
+};
+
+const removeNewPhoto = (index) => {
+    const preview = newGalleryPreviews.value[index];
+    if (preview) {
+        URL.revokeObjectURL(preview.url);
+    }
+    newGalleryPreviews.value.splice(index, 1);
+    form.gallery_files.splice(index, 1);
 };
 
 const submitProfile = () => {
@@ -214,18 +264,20 @@ onBeforeUnmount(() => {
                     </section>
 
                     <!-- Galeri Kantor -->
-                    <section>
-                        <h2 class="text-2xl font-bold text-[#0b1c30] mb-6">Galeri Kantor</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="h-64 rounded-2xl overflow-hidden shadow-md group bg-slate-100">
-                                <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop" />
+                    <section class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm mb-12">
+                        <div class="mb-6 flex items-center justify-between gap-4 border-l-4 border-[#004ac6] pl-4">
+                            <h2 class="text-2xl font-bold text-[#0b1c30]">Galeri Kantor</h2>
+                            <button v-if="isOwner" @click="openEditModal('gallery')" type="button" class="flex h-10 w-10 items-center justify-center rounded-full bg-[#eff4ff] text-[#004ac6] transition-colors hover:bg-[#d3e4fe]" aria-label="Edit galeri kantor" title="Edit galeri kantor">
+                                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                            </button>
+                        </div>
+                        <div v-if="company.profile?.gallery_photos && company.profile.gallery_photos.length > 0" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div v-for="(photo, index) in company.profile.gallery_photos" :key="index" class="h-64 rounded-2xl overflow-hidden shadow-md group bg-slate-100 relative">
+                                <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" :src="photo" :alt="company.name" />
                             </div>
-                            <div class="h-64 rounded-2xl overflow-hidden shadow-md group bg-slate-100">
-                                <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://images.unsplash.com/photo-1556761175-5973dc0f32b7?q=80&w=1932&auto=format&fit=crop" />
-                            </div>
-                            <div class="h-64 rounded-2xl overflow-hidden shadow-md group bg-slate-100">
-                                <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=2070&auto=format&fit=crop" />
-                            </div>
+                        </div>
+                        <div v-else class="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center text-slate-500">
+                            Belum ada foto galeri kantor.
                         </div>
                     </section>
 
@@ -321,13 +373,27 @@ onBeforeUnmount(() => {
                                 </div>
                             </div>
                             <div>
-                                <p class="text-xs text-slate-500 tracking-wider font-semibold mb-3">MEDIA SOSIAL</p>
-                                <div class="flex gap-3">
-                                    <a class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 hover:bg-[#004ac6] hover:text-white transition-all duration-300" href="#">
-                                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                                <p class="text-xs text-slate-500 tracking-wider font-semibold mb-3">KONTAK &amp; MEDIA SOSIAL</p>
+                                <div class="flex flex-wrap gap-3">
+                                    <a v-if="company.profile?.instagram" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 hover:bg-[#E1306C] hover:text-white transition-all duration-300" :href="company.profile.instagram.startsWith('http') ? company.profile.instagram : 'https://instagram.com/' + company.profile.instagram" target="_blank" title="Instagram">
+                                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                                        </svg>
                                     </a>
-                                    <a class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 hover:bg-[#004ac6] hover:text-white transition-all duration-300" :href="'mailto:' + company.email">
-                                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"/></svg>
+                                    <a v-if="company.profile?.linkedin" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 hover:bg-[#0077B5] hover:text-white transition-all duration-300" :href="company.profile.linkedin.startsWith('http') ? company.profile.linkedin : 'https://linkedin.com/in/' + company.profile.linkedin" target="_blank" title="LinkedIn">
+                                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+                                            <rect x="2" y="9" width="4" height="12"/>
+                                            <circle cx="4" cy="4" r="2"/>
+                                        </svg>
+                                    </a>
+                                    <a class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 hover:bg-[#004ac6] hover:text-white transition-all duration-300" :href="'mailto:' + (company.profile?.contact_email || company.email)" title="Email Kontak">
+                                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                            <polyline points="22,6 12,13 2,6"/>
+                                        </svg>
                                     </a>
                                 </div>
                             </div>
@@ -415,10 +481,109 @@ onBeforeUnmount(() => {
                         </div>
                     </div>
 
-                    <div v-if="activeEditSection === 'contact'">
-                        <label class="mb-2 block text-sm font-bold text-[#0b1c30]">Alamat Kantor</label>
-                        <textarea v-model="form.office_address" rows="3" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-[#004ac6] focus:ring-[#004ac6]"></textarea>
-                        <p v-if="form.errors.office_address" class="mt-1 text-sm text-red-600">{{ form.errors.office_address }}</p>
+                    <div v-if="activeEditSection === 'contact'" class="space-y-5">
+                        <div>
+                            <label class="mb-2 block text-sm font-bold text-[#0b1c30]">Alamat Kantor</label>
+                            <textarea v-model="form.office_address" rows="3" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-[#004ac6] focus:ring-[#004ac6]"></textarea>
+                            <p v-if="form.errors.office_address" class="mt-1 text-sm text-red-600">{{ form.errors.office_address }}</p>
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-bold text-[#0b1c30]">Email Kontak</label>
+                            <input v-model="form.contact_email" type="email" placeholder="hr@perusahaan.com" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-[#004ac6] focus:ring-[#004ac6]" />
+                            <p v-if="form.errors.contact_email" class="mt-1 text-sm text-red-600">{{ form.errors.contact_email }}</p>
+                        </div>
+                        <div class="grid gap-5 md:grid-cols-2">
+                            <div>
+                                <label class="mb-2 block text-sm font-bold text-[#0b1c30]">Instagram Link / Username</label>
+                                <input v-model="form.instagram" type="text" placeholder="https://instagram.com/username" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-[#004ac6] focus:ring-[#004ac6]" />
+                                <p v-if="form.errors.instagram" class="mt-1 text-sm text-red-600">{{ form.errors.instagram }}</p>
+                            </div>
+                            <div>
+                                <label class="mb-2 block text-sm font-bold text-[#0b1c30]">LinkedIn Link / Username</label>
+                                <input v-model="form.linkedin" type="text" placeholder="https://linkedin.com/company/nama-perusahaan" class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-[#004ac6] focus:ring-[#004ac6]" />
+                                <p v-if="form.errors.linkedin" class="mt-1 text-sm text-red-600">{{ form.errors.linkedin }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="activeEditSection === 'gallery'" class="space-y-6">
+                        <!-- Existing Photos -->
+                        <div>
+                            <label class="mb-3 block text-sm font-bold text-[#0b1c30]">Foto Galeri Saat Ini</label>
+                            <div v-if="company.profile?.gallery_photos && company.profile.gallery_photos.length > 0" class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                <div 
+                                    v-for="(photo, index) in company.profile.gallery_photos" 
+                                    :key="index" 
+                                    class="relative h-32 rounded-xl overflow-hidden shadow-sm bg-slate-100 group border"
+                                    :class="{'opacity-40 border-red-500': isPhotoDeleted(photo)}"
+                                >
+                                    <img class="w-full h-full object-cover" :src="photo" />
+                                    <!-- Delete Button Overlay -->
+                                    <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button 
+                                            v-if="!isPhotoDeleted(photo)"
+                                            @click="removeExistingPhoto(photo)" 
+                                            type="button" 
+                                            class="bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition-colors shadow-md"
+                                            title="Tandai Hapus"
+                                        >
+                                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                        </button>
+                                        <button 
+                                            v-else
+                                            @click="cancelRemoveExistingPhoto(photo)" 
+                                            type="button" 
+                                            class="bg-slate-700 text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 transition-colors text-xs font-bold shadow-md"
+                                        >
+                                            Batal Hapus
+                                        </button>
+                                    </div>
+                                    <span v-if="isPhotoDeleted(photo)" class="absolute top-2 left-2 bg-red-600 text-white text-[10px] px-2 py-0.5 rounded-md font-bold">Akan Dihapus</span>
+                                </div>
+                            </div>
+                            <p v-else class="text-sm text-slate-500 italic bg-slate-50 rounded-xl p-4 border border-dashed text-center">Belum ada foto galeri.</p>
+                        </div>
+
+                        <!-- Upload New Photos -->
+                        <div>
+                            <label class="mb-2 block text-sm font-bold text-[#0b1c30]">Unggah Foto Baru</label>
+                            
+                            <!-- File Input Area -->
+                            <div class="relative border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-[#004ac6] transition-colors cursor-pointer bg-slate-50">
+                                <input 
+                                    @change="handleGalleryUploads" 
+                                    type="file" 
+                                    multiple 
+                                    accept="image/png,image/jpeg,image/webp" 
+                                    class="absolute inset-0 opacity-0 cursor-pointer" 
+                                />
+                                <svg class="mx-auto h-10 w-10 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M12 16V6" />
+                                    <path d="m7 11 5-5 5 5" />
+                                    <path d="M4 18v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1" />
+                                </svg>
+                                <p class="mt-2 text-sm font-semibold text-[#0b1c30]">Klik untuk Pilih Berkas Foto</p>
+                                <p class="text-xs text-slate-500 mt-1">Mendukung JPG, PNG, WebP maksimal 2MB per file</p>
+                            </div>
+                            
+                            <!-- New Photos Preview -->
+                            <div v-if="newGalleryPreviews.length > 0" class="mt-4">
+                                <p class="text-xs text-slate-500 font-bold mb-2 uppercase">Foto Baru Akan Diunggah ({{ newGalleryPreviews.length }})</p>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                    <div v-for="(preview, index) in newGalleryPreviews" :key="index" class="relative h-32 rounded-xl overflow-hidden shadow-sm bg-slate-100 border border-slate-200">
+                                        <img class="w-full h-full object-cover" :src="preview.url" />
+                                        <button 
+                                            @click="removeNewPhoto(index)" 
+                                            type="button" 
+                                            class="absolute top-2 right-2 bg-red-600 text-white p-1.5 rounded-full hover:bg-red-700 transition-colors shadow-md"
+                                            title="Batalkan Unggah"
+                                        >
+                                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div v-if="activeEditSection === 'companyInfo'">

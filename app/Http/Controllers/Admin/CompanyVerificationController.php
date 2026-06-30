@@ -199,12 +199,28 @@ class CompanyVerificationController extends Controller
             );
         });
 
+        $emailSent = false;
+        if ($newStatus === 'active') {
+            $emailSent = app(\App\Services\AutomatedMailService::class)->sendCompanyVerified($user);
+        } elseif ($newStatus === 'banned') {
+            $emailSent = app(\App\Services\AutomatedMailService::class)->sendCompanyRejected($user, $validated['reason'] ?? null);
+        }
+
         $messages = [
             'active'   => "Company \"{$user->name}\" has been successfully verified and activated.",
             'inactive' => "Verification for company \"{$user->name}\" has been successfully revoked.",
             'banned'   => "Company \"{$user->name}\" has been successfully banned.",
         ];
 
-        return back()->with('success', $messages[$newStatus]);
+        $flashMessage = $messages[$newStatus];
+        if ($newStatus !== 'inactive') {
+            if ($emailSent) {
+                $flashMessage .= ' Notification email sent successfully.';
+            } else {
+                $flashMessage .= ' (Notification email failed to send)';
+            }
+        }
+
+        return back()->with('success', $flashMessage);
     }
 }

@@ -19,6 +19,9 @@ class EnsureCompanyIsVerified
         $user = $request->user();
 
         if ($user && $user->isPerusahaan() && $user->status !== 'active') {
+            if ($request->expectsJson() || $request->ajax() || $request->isJson() || !$request->isMethod('get')) {
+                abort(403, 'Your company account is not verified yet.');
+            }
             // Arahkan ke halaman pending verifikasi admin
             return redirect()->route('perusahaan.pending-verification');
         }

@@ -433,32 +433,17 @@ const submitSkill = () => {
                                 </div>
                             </div>
 
-                            <div class="mt-auto space-y-4 pt-8">
+                            <div class="mt-auto pt-8">
                                 <a
                                     :href="route('cv.download')"
                                     class="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#2563EB] px-4 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(37,99,235,0.18)] transition hover:bg-blue-700"
-                                >
-                                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
-                                        <path d="M12 3v3" />
-                                        <path d="M12 18v3" />
-                                        <path d="M4.2 7.5 6.8 9" />
-                                        <path d="m17.2 15 2.6 1.5" />
-                                        <path d="m19.8 7.5-2.6 1.5" />
-                                        <path d="M6.8 15l-2.6 1.5" />
-                                        <path d="m9 12 2 2 4-5" />
-                                    </svg>
-                                    Generate CV Otomatis
-                                </a>
-                                <a
-                                    :href="route('cv.download')"
-                                    class="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-[#0F172A] transition hover:bg-slate-50"
                                 >
                                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
                                         <path d="M12 3v12" />
                                         <path d="m7 10 5 5 5-5" />
                                         <path d="M5 21h14" />
                                     </svg>
-                                    Unduh CV
+                                    Unduh CV (PDF)
                                 </a>
                             </div>
                         </section>

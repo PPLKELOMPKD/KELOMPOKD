@@ -61,8 +61,9 @@ class ApplicationController extends Controller
             ]);
         }
 
+        $emailSent = false;
         try {
-            $mailService->sendApplicationSubmittedToCompany($application);
+            $emailSent = $mailService->sendApplicationSubmittedToCompany($application);
         } catch (Throwable $exception) {
             Log::error('Application submission email flow failed.', [
                 'application_id' => $application->id,
@@ -70,6 +71,13 @@ class ApplicationController extends Controller
             ]);
         }
 
-        return redirect()->route('internships.index')->with('success', 'Application sent successfully!');
+        $flashMessage = 'Application sent successfully!';
+        if ($emailSent) {
+            $flashMessage .= ' Notification email sent to company.';
+        } else {
+            $flashMessage .= ' (Notification email failed to send)';
+        }
+
+        return redirect()->route('internships.index')->with('success', $flashMessage);
     }
 }

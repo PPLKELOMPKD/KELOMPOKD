@@ -9,6 +9,7 @@ use App\Services\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -34,6 +35,7 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
+        \Illuminate\Support\Facades\Log::info("Login attempt for email: " . $request->email);
         $settings = \Illuminate\Support\Facades\Cache::get('global_settings', []);
         
         if (isset($settings['maintenance_mode']) && $settings['maintenance_mode'] === 'true') {
@@ -56,6 +58,7 @@ class AuthenticatedSessionController extends Controller
         // Perusahaan dengan status inactive diperbolehkan login, namun hanya bisa
         // melihat halaman pending verifikasi admin. Status banned tetap diblokir.
         if ($user->status === 'banned') {
+            \Illuminate\Support\Facades\Log::info("User is banned! Logging out and throwing exception.");
             Auth::guard('web')->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
